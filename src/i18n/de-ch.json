@@ -38,8 +38,8 @@
     "menu": "Menü",
     "enabled": "aktiviert",
     "disabled": "deaktiviert",
-    "loading": "Lädt...",
-    "please_wait": "Bitte warten...",
+    "loading": "Lädt…",
+    "please_wait": "Bitte warten…",
     "information": "Information",
     "error": "Fehler",
     "warning": "Warnung",
@@ -147,7 +147,7 @@
     "new_column_title": "Neue Spalte",
     "new_column_placeholder": "Spaltenname",
     "list": {
-      "filter_placeholder": "Nach Boardname filtern...",
+      "filter_placeholder": "Nach Boardname filtern…",
       "no_boards": "Noch keine Kanban-Boards.",
       "hint": "Aktivieren Sie die Kanban-Ansicht für einen Ordner, damit er hier erscheint."
     },
@@ -165,7 +165,7 @@
     },
     "move_all": {
       "same_source_target": "Quell- und Zielordner können nicht identisch sein",
-      "moving": "Verschiebe...",
+      "moving": "Verschiebe…",
       "files_count_singular": "1 Datei wird verschoben",
       "files_count_plural": "{{count}} Dateien werden verschoben",
       "empty_folder": "Dieser Ordner ist leer",
@@ -207,10 +207,10 @@
       "modal_message": "Unterordnername eingeben (innerhalb von {{parent}})"
     },
     "move": {
-      "moving": "Verschieben...",
+      "moving": "Verschieben…",
       "success": "Ordner \"{{folder}}\" erfolgreich verschoben"
     },
-    "filter_placeholder": "Nach Ordnername filtern...",
+    "filter_placeholder": "Nach Ordnername filtern…",
     "no_folders": "Noch keine Ordner."
   },
   "modal_alerts": {
@@ -228,10 +228,10 @@
       "toolbar": {
         "save_and_exit": "Speichern und beenden",
         "exit_without_saving": "Beenden ohne zu speichern",
-        "saving": "Speichere...",
+        "saving": "Speichere…",
         "saved": "Gespeichert!"
       },
-      "loading": "Poznote Excalidraw wird geladen...",
+      "loading": "Poznote Excalidraw wird geladen…",
       "alerts": {
         "editor_not_ready": "Editor nicht bereit",
         "error_prefix": "Fehler: {{error}}"
@@ -245,10 +245,10 @@
     }
   },
   "note_reference": {
-    "loading": "Lädt...",
+    "loading": "Lädt…",
     "untitled": "Ohne Titel",
     "modal": {
-      "search_placeholder": "Nach einer Notiz suchen...",
+      "search_placeholder": "Nach einer Notiz suchen…",
       "recent_notes": "Kürzliche Notizen",
       "create_button": "Erstellen & verlinken",
       "all_workspaces": "In allen Arbeitsbereichen suchen"
@@ -272,8 +272,8 @@
   "attachments": {
     "empty": "Keine Anhänge.",
     "upload": {
-      "button_uploading": "Wird hochgeladen...",
-      "uploading": "Wird hochgeladen..."
+      "button_uploading": "Wird hochgeladen…",
+      "uploading": "Wird hochgeladen…"
     },
     "actions": {
       "view": "Anzeigen",
@@ -323,7 +323,7 @@
       "all_types_accepted": "Alle Dateitypen akzeptiert (max 200MB)",
       "upload_button": "Anhängen",
       "current_attachments": "Aktuelle Anhänge",
-      "loading_attachments": "Anhänge werden geladen...",
+      "loading_attachments": "Anhänge werden geladen…",
       "preview_alt": "Vorschau",
       "uploaded_prefix": "Hochgeladen: ",
       "open_in_new_tab": "In neuem Tab öffnen",
@@ -352,7 +352,7 @@
       "attachment_count_singular": "1 Anhang",
       "attachment_count_plural": "{{count}} Anhänge",
       "hint": "Fügen Sie Ihren Notizen Anhänge hinzu, indem Sie auf das Büroklammer-Symbol in der Symbolleiste klicken.",
-      "filter_placeholder": "Nach Notizentitel oder Anhangsname filtern...",
+      "filter_placeholder": "Nach Notizentitel oder Anhangsname filtern…",
       "no_filter_results": "Keine Notizen entsprechen Ihrer Suche.",
       "show_thumbnails": "Vorschaubilder in dieser Liste anzeigen",
       "show_inline_images": "Auch Bilder anzeigen, die bereits im Notizinhalt sichtbar sind",
@@ -373,9 +373,9 @@
       "title": "Anhang verschieben",
       "description": "Wählen Sie die Notiz, die «{{filename}}» erhält.",
       "description_unnamed": "Wählen Sie die Notiz, die diesen Anhang erhält.",
-      "search_placeholder": "Notiz suchen...",
+      "search_placeholder": "Notiz suchen…",
       "empty": "Keine andere Notiz gefunden",
-      "moving": "Wird verschoben...",
+      "moving": "Wird verschoben…",
       "kept_notice": "Eine Kopie bleibt in dieser Notiz, deren Inhalt die Datei verwendet."
     },
     "image_drop": {
@@ -438,7 +438,7 @@
       "code_line_numbers": "Zeilennummern in Codeblöcken in der Markdown-Vorschau anzeigen.",
       "attachment_previews": "Zeigen Sie Vorschauen von Anhängen in Notizen an.",
       "attachments_at_bottom": "Zeigen Sie den Anhangsbereich unten statt oben in Notizen an.",
-      "allow_executable_attachments": "Erlaubt Skripte und ausführbare Dateien (.sh, .ps1, .bat, .exe, .py, ...) als Anhang, für alle Konten dieser Instanz. Poznote führt sie nie aus, es speichert und liefert sie nur aus. Dateitypen, die ein Webserver ausführen könnte, etwa .php, bleiben blockiert.",
+      "allow_executable_attachments": "Erlaubt Skripte und ausführbare Dateien (.sh, .ps1, .bat, .exe, .py, …) als Anhang, für alle Konten dieser Instanz. Poznote führt sie nie aus, es speichert und liefert sie nur aus. Dateitypen, die ein Webserver ausführen könnte, etwa .php, bleiben blockiert.",
       "backlinks_at_bottom": "Zeigen Sie den Backlink-Bereich unten statt oben in Notizen an.",
       "note_virtual_space": "Lässt unter der letzten Zeile einer Notiz Platz frei, damit sich das Textende bis zur Bildschirmmitte hochscrollen lässt, statt ganz unten zu bleiben.",
       "default_image_border": "Zeigen Sie Bilder in Notizen standardmässig mit Rahmen und ohne Innenabstand an.",
@@ -622,7 +622,7 @@
       "change_username": "Benutzernamen ändern"
     },
     "install_app": {
-      "launching": "Die Installation wird gestartet. Bitte warten Sie...",
+      "launching": "Die Installation wird gestartet. Bitte warten Sie…",
       "launching_acknowledge": "Verstanden",
       "unavailable": "Die Installation ist derzeit nicht verfügbar. Öffnen Sie auf Chrome Mobile das Browsermenü und tippen Sie auf \"App installieren\" (oder \"Zum Startbildschirm hinzufügen\"), sobald die Option verfügbar ist.",
       "already_installed": "Die App ist auf diesem Gerät bereits installiert.",
@@ -745,7 +745,7 @@
         "not_allowed": "Das Teilen mit anderen Benutzern ist auf dieser Instanz nicht verfügbar"
       },
       "options": {
-        "users_loading": "Benutzer werden geladen...",
+        "users_loading": "Benutzer werden geladen…",
         "no_users_found": "Keine anderen Benutzer gefunden",
         "can_edit": "Kann bearbeiten",
         "read_only": "Nur lesen"
@@ -785,7 +785,7 @@
       "tags": "Tags"
     },
     "filter": {
-      "placeholder": "Nach Name oder Tag filtern...",
+      "placeholder": "Nach Name oder Tag filtern…",
       "no_results": "Kein Arbeitsbereich entspricht diesem Filter."
     }
   },
@@ -903,16 +903,16 @@
     "notes": "Notizen",
     "support_poznote": "Poznote unterstützen",
     "version": "Version",
-    "filter_placeholder": "Filtern...",
+    "filter_placeholder": "Filtern…",
     "graph": "Graph",
     "no_filter_results": "Keine Ergebnisse gefunden."
   },
   "search": {
-    "placeholder": "Suchen...",
+    "placeholder": "Suchen…",
     "clear": "Suche löschen",
-    "placeholder_notes": "Nach einem oder mehreren Wörtern suchen...",
-    "placeholder_tags": "Nach einem oder mehreren Tags suchen...",
-    "placeholder_combined": "In Notizen und Tags suchen...",
+    "placeholder_notes": "Nach einem oder mehreren Wörtern suchen…",
+    "placeholder_tags": "Nach einem oder mehreren Tags suchen…",
+    "placeholder_combined": "In Notizen und Tags suchen…",
     "search_in_notes": "In Notizen suchen",
     "search_in_tags": "In Tags suchen",
     "toggle_date_filter": "Datumsfilter ein-/ausblenden",
@@ -924,7 +924,7 @@
       "single_letter_warning": "Suche nach einzelnen Buchstaben kann zu viele Ergebnisse zurückgeben. Versuchen Sie längere Wörter für eine präzisere Suche.",
       "invalid_date_range": "Das Startdatum muss vor oder am Enddatum liegen."
     },
-    "placeholder_account": "In {{account}} suchen...",
+    "placeholder_account": "In {{account}} suchen…",
     "help": {
       "title": "So suchen Sie",
       "words_example": "Budget Besprechung",
@@ -945,7 +945,7 @@
   "autosave": {
     "beforeunload_warning": "⚠️ Sie haben ungespeicherte Änderungen. Sind Sie sicher, dass Sie gehen möchten?",
     "notification": {
-      "saving": "Änderungen werden gespeichert...",
+      "saving": "Änderungen werden gespeichert…",
       "saved": "Gespeichert!"
     },
     "draft": {
@@ -960,7 +960,7 @@
   },
   "tasklist": {
     "open_tasks_page": "Alle Aufgaben anzeigen",
-    "input_placeholder": "Neue Aufgabe schreiben und Enter drücken, um sie zur Liste hinzuzufügen...",
+    "input_placeholder": "Neue Aufgabe schreiben und Enter drücken, um sie zur Liste hinzuzufügen…",
     "drag_to_reorder": "Zum Neuanordnen ziehen",
     "add_to_top": "Neue Aufgaben oben hinzufügen",
     "add_to_bottom": "Neue Aufgaben unten hinzufügen",
@@ -988,7 +988,7 @@
     "remind_me": "Erinnere mich",
     "remind_me_hint": "Eine Benachrichtigung wird zum Fälligkeitstermin ausgelöst.",
     "add_subtask": "Unteraufgabe hinzufügen",
-    "subtask_placeholder": "Unteraufgabe hinzufügen...",
+    "subtask_placeholder": "Unteraufgabe hinzufügen…",
     "delete_subtask": "Unteraufgabe löschen",
     "priority": "Priorität",
     "priority_high": "Hohe Priorität",
@@ -997,13 +997,13 @@
     "priority_none": "Keine Priorität"
   },
   "tags": {
-    "add_single": "Tag hinzufügen...",
-    "add_multiple": "Tags hinzufügen...",
+    "add_single": "Tag hinzufügen…",
+    "add_multiple": "Tags hinzufügen…",
     "list_all": "Alle Tags auflisten",
     "manage_note_tags": "Notiz-Tags verwalten",
     "modal_title": "Tags verwalten",
     "search": {
-      "placeholder": "Tags filtern...",
+      "placeholder": "Tags filtern…",
       "results_one": "1 Tag für \"{{term}}\" gefunden",
       "results_other": "{{count}} Tags für \"{{term}}\" gefunden"
     },
@@ -1048,7 +1048,7 @@
   "share": "Teilen",
   "trash": {
     "search": {
-      "placeholder": "Im Papierkorb suchen...",
+      "placeholder": "Im Papierkorb suchen…",
       "results_for": "Ergebnisse für \"{{term}}\"",
       "results_one": "1 Notiz für \"{{term}}\" gefunden",
       "results_other": "{{count}} Notizen für \"{{term}}\" gefunden"
@@ -1106,17 +1106,17 @@
   "editor": {
     "code_block_language": {
       "title": "Sprache des Codeblocks",
-      "filter": "Sprachen filtern...",
+      "filter": "Sprachen filtern…",
       "remove_tag": "Markierung entfernen",
       "button": "Die Sprache dieses Codeblocks ändern",
       "plain_code": "Code (ohne Hervorhebung)",
       "no_match": "Keine passende Sprache"
     },
     "markdown_placeholder": "Schreiben Sie Ihr Markdown, verwenden Sie / oder einen Rechtsklick, um das Befehlsmenü zu öffnen, fügen Sie Bilder ein oder legen Sie ein Bild am Cursor ab.",
-    "markdown_placeholder_mobile": "Schreiben Sie Ihr Markdown hier oder fügen Sie Bilder ein...",
+    "markdown_placeholder_mobile": "Schreiben Sie Ihr Markdown hier oder fügen Sie Bilder ein…",
     "messages": {
       "preview_mode_hint": "Sie befinden sich im Vorschaumodus. Wechseln Sie mit der Schaltfläche in der Symbolleiste in den Bearbeitungsmodus, um mit dem Schreiben von Markdown zu beginnen.",
-      "split_preview_placeholder": "Die Vorschau wird hier beim Tippen angezeigt..."
+      "split_preview_placeholder": "Die Vorschau wird hier beim Tippen angezeigt…"
     },
     "panes": {
       "edit": "Bearbeiten",
@@ -1263,7 +1263,7 @@
       "placeholder": "Hier einfügen (Strg+V)",
       "preview_label": "Markdown-Vorschau",
       "insert": "Einfügen",
-      "converting": "Wird umgewandelt...",
+      "converting": "Wird umgewandelt…",
       "error": "Die Umwandlung ist fehlgeschlagen. Bitte versuchen Sie es erneut.",
       "no_note": "Es ist keine Notiz geöffnet.",
       "empty": "Die Zwischenablage ist leer."
@@ -1275,7 +1275,7 @@
       "placeholder": "Markdown hier einfügen oder eingeben",
       "preview_label": "Vorschau",
       "insert": "Einfügen",
-      "converting": "Wird umgewandelt...",
+      "converting": "Wird umgewandelt…",
       "error": "Die Umwandlung ist fehlgeschlagen. Bitte versuchen Sie es erneut.",
       "no_note": "Es ist keine Notiz geöffnet."
     },
@@ -1290,8 +1290,8 @@
       "cloud": "Cloud-Anweisungen"
     },
     "update_check": {
-      "title": "Nach Updates suchen...",
-      "status": "Bitte warten Sie, während wir nach Updates suchen..."
+      "title": "Nach Updates suchen…",
+      "status": "Bitte warten Sie, während wir nach Updates suchen…"
     },
     "login_display": {
       "title": "Login-Anzeigename",
@@ -1359,7 +1359,7 @@
       "share_restrict_users": "Teilen: auf bestimmte Benutzer beschränken",
       "share_protocol_toggle": "Teilen: HTTPS-Schalter",
       "share_shared_with_me": "Teilen: «Mit mir geteilt»",
-      "filter_placeholder": "Elemente filtern...",
+      "filter_placeholder": "Elemente filtern…",
       "no_results": "Keine passenden Elemente gefunden.",
       "show_unchecked_only": "Nur abgewählte Elemente anzeigen",
       "no_unchecked_results": "Keine abgewählten Elemente.",
@@ -1512,7 +1512,7 @@
       "title": "Alle Dateien verschieben",
       "prompt_prefix": "Alle Dateien verschieben von",
       "prompt_suffix": "zu:",
-      "select_target": "Zielordner auswählen...",
+      "select_target": "Zielordner auswählen…",
       "target_folder": "Zielordner",
       "hint_move_all": "Um alle Notizen von einem Arbeitsbereich in einen anderen zu verschieben, gehen Sie zu Einstellungen → Arbeitsbereiche",
       "move_all": "Alle Dateien verschieben"
@@ -1563,7 +1563,7 @@
       "title": "Ordnersymbol ändern",
       "default_icon": "Standardsymbol festlegen",
       "reset": "Standardverhalten wiederherstellen",
-      "search_placeholder": "Symbole suchen...",
+      "search_placeholder": "Symbole suchen…",
       "default_color": "Standard",
       "apply_to_folder_title": "Farbe auf den Ordnertitel anwenden",
       "apply_to_note_title": "Farbe auf den Notiztitel anwenden"
@@ -1571,14 +1571,14 @@
     "linked_selector": {
       "title": "Verknüpfung aus einer Notiz erstellen",
       "description": "Erstellen Sie eine Verknüpfung aus einer Notiz, damit Sie sie in einem anderen Ordner referenzieren können.",
-      "search_placeholder": "Notizen suchen...",
+      "search_placeholder": "Notizen suchen…",
       "recent_label": "Aktuelle Notizen"
     },
     "linked_folder_selector": {
       "title": "Ordner für die Verknüpfung auswählen",
       "description": "Wählen Sie den Ordner aus, in dem die Verknüpfung erstellt wird:",
       "search_label": "Ordner filtern",
-      "search_placeholder": "Ordner suchen...",
+      "search_placeholder": "Ordner suchen…",
       "folder_label": "Zielordner",
       "root": "Stamm (Kein Ordner)"
     },
@@ -1603,7 +1603,7 @@
       "to_markdown_title": "In Markdown konvertieren",
       "to_markdown_message": "Dies wird Ihre Rich-Text-Notiz in das Markdown-Format konvertieren. Eingebettete Bilder werden als Anhänge gespeichert.",
       "to_markdown_warning": "Bevor Sie diese Notiz konvertieren, können Sie sie duplizieren, um eine Kopie zu behalten, falls die Konvertierung nicht Ihren Erwartungen entspricht.",
-      "converting": "Notiz wird konvertiert...",
+      "converting": "Notiz wird konvertiert…",
       "success": "Notiz erfolgreich konvertiert!",
       "error": "Fehler beim Konvertieren der Notiz",
       "duplicate_button": "Duplizieren"
@@ -1630,10 +1630,10 @@
     "task_move": {
       "title": "Aufgabe verschieben",
       "description": "Wählen Sie eine Aufgabenliste aus, in die diese Aufgabe verschoben werden soll.",
-      "search_placeholder": "Aufgabenlisten suchen...",
-      "loading": "Laden...",
+      "search_placeholder": "Aufgabenlisten suchen…",
+      "loading": "Laden…",
       "empty": "Keine Aufgabenlisten gefunden.",
-      "moving": "Aufgabe wird verschoben...",
+      "moving": "Aufgabe wird verschoben…",
       "error": "Aufgabenlisten konnten nicht geladen werden.",
       "confirm": "Aufgabe verschieben",
       "create_new": "Aufgabenliste erstellen",
@@ -1793,7 +1793,7 @@
       "title": "Ordner verschieben",
       "prompt_prefix": "Ordner verschieben",
       "prompt_suffix": "nach:",
-      "select_target": "Übergeordneten Ordner auswählen...",
+      "select_target": "Übergeordneten Ordner auswählen…",
       "root": "Wurzel (Oberste Ebene)",
       "hint": "Dies verschiebt den Ordner und alle seine Notizen als Unterordner. Wählen Sie \"Wurzel\", um ihn auf die oberste Ebene zu verschieben.",
       "move": "Ordner verschieben",
@@ -1849,7 +1849,7 @@
     },
     "tag_folder_notes": {
       "apply": "Tags hinzufügen",
-      "applying": "Wird getaggt...",
+      "applying": "Wird getaggt…",
       "count_one": "1 Notiz wird getaggt",
       "count_other": "{{count}} Notizen werden getaggt",
       "empty_folder": "Dieser Ordner ist leer",
@@ -1924,7 +1924,7 @@
     },
     "favorites": {
       "empty": "Noch keine Favoriten vorhanden.",
-      "filter_placeholder": "Nach Titel oder Ordnername filtern..."
+      "filter_placeholder": "Nach Titel oder Ordnername filtern…"
     },
     "drop_zone": {
       "remove_from_folder": "Hier ablegen, um aus Ordner zu entfernen"
@@ -2078,16 +2078,16 @@
     "enter_tag": "Mindestens ein Tag eingeben",
     "tags_placeholder": "tag1, tag2",
     "move": "Verschieben",
-    "applying": "Wird angewendet...",
+    "applying": "Wird angewendet…",
     "selected": "ausgewählt",
     "select_all": "Alle sichtbaren auswählen",
     "deselect_all": "Alle deselektieren",
-    "move_to": "Verschieben nach...",
-    "moving": "Wird verschoben...",
+    "move_to": "Verschieben nach…",
+    "moving": "Wird verschoben…",
     "moved": "Erfolgreich verschoben",
     "root": "Stammverzeichnis (kein Ordner)",
-    "filter_folders": "Ordner filtern...",
-    "filter_placeholder": "Notizen nach Titel oder Tags filtern...",
+    "filter_folders": "Ordner filtern…",
+    "filter_placeholder": "Notizen nach Titel oder Tags filtern…",
     "filter_age": "Nach Alter filtern",
     "age_all": "Alle Notizen",
     "age_recent": "Nur aktuelle",
@@ -2187,13 +2187,13 @@
     "youtube_insert": "Einfügen",
     "youtube_invalid_url": "Ungültige YouTube-URL",
     "mp4_video": "MP4-Video",
-    "mp4_uploading": "Video wird hochgeladen...",
+    "mp4_uploading": "Video wird hochgeladen…",
     "mp4_upload_success": "Video erfolgreich hochgeladen!",
     "mp4_no_note": "Keine Notiz ausgewählt",
     "mp4_invalid_file": "Bitte wählen Sie ein MP4-Video aus.",
     "mp4_upload_failed": "Upload fehlgeschlagen: {{error}}",
     "audio": "Audio",
-    "audio_uploading": "Audio wird hochgeladen...",
+    "audio_uploading": "Audio wird hochgeladen…",
     "audio_no_note": "Keine Notiz ausgewählt",
     "audio_invalid_file": "Bitte wählen Sie eine Audiodatei aus.",
     "audio_upload_failed": "Upload fehlgeschlagen: {{error}}",
@@ -2221,7 +2221,7 @@
     "template_none_hint": "Lege Notizen in einen Ordner oder einen Arbeitsbereich namens «Vorlagen»",
     "template_insert_failed": "Die Vorlage konnte nicht eingefügt werden",
     "template_picker_title": "Vorlage einfügen",
-    "template_filter_placeholder": "Vorlagen filtern...",
+    "template_filter_placeholder": "Vorlagen filtern…",
     "template_no_match": "Keine Vorlage entspricht diesem Filter",
     "template_load_failed": "Die Vorlagen konnten nicht geladen werden",
     "record_audio": "Audio aufnehmen",
@@ -2232,9 +2232,9 @@
     "bilibili": "Bilibili",
     "invalid_url": "Ungültige URL",
     "bilibili_invalid_url": "Bitte geben Sie eine gültige Bilibili-URL ein",
-    "bilibili_invalid_format": "Ungültiges Bilibili-URL-Format. Verwenden Sie die URL einer Videoseite (bilibili.com/video/BV...)",
+    "bilibili_invalid_format": "Ungültiges Bilibili-URL-Format. Verwenden Sie die URL einer Videoseite (bilibili.com/video/BV…)",
     "streaming_video_url_prompt": "Geben Sie die URL des Streaming-Videos ein (YouTube, Vimeo usw.):",
-    "bilibili_help": "Geben Sie die URL der Bilibili-Videoseite ein (z. B. bilibili.com/video/BV...)",
+    "bilibili_help": "Geben Sie die URL der Bilibili-Videoseite ein (z. B. bilibili.com/video/BV…)",
     "bilibili_modal_title": "Bilibili-Video einfügen",
     "video_insert": "Einfügen",
     "copy": "Kopieren",
@@ -2436,7 +2436,7 @@
     },
     "editor": {
       "placeholder_desktop": "Text eingeben, / oder Rechtsklick verwenden, um das Befehlsmenü zu öffnen, Bilder einfügen oder ein Bild am Cursor ablegen.",
-      "placeholder_mobile": "Text eingeben oder Bilder einfügen..."
+      "placeholder_mobile": "Text eingeben oder Bilder einfügen…"
     }
   },
   "image_menu": {
@@ -2495,7 +2495,7 @@
         "description": "Exportieren Sie Ihre Notizen organisiert in Ordnern, die Ihrer Poznote-Ordnerstruktur entsprechen. Jede Notiz wird in einem Verzeichnis gespeichert, das ihrem Ordner in Poznote entspricht und die vollständige Hierarchie bewahrt. Markdown-Dateien enthalten YAML-Front-Matter mit Metadaten.",
         "warning": "Hinweis: Dieser Exporttyp ist nicht für eine perfekte Sicherung von Poznote konzipiert.",
         "select_workspace": "Arbeitsbereich auswählen:",
-        "loading_workspaces": "Arbeitsbereiche werden geladen..."
+        "loading_workspaces": "Arbeitsbereiche werden geladen…"
       },
       "attachments_export": {
         "title": "Anhang-Export",
@@ -2506,7 +2506,7 @@
         "title": "Sicherung in einen Ordner auf dem Server",
         "description": "Speichern Sie ein Sicherungsarchiv Ihres Kontos im Sicherungsordner dieses Servers und laden Sie die dort bereits gespeicherten Archive herunter.",
         "backup_now": "Mein Konto in den Ordner sichern",
-        "running": "Sicherung wird im Ordner gespeichert...",
+        "running": "Sicherung wird im Ordner gespeichert…",
         "done": "Sicherung gespeichert ({{size}}).",
         "list_empty": "Noch keine Sicherung Ihres Kontos im Ordner.",
         "confirm_run": "Ihr Konto jetzt in den Sicherungsordner sichern? Das Erstellen des Archivs kann eine Weile dauern.",
@@ -2522,7 +2522,7 @@
         "policy_auto_keep_all": "Der Administrator hat eine automatische Sicherung {{frequency}} eingerichtet; alle Archive werden aufbewahrt.",
         "policy_manual": "Automatische Sicherungen sind deaktiviert; die letzten {{retention}} Archive pro Benutzer werden aufbewahrt. Sobald diese Anzahl erreicht ist, löscht jede neue Sicherung das älteste Archiv.",
         "policy_manual_keep_all": "Automatische Sicherungen sind deaktiviert; alle Archive werden aufbewahrt.",
-        "running": "Sicherung wird in den Bucket hochgeladen...",
+        "running": "Sicherung wird in den Bucket hochgeladen…",
         "done": "Sicherung hochgeladen ({{size}}).",
         "error": "Sicherung fehlgeschlagen: {{error}}",
         "list_empty": "Noch keine Sicherung Ihres Kontos im Bucket."
@@ -2534,8 +2534,8 @@
       "download_attachments_export": "Anhänge herunterladen (ZIP)"
     },
     "spinner": {
-      "preparing": "Sicherung wird vorbereitet...",
-      "preparing_long": "Sicherung wird vorbereitet... Dies kann einige Momente dauern."
+      "preparing": "Sicherung wird vorbereitet…",
+      "preparing_long": "Sicherung wird vorbereitet… Dies kann einige Momente dauern."
     },
     "errors": {
       "export_error": "Exportfehler: {{error}}",
@@ -2556,8 +2556,8 @@
       "hint": "Das Archiv wird auf dem Server erstellt. Bei grossen Konten kann das mehrere Minuten dauern; Sie können diese Seite verlassen und später zurückkommen, die Erstellung läuft weiter.",
       "download": "Archiv herunterladen",
       "discard": "Vorbereitetes Archiv löschen",
-      "preparing": "Archiv wird erstellt...",
-      "queued": "Export in der Warteschlange...",
+      "preparing": "Archiv wird erstellt…",
+      "queued": "Export in der Warteschlange…",
       "ready": "Ihr Archiv ist bereit ({{size}}). Es bleibt hier 24 Stunden verfügbar.",
       "error": "Der Export ist fehlgeschlagen: {{error}}",
       "start_error": "Der Export kann nicht gestartet werden: {{error}}"
@@ -2567,7 +2567,7 @@
     "page": {
       "title": "Anmeldung"
     },
-    "redirecting": "Weiterleitung...",
+    "redirecting": "Weiterleitung…",
     "show_password": "Passwort anzeigen",
     "hide_password": "Passwort ausblenden",
     "admin_warning": "Bitte melden Sie sich mit dem Benutzernamen <code>{{username}}</code> und dem Passwort <code>admin</code> an. Ändern Sie danach sofort Ihr Passwort in den Einstellungen. Sie können auch Ihren Benutzernamen ändern.",
@@ -2680,10 +2680,10 @@
       "invalid_form_submission": "Ungültige Formularübermittlung. Bitte versuchen Sie es erneut."
     },
     "spinner": {
-      "processing": "Wiederherstellung wird verarbeitet...",
-      "processing_long": "Wiederherstellung wird verarbeitet... Dies kann einige Momente dauern.",
-      "direct_copy_restoring": "Wiederherstellung läuft... Bitte warten.",
-      "importing_notes": "Notizen werden importiert..."
+      "processing": "Wiederherstellung wird verarbeitet…",
+      "processing_long": "Wiederherstellung wird verarbeitet… Dies kann einige Momente dauern.",
+      "direct_copy_restoring": "Wiederherstellung läuft… Bitte warten.",
+      "importing_notes": "Notizen werden importiert…"
     },
     "units": {
       "bytes": "Bytes",
@@ -2748,7 +2748,7 @@
         "title": "Möchten Sie HTML-, Markdown-, Textdateien oder ZIP-Archive importieren?",
         "description": "Importieren Sie einzelne Notizen (HTML, Markdown oder ZIP) in einen bestimmten Arbeitsbereich und Ordner",
         "workspace": "Ziel-Arbeitsbereich",
-        "loading": "Laden...",
+        "loading": "Laden…",
         "folder": "Zielordner",
         "optional": "optional",
         "frontmatter_warning": "Ein folder-Schlüssel im Front-Matter einer Markdown-Datei hat Vorrang vor dem Zielordner. Dieser Ordner muss bereits existieren, sonst wird die Notiz im Stammverzeichnis des Arbeitsbereichs erstellt.",
@@ -2769,7 +2769,7 @@
       "s3_restore": {
         "title": "Aus S3 wiederherstellen",
         "description": "Stellt Ihr Konto direkt aus einem der Sicherungsarchive wieder her, die im S3-Bucket dieser Instanz gespeichert sind.",
-        "loading": "Wird geladen...",
+        "loading": "Wird geladen…",
         "empty": "Noch keine Sicherung Ihres Kontos im Bucket.",
         "confirm": "Ihr Konto aus {{filename}} wiederherstellen? Ihre aktuellen Notizen, Anhänge und Einstellungen werden durch den Archivinhalt ersetzt."
       },
@@ -2793,7 +2793,7 @@
         "drop_here": "Notizdateien ablegen, um sie zu importieren",
         "drop_into_folder": "Ablegen, um in \"{{folder}}\" zu importieren",
         "folder_not_allowed": "Import in \"{{folder}}\" nicht möglich",
-        "importing": "Notizen werden importiert...",
+        "importing": "Notizen werden importiert…",
         "import_done": "Notizen importiert.",
         "import_failed": "Import fehlgeschlagen.",
         "no_supported_files": "Es wurden keine unterstützten Dateien abgelegt. Erlaubte Typen: {{allowed}}",
@@ -2861,25 +2861,25 @@
       }
     },
     "chunked": {
-      "uploading": "Archiv wird hochgeladen... {{percent}}% ({{done}} von {{total}})",
-      "queued": "Wiederherstellung startet...",
+      "uploading": "Archiv wird hochgeladen… {{percent}}% ({{done}} von {{total}})",
+      "queued": "Wiederherstellung startet…",
       "done": "Wiederherstellung erfolgreich abgeschlossen.",
       "error": "Die Wiederherstellung ist fehlgeschlagen: {{error}}",
       "upload_error": "Der Upload ist fehlgeschlagen: {{error}}",
-      "chunk_retry": "Ein Teil konnte nicht hochgeladen werden, neuer Versuch...",
-      "stage_assembling": "Archiv wird auf dem Server zusammengesetzt...",
-      "stage_extracting": "Archiv wird entpackt...",
-      "stage_preparing": "Daten werden vorbereitet...",
-      "stage_database": "Datenbank wird wiederhergestellt...",
-      "stage_notes": "Notizen werden wiederhergestellt... ({{done}}/{{total}})",
-      "stage_notes_simple": "Notizen werden wiederhergestellt...",
-      "stage_attachments": "Anhänge werden wiederhergestellt... ({{done}}/{{total}})",
-      "stage_attachments_simple": "Anhänge werden wiederhergestellt...",
+      "chunk_retry": "Ein Teil konnte nicht hochgeladen werden, neuer Versuch…",
+      "stage_assembling": "Archiv wird auf dem Server zusammengesetzt…",
+      "stage_extracting": "Archiv wird entpackt…",
+      "stage_preparing": "Daten werden vorbereitet…",
+      "stage_database": "Datenbank wird wiederhergestellt…",
+      "stage_notes": "Notizen werden wiederhergestellt… ({{done}}/{{total}})",
+      "stage_notes_simple": "Notizen werden wiederhergestellt…",
+      "stage_attachments": "Anhänge werden wiederhergestellt… ({{done}}/{{total}})",
+      "stage_attachments_simple": "Anhänge werden wiederhergestellt…",
       "workspaces_title": "Wiederherstellung abgeschlossen",
       "workspaces_body": "Ihr Backup wurde wiederhergestellt. Welchen Arbeitsbereich möchten Sie öffnen?",
       "workspaces_close": "Schliessen",
-      "stage_downloading": "Archiv wird aus dem Bucket geladen...",
-      "queued_uploaded": "Upload abgeschlossen, Wiederherstellung startet...",
+      "stage_downloading": "Archiv wird aus dem Bucket geladen…",
+      "queued_uploaded": "Upload abgeschlossen, Wiederherstellung startet…",
       "cancel_upload": "Diesen Upload abbrechen",
       "foreign_upload": "Ein Upload läuft bereits in einem anderen Tab oder Fenster ({{done}}/{{total}} Teile gesendet).",
       "upload_interrupted": "Der vorherige Upload wurde nach {{done}} von {{total}} Teilen unterbrochen, es wurde nichts wiederhergestellt. Sie können die Wiederherstellung erneut starten.",
@@ -2887,13 +2887,13 @@
       "worker_lost": "Die Wiederherstellung wurde vor dem Ende abgebrochen. Prüfen Sie die Serverprotokolle und starten Sie sie erneut."
     },
     "chunked_import": {
-      "queued": "Import startet...",
-      "queued_uploaded": "Upload abgeschlossen, Import startet...",
-      "stage_preparing": "Archiv wird gelesen...",
-      "stage_attachments": "Bilder und Anhänge werden importiert... ({{done}}/{{total}} Dateien geprüft)",
-      "stage_attachments_simple": "Bilder und Anhänge werden importiert...",
-      "stage_notes": "Notizen werden importiert... ({{done}}/{{total}})",
-      "stage_notes_simple": "Notizen werden importiert...",
+      "queued": "Import startet…",
+      "queued_uploaded": "Upload abgeschlossen, Import startet…",
+      "stage_preparing": "Archiv wird gelesen…",
+      "stage_attachments": "Bilder und Anhänge werden importiert… ({{done}}/{{total}} Dateien geprüft)",
+      "stage_attachments_simple": "Bilder und Anhänge werden importiert…",
+      "stage_notes": "Notizen werden importiert… ({{done}}/{{total}})",
+      "stage_notes_simple": "Notizen werden importiert…",
       "done": "Import erfolgreich abgeschlossen.",
       "error": "Der Import ist fehlgeschlagen: {{error}}",
       "upload_interrupted": "Der vorherige Upload wurde nach {{done}} von {{total}} Teilen unterbrochen, es wurde nichts importiert. Sie können den Import erneut starten.",
@@ -3009,7 +3009,7 @@
       "no_public_notes": "Noch keine geteilten Notizen.",
       "public_hint": "Teilen Sie eine Notiz, indem Sie auf die Wolken-Schaltfläche in der Notiz-Symbolleiste klicken."
     },
-    "filter_placeholder": "Nach Name oder Token filtern...",
+    "filter_placeholder": "Nach Name oder Token filtern…",
     "no_filter_results": "Keine Einträge entsprechen Ihrer Suche.",
     "filter_all": "Alle",
     "filter_notes": "Notizen",
@@ -3024,7 +3024,7 @@
     "no_shares_hint": "Teilen Sie eine Notiz oder einen Ordner, indem Sie auf die Cloud-Schaltfläche in der Symbolleiste klicken.",
     "restrict_users": "Auf Benutzer beschränken",
     "restrict_users_mobile": "Beschränken",
-    "restrict_users_placeholder": "Benutzer auswählen...",
+    "restrict_users_placeholder": "Benutzer auswählen…",
     "restricted_badge": "Eingeschränkt",
     "restricted_help": "Bei eingeschränktem Zugang können nur die aufgeführten Benutzer nach dem Anmelden auf diesen Share zugreifen.",
     "disabled_badge": "Unzugänglich",
@@ -3064,7 +3064,7 @@
       "restore_folder": "Passwort des Ordners wieder verlangen"
     },
     "no_users_found": "Keine anderen Benutzer gefunden",
-    "users_loading": "Benutzer werden geladen...",
+    "users_loading": "Benutzer werden geladen…",
     "shared_with_me": "Mit mir geteilt",
     "shared_by": "Geteilt von",
     "no_shared_with_me": "Es wurde noch nichts mit Ihnen geteilt.",
@@ -3505,8 +3505,8 @@
     "default": "Standard"
   },
   "search_replace": {
-    "search_placeholder": "Suchen...",
-    "replace_placeholder": "Ersetzen...",
+    "search_placeholder": "Suchen…",
+    "replace_placeholder": "Ersetzen…",
     "previous": "Vorherige",
     "next": "Nächste",
     "toggle_replace": "Ersetzen ein-/ausblenden",
@@ -3543,7 +3543,7 @@
       "create_user": "Profil erstellen",
       "export_csv": "CSV exportieren",
       "edit_user": "Benutzer bearbeiten",
-      "filter_placeholder": "Benutzer filtern...",
+      "filter_placeholder": "Benutzer filtern…",
       "hide_inactive": "Deaktivierte Konten ausblenden",
       "pager": {
         "previous": "Zurück",
@@ -3649,8 +3649,8 @@
       "new_password": "Neues Passwort",
       "oidc_subject": "OIDC-Subject (UUID)",
       "oidc_subject_help": "Optional: UUID Ihres OIDC-Anbieters (LLDAP, Authelia usw.)",
-      "oidc_subject_placeholder": "z. B. 510ec799-02f8-42e0-...",
-      "processing": "Wird verarbeitet..."
+      "oidc_subject_placeholder": "z. B. 510ec799-02f8-42e0-…",
+      "processing": "Wird verarbeitet…"
     }
   },
   "git_sync": {
@@ -3671,10 +3671,10 @@
     "confirm_pull": "Alle Notizen und Anhänge von {{provider}} pullen? Lokale Daten werden mit der Remote-Version überschrieben. Notizen, die auf {{provider}} nicht gefunden werden, werden in den Papierkorb verschoben.",
     "confirm_auto_pull": "Eine neue Sitzung wurde gestartet. Möchten Sie Änderungen von {{provider}} abrufen?",
     "confirm_auto_pull_warning": "Eine neue Sitzung wurde gestartet. Möchten Sie Änderungen von {{provider}} abrufen?\n\nLokale Notizen, die nicht auf {{provider}} gefunden werden, werden in den Papierkorb verschoben.",
-    "auto_pull_complete": "Git-Synchronisation abgeschlossen. Seite wird aktualisiert...",
+    "auto_pull_complete": "Git-Synchronisation abgeschlossen. Seite wird aktualisiert…",
     "auto_pull_no_changes": "Git-Synchronisation abgeschlossen. Keine Änderungen gefunden.",
-    "pulling": "Änderungen abrufen...",
-    "starting": "Synchronisierung...",
+    "pulling": "Änderungen abrufen…",
+    "starting": "Synchronisierung…",
     "completed": "Fertig!",
     "config": {
       "title": "Konfiguration",
@@ -3895,7 +3895,7 @@
       "quota_modal_description": "Ein leeres Feld übernimmt die globale Einstellung. 0 bedeutet unbegrenzt.\nDiese Werte überschreiben die globalen Benutzerkontingente.",
       "quota_max_notes_for": "Max. Notizen für {{user}}",
       "quota_max_storage_for": "Max. lokaler Speicher für {{user}} (MB)",
-      "filter_placeholder": "Konten filtern...",
+      "filter_placeholder": "Konten filtern…",
       "hide_inactive": "Deaktivierte Konten ausblenden",
       "export_csv": "CSV exportieren",
       "pager": {
@@ -3923,7 +3923,7 @@
     "title": "Aktivitätsprotokoll",
     "description": "Verlauf sensibler Vorgänge auf dieser Instanz.",
     "help_intro": "Protokollierte Vorgänge:",
-    "filter_placeholder": "Benutzer oder Detail suchen...",
+    "filter_placeholder": "Benutzer oder Detail suchen…",
     "export_csv": "CSV exportieren",
     "empty": "Noch keine Einträge vorhanden.",
     "unknown_user": "unbekannt",
@@ -4070,8 +4070,8 @@
     },
     "logout": {
       "confirm": "Möchten Sie sich wirklich abmelden?",
-      "in_progress": "Abmeldung...",
-      "switch_in_progress": "Konto wird gewechselt..."
+      "in_progress": "Abmeldung…",
+      "switch_in_progress": "Konto wird gewechselt…"
     }
   },
   "password": {
@@ -4174,7 +4174,7 @@
     },
     "modal": {
       "title": "Zwei-Faktor-Authentifizierung",
-      "description": "Nach Ihrem Passwort verlangt die Anmeldung einen 6-stelligen Code aus einer Authenticator-App auf Ihrem Telefon (Aegis, Google Authenticator, 1Password, Bitwarden...). Wer Ihr Passwort erfährt, kann Ihr Konto trotzdem nicht öffnen.",
+      "description": "Nach Ihrem Passwort verlangt die Anmeldung einen 6-stelligen Code aus einer Authenticator-App auf Ihrem Telefon (Aegis, Google Authenticator, 1Password, Bitwarden…). Wer Ihr Passwort erfährt, kann Ihr Konto trotzdem nicht öffnen.",
       "api_notice": "Apps, die sich mit Ihrem Kontopasswort über die API verbinden (Browsererweiterung, MCP-Server, Skripte), funktionieren dann nicht mehr: Geben Sie jeder stattdessen ein App-Passwort.",
       "sso_notice": "Die Anmeldung über SSO fragt diesen Code nicht ab: Sie wird von Ihrem Identitätsanbieter geschützt, aktivieren Sie also dort dessen eigenen zweiten Faktor.",
       "current_password": "Aktuelles Passwort",
@@ -4483,7 +4483,7 @@
       "repeat_weekly": "Wöchentlich",
       "repeat_monthly": "Monatlich",
       "repeat_yearly": "Jährlich",
-      "repeat_custom": "Benutzerdefiniert...",
+      "repeat_custom": "Benutzerdefiniert…",
       "repeat_hint": "Die nächste Erinnerung wird geplant, wenn Sie die Benachrichtigung schliessen.",
       "task_repeat_hint": "Das nächste Vorkommen wird der Liste hinzugefügt, wenn Sie die Aufgabe abschliessen. Beim Schliessen der Benachrichtigung wird die Aufgabe auf ihr nächstes Datum verschoben.",
       "repeat_every": "Alle",
@@ -4514,7 +4514,7 @@
   "note_lock": {
     "banner": "Nur lesen: {{user}} bearbeitet diese Notiz gerade.",
     "current_user_other_tab": "Nur lesen: Diese Notiz wird bereits in einem anderen Tab oder auf einem anderen Gerät vom selben Benutzer bearbeitet.",
-    "checking": "Bearbeitungszugriff wird geprüft...",
+    "checking": "Bearbeitungszugriff wird geprüft…",
     "unavailable": "Nur lesen: Der Bearbeitungszugriff für diese Notiz konnte nicht geprüft werden.",
     "another_user": "ein anderer Benutzer",
     "popup_title": "Achtung",
@@ -4544,7 +4544,7 @@
   "dashboard": {
     "title": "Notiz-Board",
     "empty": "Noch keine favorisierten Notizen. Markieren Sie Notizen als Favoriten, um sie an dieses Board zu heften.",
-    "filter_placeholder": "Nach Titel, Inhalt oder Tag filtern...",
+    "filter_placeholder": "Nach Titel, Inhalt oder Tag filtern…",
     "pin_note": "Oben anheften",
     "unpin_note": "Loslösen",
     "pin_error": "Der Anheft-Status konnte nicht aktualisiert werden.",
@@ -4569,7 +4569,7 @@
     "scope": {
       "title": "Bereich",
       "hint": "Wähle die anzuzeigenden Arbeitsbereiche. Ein Tag wählt alle Arbeitsbereiche aus, die ihn tragen.",
-      "menu_item": "Mehrere Arbeitsbereiche...",
+      "menu_item": "Mehrere Arbeitsbereiche…",
       "all": "Alle Arbeitsbereiche",
       "by_tag": "Nach Tag",
       "workspaces": "Arbeitsbereiche",
@@ -4597,7 +4597,7 @@
       "button": "Nach Tag filtern",
       "all": "Alle Tags",
       "empty": "Keine Tags auf diesem Board.",
-      "search": "Tags filtern...",
+      "search": "Tags filtern…",
       "no_match": "Kein passender Tag."
     },
     "filters": {
@@ -4619,7 +4619,7 @@
   },
   "graph": {
     "title": "Notiz-Graph",
-    "loading": "Graph wird erstellt...",
+    "loading": "Graph wird erstellt…",
     "empty": "Keine Notizen anzuzeigen.",
     "empty_hint": "Verknüpfen Sie Notizen mit [[Notiztitel]], um hier Verbindungen zu sehen.",
     "show_orphans": "Unverknüpfte Notizen",
@@ -4651,7 +4651,7 @@
     "show_all": "Alle anzeigen",
     "show_all_hint": "Alle Notizen des Arbeitsbereichs laden",
     "search": {
-      "placeholder": "Notiz oder Tag suchen..."
+      "placeholder": "Notiz oder Tag suchen…"
     },
     "tooltip": {
       "links": "{{count}} Verknüpfungen",
@@ -4660,7 +4660,7 @@
   },
   "ai_settings": {
     "title": "KI-Assistent",
-    "description": "Verbinden Sie Poznote mit einem OpenAI-kompatiblen KI-Server (Ollama, LM Studio, OpenAI, ...), um mit einem Assistenten über Ihre Notizen zu chatten.",
+    "description": "Verbinden Sie Poznote mit einem OpenAI-kompatiblen KI-Server (Ollama, LM Studio, OpenAI, …), um mit einem Assistenten über Ihre Notizen zu chatten.",
     "config_title": "Konfiguration",
     "enable_label": "KI-Assistent aktivieren",
     "enable_description": "Zeigt eine KI-Chat-Schaltfläche in der Notiz-Symbolleiste an.",
@@ -4689,7 +4689,7 @@
     },
     "save": "Konfiguration speichern",
     "test": "Zugang prüfen und Modelle auflisten",
-    "testing": "Verbindung wird getestet...",
+    "testing": "Verbindung wird getestet…",
     "test_success": "Verbindung erfolgreich. {{count}} Modell(e) verfügbar. Klicken Sie unten auf ein Modell und speichern Sie.",
     "test_failure": "Verbindung fehlgeschlagen: {{error}}",
     "footer_note": "Der KI-Server wird vom Poznote-Server aus aufgerufen, nicht von Ihrem Browser. Chat-Unterhaltungen werden an den konfigurierten Server gesendet; bei einer lokalen Ollama-Instanz verlässt nichts Ihren Rechner.",
@@ -4718,7 +4718,7 @@
     "title": "Mein KI-Assistent",
     "card": "Mein KI-Assistent",
     "card_help": "Geben Sie dem KI-Assistenten eigene Anweisungen und nutzen Sie ihn mit Ihrem eigenen Anbieter und API-Schlüssel.",
-    "description": "Verbinden Sie den KI-Assistenten mit Ihrem eigenen OpenAI-kompatiblen Server (Ollama, LM Studio, OpenAI, Anthropic, ...) und Ihrem eigenen API-Schlüssel. Ihre Konfiguration ersetzt die des Administrators.",
+    "description": "Verbinden Sie den KI-Assistenten mit Ihrem eigenen OpenAI-kompatiblen Server (Ollama, LM Studio, OpenAI, Anthropic, …) und Ihrem eigenen API-Schlüssel. Ihre Konfiguration ersetzt die des Administrators.",
     "disabled_notice": "Ihr Administrator hat persönliche API-Schlüssel auf dieser Instanz nicht erlaubt.",
     "using_instance": "Der Assistent antwortet derzeit über die vom Administrator festgelegte Konfiguration. Aktivieren Sie unten Ihre eigene Konfiguration, um stattdessen Ihren API-Schlüssel zu verwenden.",
     "enable_label": "Meine eigene Konfiguration verwenden",
@@ -4787,7 +4787,7 @@
     "toolbar_button": "KI-Assistent",
     "empty": "Stellen Sie eine Frage.\n\nDer Assistent kann Ihre Notizen durchsuchen, lesen, erstellen, bearbeiten,\norganisieren und löschen.\n\nEr kann sich auch die darin enthaltenen Bilder ansehen.",
     "empty_open_note": "Sagen Sie «diese Notiz», wenn Sie die gerade geöffnete meinen.",
-    "placeholder": "Fragen Sie den Assistenten...",
+    "placeholder": "Fragen Sie den Assistenten…",
     "send": "Senden",
     "stop": "Stoppen",
     "error": "Fehler: {{error}}",
@@ -4895,8 +4895,8 @@
   },
   "stt": {
     "modal": {
-      "transcribing": "Wird transkribiert...",
-      "transcribing_file": "{{file}} wird transkribiert...",
+      "transcribing": "Wird transkribiert…",
+      "transcribing_file": "{{file}} wird transkribiert…",
       "review_label": "Transkription",
       "keep_audio": "Aufnahme zusätzlich an diese Notiz anhängen",
       "insert": "Einfügen"
@@ -4953,7 +4953,7 @@
     "transcribe_note": "Nach der Transkription können Sie den Text in die Notiz einfügen und auch das Audio anhängen.",
     "language_auto": "Automatisch erkennen",
     "language_default": "{{language}} (Standard)",
-    "saving": "Aufnahme wird gespeichert...",
+    "saving": "Aufnahme wird gespeichert…",
     "max_duration": "Maximale Aufnahmedauer erreicht, das Aufgenommene wird eingefügt.",
     "max_duration_choice": "Maximale Aufnahmedauer erreicht. Wählen Sie, was mit der Aufnahme geschehen soll.",
     "upload_failed": "Die Aufnahme konnte nicht gespeichert werden: {{error}}",
@@ -4978,13 +4978,13 @@
     "board_view": "Kartenansicht",
     "journal_edit": "Hier bearbeiten",
     "journal_edit_done": "Bearbeitung beenden",
-    "journal_edit_placeholder": "Hier schreiben...",
-    "journal_saving": "Wird gespeichert...",
+    "journal_edit_placeholder": "Hier schreiben…",
+    "journal_saving": "Wird gespeichert…",
     "journal_saved": "Gespeichert",
     "journal_save_error": "Dieser Eintrag konnte nicht gespeichert werden.",
     "journal_conflict": "Dieser Eintrag wurde an anderer Stelle geändert. Ihre letzten Änderungen hier wurden nicht gespeichert: Laden Sie die Seite neu, um die aktuelle Version zu sehen.",
     "journal_tags_edit": "Tags bearbeiten",
-    "journal_tag_placeholder": "Tag hinzufügen...",
+    "journal_tag_placeholder": "Tag hinzufügen…",
     "journal_tag_remove": "Tag entfernen",
     "journal_tags_save_error": "Die Tags konnten nicht gespeichert werden.",
     "journal_empty_entry": "Dieser Eintrag ist leer.",
@@ -5035,7 +5035,7 @@
     "filter_dated": "Mit Datum",
     "filter_completed": "Erledigt",
     "filters": "Filter",
-    "filter_placeholder": "Nach Aufgabe, Titel oder Ordner filtern...",
+    "filter_placeholder": "Nach Aufgabe, Titel oder Ordner filtern…",
     "empty": "Noch keine Aufgaben. Erstellen Sie eine Aufgabenlisten-Notiz oder fügen Sie einer Notiz eine Checkliste hinzu, um zu beginnen.",
     "empty_filtered": "Keine Aufgaben entsprechen diesem Filter.",
     "note_badge": "Notiz",
@@ -5091,7 +5091,7 @@
     "path_style_description": "Für MinIO, Garage und die meisten selbst gehosteten Server aktiviert lassen. Nur deaktivieren, wenn Ihr Anbieter Virtual-Host-Style (bucket.endpoint) verlangt.",
     "test": "Verbindung testen",
     "save": "Konfiguration speichern",
-    "testing": "Verbindung wird getestet...",
+    "testing": "Verbindung wird getestet…",
     "test_success": "Verbindung erfolgreich, der Bucket ist erreichbar.",
     "test_failure": "Verbindung fehlgeschlagen: {{error}}",
     "migration_title": "Migration",
@@ -5102,7 +5102,7 @@
     "files_unit": "{{count}} Datei(en), {{size}}",
     "migrate_to_s3": "Lokale Dateien nach S3 migrieren",
     "migrate_to_local": "Dateien zurück auf die lokale Festplatte holen",
-    "migrating": "Migration läuft... {{moved}} Datei(en) verschoben, {{remaining}} verbleibend",
+    "migrating": "Migration läuft… {{moved}} Datei(en) verschoben, {{remaining}} verbleibend",
     "migration_done": "Migration abgeschlossen: {{moved}} Datei(en) verschoben.",
     "migration_error": "Migration nach einem Fehler gestoppt: {{error}}",
     "confirm_to_s3": "Alle lokalen Anhang-Dateien (alle Benutzer) in den Bucket verschieben?",
@@ -5143,7 +5143,7 @@
     "manual_retention_warning": "Jede Sicherung zählt zur Aufbewahrungsgrenze: Eine automatische Sicherung kann daher ein manuelles Archiv löschen, ebenso wie eine manuelle Sicherung ein automatisches löschen kann. Um ein Archiv dauerhaft zu behalten, laden Sie es herunter.",
     "run_now": "Jetzt sichern",
     "confirm_run": "Jetzt die ausgewählten Benutzer in den Bucket sichern?",
-    "running": "Sichere {{username}}... ({{done}}/{{total}})",
+    "running": "Sichere {{username}}… ({{done}}/{{total}})",
     "run_done": "Sicherung abgeschlossen: {{uploaded}}/{{total}} Benutzer hochgeladen.",
     "run_error": "Sicherung nach einem Fehler gestoppt: {{error}}",
     "user_ok": "{{username}}: hochgeladen ({{size}})",
@@ -5155,8 +5155,8 @@
     "list_title": "Sicherungen im Bucket",
     "list_empty": "Noch keine Sicherung im Bucket.",
     "list_error": "Bucket kann nicht aufgelistet werden: {{error}}",
-    "list_loading": "Wird geladen...",
-    "list_filter_placeholder": "Nach Benutzer oder Archivnamen filtern...",
+    "list_loading": "Wird geladen…",
+    "list_filter_placeholder": "Nach Benutzer oder Archivnamen filtern…",
     "list_count": "{{total}} Sicherung(en)",
     "list_count_filtered": "{{shown}} von {{total}} Sicherung(en) angezeigt",
     "list_no_match": "Keine Sicherung entspricht diesem Filter.",
@@ -5177,7 +5177,7 @@
     "users_label": "Zu sichernde Benutzer",
     "master_label": "S3-Sicherungen aktivieren",
     "master_description": "Hauptschalter. Wenn deaktiviert, stoppen die automatischen Sicherungen und die S3-Sicherungs- und Wiederherstellungsabschnitte verschwinden für alle Benutzer.",
-    "users_filter_placeholder": "Nach Name, Benutzername oder E-Mail filtern...",
+    "users_filter_placeholder": "Nach Name, Benutzername oder E-Mail filtern…",
     "users_filter_clear": "Filter löschen",
     "users_select_all": "Alle auswählen",
     "users_select_none": "Auswahl aufheben",
@@ -5208,7 +5208,7 @@
     "restore": "Wiederherstellen",
     "restore_title": "Sicherung wiederherstellen",
     "confirm_restore": "Das Konto {{username}} aus {{filename}} wiederherstellen? Die aktuellen Notizen, Anhänge und Einstellungen dieses Kontos werden durch den Inhalt des Archivs ersetzt.",
-    "restoring": "{{username}} wird aus {{filename}} wiederhergestellt...",
+    "restoring": "{{username}} wird aus {{filename}} wiederhergestellt…",
     "restore_done": "{{username}} wurde aus {{filename}} wiederhergestellt.",
     "restore_error": "Die Wiederherstellung von {{username}} ist fehlgeschlagen: {{error}}",
     "footer_note": "Archive werden im Sicherungsordner unter {Benutzer-ID}/ gespeichert und können mit der Standardseite «Wiederherstellen / Importieren» wiederhergestellt werden.",
@@ -5233,7 +5233,7 @@
   "tasklist_embed": {
     "unavailable": "Diese Aufgabenliste ist nicht mehr verfügbar.",
     "empty": "Noch keine Aufgaben in dieser Liste.",
-    "add_placeholder": "Aufgabe hinzufügen...",
+    "add_placeholder": "Aufgabe hinzufügen…",
     "save_error": "Die Aufgabenliste konnte nicht gespeichert werden."
   },
   "archive": {
@@ -5281,7 +5281,7 @@
     },
     "footnote": "All das und noch viel mehr lässt sich später in den Einstellungen ändern.",
     "start": "Mit Poznote loslegen",
-    "saving": "Wird gespeichert...",
+    "saving": "Wird gespeichert…",
     "errors": {
       "generic": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
       "username_required": "Ein Benutzername ist erforderlich.",
@@ -5321,7 +5321,7 @@
   "keyboard_shortcuts": {
     "menu_item": "Tastenkürzel",
     "title": "Tastenkürzel",
-    "filter_placeholder": "Tastenkürzel filtern...",
+    "filter_placeholder": "Tastenkürzel filtern…",
     "no_results": "Keine Tastenkürzel entsprechen Ihrer Suche.",
     "sections": {
       "general": "Allgemein",
@@ -5524,7 +5524,7 @@
     },
     "page": {
       "title": "Offline",
-      "filter_placeholder": "Nach Name oder Ordner filtern...",
+      "filter_placeholder": "Nach Name oder Ordner filtern…",
       "column_reason": "Grund",
       "filter_reason": "Nach Grund filtern",
       "reason_all": "Alle Gründe",
@@ -5554,7 +5554,7 @@
     "description": "Eine Version wird automatisch gespeichert, wenn Sie eine Notiz ändern, höchstens eine alle {{minutes}} Minuten: Sie enthält die Notiz so, wie sie unmittelbar vor der Änderung war.\n\nSie können auch selbst eine speichern (Strg + Alt + S), und eine wird gespeichert, unmittelbar bevor der KI-Assistent oder der MCP-Server den Inhalt ersetzt.\n\nAutomatische Versionen bleiben {{hours}} Stunden lang alle erhalten, danach eine pro Tag für {{count}} Tage. Versionen laufen nach {{days}} Tagen ab.\n\nAnhänge werden nicht versioniert.",
     "keep_count_link_title": "Ändern, für wie viele Tage eine Version pro Tag aufbewahrt wird",
     "history": "Verlauf",
-    "loading": "Wird geladen...",
+    "loading": "Wird geladen…",
     "today": "Heute",
     "yesterday": "Gestern",
     "kind": {
