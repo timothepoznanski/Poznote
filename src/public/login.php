@@ -491,7 +491,7 @@ if (isset($_GET['oidc_error'])) {
                 <div class="form-group remember-me-group remember-me-unified">
                     <label class="remember-me-label">
                         <input type="checkbox" name="remember_me" value="1" id="remember_me">
-                        <span><?php echo t_h('login.remember_me', [], 'Remember me for 30 days', $currentLang ?? 'en'); ?></span>
+                        <span><?php echo t_h('login.remember_me', ['days' => REMEMBER_ME_DAYS], 'Remember me for {{days}} days', $currentLang ?? 'en'); ?></span>
                     </label>
                 </div>
                 <button type="submit" class="login-button"><?php echo t_h('login.button', [], 'Login', $currentLang ?? 'en'); ?></button>

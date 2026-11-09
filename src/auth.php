@@ -70,9 +70,34 @@ function getAuthConfig($key, $default) {
     return trim((string)$val);
 }
 
+/**
+ * Resolve the remember-me lifetime from the environment.
+ *
+ * The value is expressed in whole days so it is easy to configure alongside
+ * the user-facing "Remember me" option. Invalid, empty, zero, negative, and
+ * unreasonably large values fall back to the documented 30-day default.
+ */
+function getRememberMeDurationDays(): int {
+    $defaultDays = 30;
+    $raw = getAuthConfig('POZNOTE_REMEMBER_ME_DAYS', (string)$defaultDays);
+    $raw = trim((string)$raw);
+
+    if ($raw === '' || !ctype_digit($raw)) {
+        return $defaultDays;
+    }
+
+    $days = (int)$raw;
+    if ($days < 1 || $days > intdiv(PHP_INT_MAX, 24 * 60 * 60)) {
+        return $defaultDays;
+    }
+
+    return $days;
+}
+
 // Remember me cookie settings
 define("REMEMBER_ME_COOKIE", 'poznote_remember_' . ($configured_port ?? '8040'));
-define("REMEMBER_ME_DURATION", 30 * 24 * 60 * 60); // 30 days
+define('REMEMBER_ME_DAYS', getRememberMeDurationDays());
+define('REMEMBER_ME_DURATION', REMEMBER_ME_DAYS * 24 * 60 * 60);
 
 /**
  * Set or clear the remember-me cookie with proper security attributes.

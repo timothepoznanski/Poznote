@@ -2270,7 +2270,7 @@
       "password": "Contrasenya",
       "profile": "Seleccioneu el perfil"
     },
-    "remember_me": "Recorda'm durant 30 dies",
+    "remember_me": "Recorda'm durant {{days}} dies",
     "button": "Inicia la sessió",
     "oidc_button": "Continua amb {{provider}}",
     "oidc_button_account": "Continua amb {{account}}",

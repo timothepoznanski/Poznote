@@ -33,7 +33,7 @@
         "profile": "Perfil"
       },
       "button": "Iniciar sesión",
-      "remember_me": "Recordarme por 30 días",
+      "remember_me": "Recordarme por {{days}} días",
       "no_profiles": "No hay perfiles disponibles. Por favor, contacte al administrador.",
       "oidc_button": "Continuar con {{provider}}",
       "documentation": "Documentación de Poznote",
@@ -2674,7 +2674,7 @@
       "password": "Contraseña",
       "profile": "Selecciona tu perfil"
     },
-    "remember_me": "Recordarme por 30 días",
+    "remember_me": "Recordarme por {{days}} días",
     "button": "Inicio de sesión",
     "oidc_button": "Continuar con {{provider}}",
     "oidc_button_account": "Continuar con {{account}}",

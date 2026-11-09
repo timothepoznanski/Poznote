@@ -2270,7 +2270,7 @@
       "password": "パスワードを入力",
       "profile": "プロフィールを選択"
     },
-    "remember_me": "30日間ログインしたままにする",
+    "remember_me": "{{days}}日間ログインしたままにする",
     "button": "ログイン",
     "oidc_button": "{{provider}}で続行",
     "oidc_button_account": "{{account}}で続行",

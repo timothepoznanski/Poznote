@@ -2271,7 +2271,7 @@
       "password": "Пароль",
       "profile": "Выберите профиль"
     },
-    "remember_me": "Запомнить меня на 30 дней",
+    "remember_me": "Запомнить меня на {{days}} дней",
     "button": "Войти",
     "oidc_button": "Продолжить с {{provider}}",
     "oidc_button_account": "Продолжить с {{account}}",

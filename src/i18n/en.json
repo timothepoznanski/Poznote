@@ -2270,7 +2270,7 @@
       "password": "Password",
       "profile": "Select your profile"
     },
-    "remember_me": "Remember me for 30 days",
+    "remember_me": "Remember me for {{days}} days",
     "button": "Login",
     "oidc_button": "Continue with {{provider}}",
     "oidc_button_account": "Continue with {{account}}",

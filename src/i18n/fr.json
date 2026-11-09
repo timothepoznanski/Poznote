@@ -33,7 +33,7 @@
         "profile": "Profil"
       },
       "button": "Connexion",
-      "remember_me": "Rester connecté pendant 30 jours",
+      "remember_me": "Rester connecté pendant {{days}} jours",
       "no_profiles": "Aucun profil disponible. Veuillez contacter l'administrateur.",
       "oidc_button": "Continuer avec {{provider}}",
       "documentation": "Documentation Poznote",
@@ -2679,7 +2679,7 @@
       "password": "Mot de passe",
       "profile": "Sélectionnez votre profil"
     },
-    "remember_me": "Se souvenir de moi pendant 30 jours",
+    "remember_me": "Se souvenir de moi pendant {{days}} jours",
     "button": "Se connecter",
     "oidc_button": "Continuer avec {{provider}}",
     "oidc_button_account": "Continuer avec {{account}}",

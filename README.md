@@ -534,7 +534,9 @@ Passwords are managed through the Poznote web interface, not through `.env`:
 
 - Users can change their own password from **Settings > Change Password**.
 - Administrators can set a custom password for any user or reset it to the default from **Settings > Admin Tools > User Management**.
-- The **Remember me** option keeps the session for 30 days.
+- The **Remember me** option keeps the session for 30 days by default. Set
+  `POZNOTE_REMEMBER_ME_DAYS` in `.env` to use a different positive whole number
+  of days.
 - Changing a password invalidates existing remember-me cookies for that user.
 
 #### Two-factor authentication
