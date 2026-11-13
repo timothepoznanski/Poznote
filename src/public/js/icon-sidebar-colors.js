@@ -4,7 +4,7 @@
  * Drives #iconSidebarColorModal, rendered by icon_sidebar.php next to the rail:
  * the folder colour palette (modals/icon_color_options.php) without the icon
  * grid. A right-click on a rail button opens a small menu (change the colour,
- * or hide the button); its colour entry opens the modal, which saves the pick
+ * or find the button in the Element visibility list); its colour entry opens the modal, which saves the pick
  * straight away. The Icon Sidebar Order modal (js/settings-page.js) opens it with an
  * onApply callback instead and saves along with the order. The note toolbar
  * (js/toolbar-icon-colors.js) opens it through window.PoznoteIconColorModal.
@@ -264,14 +264,11 @@
     }
 
     // ------------------------------------------------------------------
-    // Right-click menu of an icon button: change its colour, or hide it.
-    // Shared with the note toolbar (js/toolbar-icon-colors.js). Hiding adds
-    // the button's key to the 'hidden_ui_elements' user setting, the one the
-    // UI Customization list edits, so the button shows unchecked there and
-    // comes back from it.
+    // Right-click menu of an icon button: change its colour, or open the
+    // Element visibility list on its row, where it is hidden by its box.
+    // Shared with the note toolbar (js/toolbar-icon-colors.js).
     // ------------------------------------------------------------------
 
-    var HIDDEN_UI_URL = '/api/v1/settings/hidden_ui_elements';
     var menuEl = null;
     // The button the menu was opened on, focused again when it closes.
     var menuOwner = null;
@@ -334,85 +331,27 @@
     }
 
     /**
-     * The name the "Element visibility" list gives a key, read from the list
-     * rendered in the page (modals/ui_customization_sections.php): the label
-     * of the element, already translated. '' when the page holds no list.
+     * Opens the "Element visibility" list on the row of one key, where the
+     * reader hides it (or shows it again) by its box: nothing is hidden
+     * straight from a right-click menu. Pages carrying the contextual panel
+     * (js/ui-customization-panel.js) open it in place; the others, and a key
+     * the page's panel does not list, lead to that section of the settings.
      */
-    function uiKeyLabel(key) {
-        if (!key) return '';
-        var box = document.querySelector('[data-ui-key="' + key + '"]');
-        var item = box && box.closest ? box.closest('.ui-custom-item') : null;
-        var span = item ? item.querySelector('span') : null;
-        return span ? (span.textContent || '').trim() : '';
-    }
-
-    // Says what has just gone, and where it comes back from: an element hidden
-    // from its right-click menu leaves nothing behind to right-click again.
-    function notifyHidden(key) {
-        var label = uiKeyLabel(key);
-        if (!label || typeof window.poznoteShowToast !== 'function') return;
-        // From the config rather than window.t: the dashboard only loads the
-        // JS i18n runtime together with the AI panel.
-        var text = config.menuHiddenNotice || '"{{name}}" is hidden. Element visibility brings it back.';
-        window.poznoteShowToast(text.split('{{name}}').join(label), { duration: 5000 });
-    }
-
-    // Adds key to the user's own hidden set, read fresh so a change made in
-    // another tab or in the settings page is not overwritten.
-    function hideUiKey(key, element) {
-        var hidden = [];
-        fetch(HIDDEN_UI_URL, {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' },
-            credentials: 'same-origin'
-        })
-            .then(function (response) { return response.json(); })
-            .then(function (result) {
-                if (!result || !result.success) throw new Error('load failed');
-                try {
-                    var parsed = JSON.parse(result.value || '[]');
-                    if (Array.isArray(parsed)) hidden = parsed;
-                } catch (e) {
-                    console.debug('icon-sidebar-colors: unreadable hidden_ui_elements:', e);
-                }
-                if (hidden.indexOf(key) === -1) hidden.push(key);
-                return fetch(HIDDEN_UI_URL, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                    credentials: 'same-origin',
-                    body: JSON.stringify({ value: JSON.stringify(hidden) })
-                });
-            })
-            .then(function (response) { return response.json(); })
-            .then(function (result) {
-                if (!result || !result.success) throw new Error('save failed');
-                notifyHidden(key);
-                var runtime = window.PoznoteUiCustomization;
-                if (runtime && typeof runtime.apply === 'function') {
-                    runtime.apply(hidden);
-                } else if (element) {
-                    // Pages without the UI Customization runtime (admin pages).
-                    element.style.display = 'none';
-                }
-                try {
-                    document.dispatchEvent(new CustomEvent('poznote-hidden-ui-elements-saved', {
-                        detail: { hidden: hidden.slice() }
-                    }));
-                } catch (e) {
-                    console.debug('icon-sidebar-colors: event dispatch failed:', e);
-                }
-            })
-            .catch(function (error) {
-                console.debug('icon-sidebar-colors: hideUiKey() failed:', error);
-                alert(config.errorSaving || 'Error saving preference');
-            });
+    function revealUiKey(key) {
+        var panel = window.PoznoteUiCustomizationPanel;
+        if (panel && typeof panel.open === 'function' && typeof panel.hasKey === 'function' && panel.hasKey(key)) {
+            panel.open(key);
+            return;
+        }
+        window.location.href = 'settings.php?open=ui-customization';
     }
 
     /**
      * Show the menu for a right-clicked button.
      * options.onColor  opens the colour modal
      * options.hideKey  UI Customization key that hides the button, '' when
-     *                  the button cannot be hidden (the entry is left out)
+     *                  the button cannot be hidden: its "Element visibility"
+     *                  entry opens the list on that row (left out when '')
      */
     // Entries a button registers for its own right-click menu:
     // window.__poznoteIconContextItems[buttonId] = function (button) {
@@ -440,8 +379,8 @@
             addMenuItem(menu, 'lucide-palette', config.menuChangeColor || 'Change icon color', options.onColor);
         }
         if (options.hideKey) {
-            addMenuItem(menu, 'lucide-eye-off', config.menuHide || 'Hide button', function () {
-                hideUiKey(options.hideKey, owner);
+            addMenuItem(menu, 'lucide-eye-off', config.menuElementVisibility || 'Element visibility', function () {
+                revealUiKey(options.hideKey);
             });
         }
         if (typeof options.onCustomize === 'function') {
@@ -488,9 +427,9 @@
     window.PoznoteIconContextMenu = {
         open: openContextMenu,
         close: function () { closeContextMenu(false); },
-        // What the "Hide" entry does, for callers that write their own
-        // entries: the right-click Hide menu (js/hide-element-menu.js).
-        hideKey: hideUiKey
+        // What the "Element visibility" entry does, for callers that write
+        // their own entries: the right-click menu of js/hide-element-menu.js.
+        revealKey: revealUiKey
     };
 
     window.PoznoteIconSidebarColors = {

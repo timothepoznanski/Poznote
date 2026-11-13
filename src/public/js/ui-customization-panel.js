@@ -179,10 +179,11 @@
 
     /**
      * Opens the panel on the row of one key: its section unfolded, the others
-     * folded, the row scrolled to and marked for a moment. The way back from
-     * the right-click Hide menu (js/hide-element-menu.js), whose last entry
-     * leads here. A key this page's list does not hold (the sections are
-     * pruned per page) only opens the panel.
+     * folded, the row scrolled to and marked for a moment. Where every
+     * right-click menu that offers an element leads (js/hide-element-menu.js,
+     * js/icon-sidebar-colors.js, js/note-subline-menu.js): nothing is hidden
+     * from those menus. A key this page's list does not hold (the sections
+     * are pruned per page) only opens the panel.
      */
     function revealKey(key) {
         if (!panel || !key) return;
@@ -1012,9 +1013,9 @@
         }
     }
 
-    // Opened from elsewhere: the right-click Hide menu
-    // (js/hide-element-menu.js) sends the reader here for the key it just hid,
-    // or for the whole list.
+    // Opened from elsewhere: the right-click menus (js/hide-element-menu.js,
+    // js/icon-sidebar-colors.js, js/note-subline-menu.js) send the reader here
+    // on the row of the element right-clicked.
     window.PoznoteUiCustomizationPanel = {
         open: function (key) {
             if (!panel) return false;

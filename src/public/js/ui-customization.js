@@ -13,6 +13,9 @@
         'card:icon_sidebar': true,
         'card:iconSidebarSettingsBtn': true,
         'card:iconSidebarHomeBtn': true,
+        // The button that folds the icon rail is never offered for hiding:
+        // without it a folded rail could not be unfolded again.
+        'card:iconSidebarToggle': true,
         // The folder icon click now always opens the icon/color modal; the
         // old "open Kanban on icon click" toggle no longer exists.
         'panel:folder-icon-kanban': true,
@@ -131,7 +134,7 @@
                 applyHiddenKeys(mergeEnforcedGlobalKeys(userHidden));
             },
             normalizeKeys: sanitizeHiddenKeys,
-            // Right-click Hide menu (js/hide-element-menu.js)
+            // Right-click menu (js/hide-element-menu.js)
             hideTargets: hideTargets
         };
 
@@ -467,6 +470,7 @@
         // row unfolds and the chevron that unfolds them, never the row.
         'backlinks-mentions': '.backlinks-mentions, .backlinks-mentions-toggle',
         'speed-dial-workspace': '.speed-dial-container .poznote-page-title-workspace',
+        'dashboard-scope': 'body.dashboard-page .poznote-page-title-workspace',
         'speed-dial-edit': '.speed-dial-edit',
         'speed-dial-labels': '.speed-dial-label',
         'speed-dial-icons': '.speed-dial-icon',
@@ -525,6 +529,10 @@
 
             if (type === 'card') {
                 rules.push('#' + id + ' { display: none !important; }');
+                // A field folded behind a magnifier goes with its magnifier
+                if (/^[A-Za-z0-9_-]+$/.test(id)) {
+                    rules.push('.pz-search-toggle[aria-controls="' + id + '"] { display: none !important; }');
+                }
 
                 if (CREATE_MENU_OPTION_SELECTORS[key]) {
                     rules.push('#create-menu ' + CREATE_MENU_OPTION_SELECTORS[key] + ' { display: none !important; }');

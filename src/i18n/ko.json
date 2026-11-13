@@ -5555,11 +5555,6 @@
     "markdown_view_toggle": "Markdown 노트의 편집과 미리보기 전환",
     "new_note": "노트 만들기:"
   },
-  "icon_context_menu": {
-    "hide": "숨기기 버튼",
-    "hide_element": "'{{name}}' 숨기기",
-    "hidden_notice": "'{{name}}'을(를) 숨겼습니다. 화면 요소 표시에서 다시 표시할 수 있습니다."
-  },
   "account_note": {
     "banner": "{{account}} 계정의 노트, 읽기 전용",
     "open_to_edit": "수정하려면 열어주세요",
@@ -5913,9 +5908,6 @@
     "applied_size_to_all": "모든 노트에 제목 크기를 적용했습니다",
     "change_icon": "아이콘 변경",
     "reset": "기본값으로 재설정"
-  },
-  "note_subline_menu": {
-    "label": "제목 아래"
   },
   "speed_dial": {
     "title": "빠른 실행",

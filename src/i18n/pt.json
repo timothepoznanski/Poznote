@@ -5720,11 +5720,6 @@
     "markdown_view_toggle": "Alternar uma nota Markdown entre edição e pré-visualização",
     "new_note": "Criar uma nota:"
   },
-  "icon_context_menu": {
-    "hide": "Ocultar o botão",
-    "hide_element": "Ocultar «{{name}}»",
-    "hidden_notice": "«{{name}}» está oculto. Visibilidade dos elementos mostra-o novamente."
-  },
   "account_note": {
     "banner": "Nota da conta {{account}}, só de leitura",
     "open_to_edit": "Abrir para editar",
@@ -6069,9 +6064,6 @@
     "applied_size_to_all": "Tamanho do título aplicado a todas as notas",
     "change_icon": "Alterar ícone",
     "reset": "Restaurar padrão"
-  },
-  "note_subline_menu": {
-    "label": "Abaixo do título"
   },
   "speed_dial": {
     "title": "Acesso rápido",

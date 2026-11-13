@@ -5555,11 +5555,6 @@
     "markdown_view_toggle": "Canvia una nota Markdown entre el mode d'edició i el de previsualització",
     "new_note": "Crea una nota:"
   },
-  "icon_context_menu": {
-    "hide": "Amaga el botó",
-    "hide_element": "Amaga «{{name}}»",
-    "hidden_notice": "«{{name}}» està amagat. Visibilitat dels elements el torna a mostrar."
-  },
   "account_note": {
     "banner": "Nota del compte {{account}}, només lectura",
     "open_to_edit": "Obre per editar",
@@ -5913,9 +5908,6 @@
     "applied_size_to_all": "Mida del títol aplicada a totes les notes",
     "change_icon": "Canvia la icona",
     "reset": "Restableix per defecte"
-  },
-  "note_subline_menu": {
-    "label": "Sota el títol"
   },
   "speed_dial": {
     "title": "Accés ràpid",

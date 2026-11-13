@@ -5816,11 +5816,6 @@
     "markdown_view_toggle": "在编辑和预览之间切换 Markdown 笔记",
     "new_note": "新建笔记："
   },
-  "icon_context_menu": {
-    "hide": "隐藏按钮",
-    "hide_element": "隐藏「{{name}}」",
-    "hidden_notice": "已隐藏「{{name}}」。可在元素可见性中重新显示。"
-  },
   "account_note": {
     "banner": "来自账户 {{account}} 的笔记，只读",
     "open_to_edit": "打开以编辑",
@@ -6165,9 +6160,6 @@
     "applied_size_to_all": "已将标题大小应用到所有笔记",
     "change_icon": "更改图标",
     "reset": "恢复默认"
-  },
-  "note_subline_menu": {
-    "label": "标题下方"
   },
   "speed_dial": {
     "title": "快速访问",

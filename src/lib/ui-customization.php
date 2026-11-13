@@ -16,6 +16,9 @@ function poznoteGetNonHideableUiKeys() {
         'card:icon_sidebar' => true,
         'card:iconSidebarSettingsBtn' => true,
         'card:iconSidebarHomeBtn' => true,
+        // The button that folds the icon rail is never offered for hiding:
+        // without it a folded rail could not be unfolded again.
+        'card:iconSidebarToggle' => true,
         // The folder icon click now always opens the icon/color modal; the
         // old "open Kanban on icon click" toggle no longer exists.
         'panel:folder-icon-kanban' => true,
@@ -520,6 +523,8 @@ function poznotePanelUiSelectors(): array {
         // The parts of the speed dial repeated on each tile, and the
         // workspace chip its page shares with others (issue #1714)
         'speed-dial-workspace' => '.speed-dial-container .poznote-page-title-workspace',
+        // The same chip on the dashboard, where it opens the scope
+        'dashboard-scope' => 'body.dashboard-page .poznote-page-title-workspace',
         'speed-dial-edit' => '.speed-dial-edit',
         'speed-dial-labels' => '.speed-dial-label',
         'speed-dial-icons' => '.speed-dial-icon',
@@ -557,6 +562,11 @@ function poznoteBuildUiCustomizationRules(array $hiddenKeys) {
             // (ui_customization_panel.php): one key hides both (issue #1663).
             if ($id === 'edgeCustomizeBtn') {
                 $rules[] = '#edgeMenuCustomize { display: none !important; }';
+            }
+            // A field folded behind a magnifier (lib/search-toggle.php) goes
+            // with its magnifier, which would otherwise open nothing.
+            if (preg_match('/^[A-Za-z0-9_-]+$/', $id)) {
+                $rules[] = '.pz-search-toggle[aria-controls="' . $id . '"] { display: none !important; }';
             }
         } elseif ($type === 'toolbar') {
             $rules[] = '.note-edit-toolbar .' . $id . ', .note-edit-toolbar .' . $id . ':not(.hide-on-selection) { display: none !important; }';

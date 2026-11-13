@@ -5824,11 +5824,6 @@
     "markdown_view_toggle": "Basculer une note Markdown entre édition et aperçu",
     "new_note": "Créer une note :"
   },
-  "icon_context_menu": {
-    "hide": "Masquer le bouton",
-    "hide_element": "Masquer « {{name}} »",
-    "hidden_notice": "« {{name}} » est masqué. Visibilité des éléments le réaffiche."
-  },
   "account_note": {
     "banner": "Note du compte {{account}}, en lecture seule",
     "open_to_edit": "Ouvrir pour modifier",
@@ -6173,9 +6168,6 @@
     "applied_size_to_all": "Taille du titre appliquée à toutes les notes",
     "change_icon": "Changer l'icône",
     "reset": "Rétablir par défaut"
-  },
-  "note_subline_menu": {
-    "label": "Sous le titre"
   },
   "speed_dial": {
     "title": "Accès rapide",
