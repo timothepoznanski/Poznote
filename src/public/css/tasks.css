@@ -28,7 +28,10 @@
    the label font-size survive the blanket `.noteentry div { margin: 0 }` and
    font-size resets from noteentry.css. */
 .noteentry .tasklist-progress {
-    /* The note header leaves ~35px above; slightly tighter below */
+    /* Match the global tasks page: the label and the bar share one row. */
+    display: flex;
+    align-items: center;
+    gap: 12px;
     margin: 0 auto 28px auto;
     width: 95%;
 }
@@ -41,12 +44,16 @@
 }
 
 .noteentry .tasklist-progress-label {
+    order: 3;
     color: var(--pz-text-muted);
     text-align: left;
-    margin-bottom: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .noteentry .tasklist-progress-bar {
+    order: 2;
+    flex: 1;
     height: 8px;
     border-radius: var(--pz-radius-sm);
     background-color: var(--pz-surface-sunken);
