@@ -1136,17 +1136,71 @@ tar -czvf poznote-full-backup.tar.gz data/
 - **復元**：アーカイブはバックアップフォルダー内の`{user id}/`に保存され、通常の[復元/インポート](#復元インポート)ページで復元できます。
 - **アカウントの削除**：アカウントを削除すると、バックアップフォルダーにあるそのアカウントのアーカイブも削除されます。
 
-バックアップを別のディスクやネットワーク共有に保存するには、それをコンテナーにマウントし、コンテナー内のパス（この例では`/backups`）をバックアップフォルダーとして入力します：
+アーカイブを NAS や別のディスクに保存するには、[NAS や別のディスクへのバックアップ](#nas-backups)を参照してください。
+
+`data/backups`を除き、アプリケーション自体の中にあるフォルダーは拒否されます。添付ファイルをS3に保存している場合（添付ファイルのS3ストレージ）は、その場でバケットから取得して、アーカイブに含めます。
+
+</details>
+
+<a id="nas-backups"></a>
+<details>
+<summary><strong>NAS や別のディスクへのバックアップ</strong></summary>
+<br>
+
+[サーバー上のフォルダーへのスケジュールバックアップ](#local-backups)は、NAS や別のディスクに書き込むことができます。それをコンテナーにマウントし、**設定 > サーバー上のバックアップ** で、コンテナー内のパス（以下の例では `/backups`）をバックアップフォルダーとして入力します。Poznote は Web サーバーの実行ユーザーとして書き込みます。デフォルトのイメージでは `www-data`（uid/gid `82`）、[rootless イメージ](#rootless)では uid/gid `1000` で、このユーザーがフォルダーの所有者である必要があります。そうでない場合、フォルダーの保存時に「バックアップフォルダーを作成できないか、Webサーバーから書き込めません」というエラーになります。
+
+**ホストの別のディスク**：そのディスク上のフォルダーをバインドマウントし、`sudo chown -R 82:82 /mnt/disk2/poznote-backups` でそのフォルダーを Poznote のユーザーに渡します（rootless イメージでは `1000:1000`）。
 
 ```yaml
 services:
   webserver:
     volumes:
       - "./data:/var/www/html/data"
-      - "/mnt/nas/poznote-backups:/backups"
+      - "/mnt/disk2/poznote-backups:/backups"
 ```
 
-`data/backups`を除き、アプリケーション自体の中にあるフォルダーは拒否されます。添付ファイルをS3に保存している場合（添付ファイルのS3ストレージ）は、その場でバケットから取得して、アーカイブに含めます。
+**SMB/CIFS 共有（NAS）**：Docker は CIFS ボリュームで共有を自分でマウントできるため、ホストに何かをインストールしたりマウントしたりする必要はありません。共有では `chown` は効かず、所有者はマウントオプションの `uid` と `gid` で決まります。
+
+```yaml
+services:
+  webserver:
+    volumes:
+      - "./data:/var/www/html/data"
+      - "nas-backups:/backups"
+
+volumes:
+  nas-backups:
+    driver: local
+    driver_opts:
+      type: cifs
+      # NAS の IP アドレス、続いて共有名
+      device: "//192.168.1.10/poznote-backups"
+      # rootless イメージでは uid=1000,gid=1000
+      o: "username=poznote,password=CHANGE_ME,uid=82,gid=82,vers=3.0"
+```
+
+その後 `docker compose up -d` を実行し、`/backups` をバックアップフォルダーとして入力します。
+
+- NAS の IP アドレスを使ってください。Docker のバージョンによっては、`device` に書いたホスト名が解決されないことがあります。
+- `vers=3.0` は現行の NAS に適しています。古い NAS では `vers=2.1` が必要な場合があります。
+- パスワードは compose ファイルに書かれ、ボリュームと一緒に保存されます（`docker volume inspect` で表示されます）。そのため、NAS 上に Poznote 専用のアカウントを作り、この共有だけにアクセスできるようにしてください。
+- Docker はボリューム作成時のオプションを保持します。オプション（uid、パスワード、アドレス）を変更したら、ボリュームを削除して作り直させてください。削除されるのはマウントの設定だけで、アーカイブは NAS に残ります：
+
+```bash
+docker compose down
+# ボリューム名はプロジェクトフォルダー名で始まります（docker volume ls を参照）
+docker volume rm poznote_nas-backups
+docker compose up -d
+```
+
+**コンテナーの起動時に NAS に接続できないと、Poznote は起動しません**。バックアップだけでなく、アプリケーション全体が使えなくなります（Docker は「failed to mount local volume」と報告します）。NAS が常に電源オンでない場合は、代わりにホストで共有をマウントし、ホストと Poznote が共有なしでも起動できるよう `nofail` を付けたうえで、上の別のディスクのフォルダーと同じように `/mnt/nas/poznote-backups` をバインドマウントしてください（`chown` は不要で、所有者は `uid` と `gid` オプションで決まります）。これにはホストに `cifs-utils` パッケージが必要です。認証情報ファイル（ここでは `/root/.poznote-nas`）には `username=poznote` と `password=CHANGE_ME` の 2 行を書き、root だけが読めるようにします（`chmod 600`）：
+
+```
+# /etc/fstab
+//192.168.1.10/poznote-backups /mnt/nas/poznote-backups cifs credentials=/root/.poznote-nas,uid=82,gid=82,vers=3.0,nofail,_netdev 0 0
+```
+
+コンテナーが共有を認識するのは、コンテナーの起動前にホストが共有をマウントしていた場合だけです。NAS が後から復帰した場合は `docker compose restart` を実行してください。マウントポイント自体（共有の下にある空のフォルダー）は root の所有のままにしておきます。こうすると、共有がない間のバックアップは「サーバー上のバックアップ」ページに表示されるエラーで失敗し、ホストのディスクを知らないうちに埋めることはありません。
 
 </details>
 
