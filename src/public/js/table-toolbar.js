@@ -660,7 +660,8 @@
 
     // Table rows do not wrap, so the wrapping editor scrolls sideways for them
     // (#1701). Its own bar is hidden and sits at the end of the note, so a bar
-    // of the page stands in for it while such rows are in sight.
+    // of the page stands in for it while such rows are in sight, right under
+    // the table (under the visible part of it when it runs past the bottom).
     function findTableSourceInSight() {
         const scrollers = document.querySelectorAll('.markdown-codemirror-host:not(.markdown-editor-nowrap) .cm-scroller');
         for (const scroller of scrollers) {
@@ -669,13 +670,24 @@
             const rect = scroller.getBoundingClientRect();
             const top = Math.max(rect.top, clip.top);
             const bottom = Math.min(rect.bottom, clip.bottom);
-            const inSight = Array.from(scroller.querySelectorAll('.cm-md-table-line')).some(row => {
+            const longRow = Array.from(scroller.querySelectorAll('.cm-md-table-line')).find(row => {
                 const rowRect = row.getBoundingClientRect();
                 return rowRect.width > scroller.clientWidth && rowRect.bottom > top && rowRect.top < bottom;
             });
-            if (inSight) return { scroller, rect, bottom };
+            if (!longRow) continue;
+            // The table is the run of table lines around that row
+            let lastRow = longRow;
+            while (lastRow.nextElementSibling && lastRow.nextElementSibling.classList.contains('cm-md-table-line')) {
+                lastRow = lastRow.nextElementSibling;
+            }
+            return { scroller, rect, bottom: Math.min(bottom, lastRow.getBoundingClientRect().bottom + sourceBarHeight()) };
         }
         return null;
+    }
+
+    // (read from the stylesheet, the bar may not exist yet)
+    function sourceBarHeight() {
+        return sourceBar && sourceBar.offsetHeight ? sourceBar.offsetHeight : 10;
     }
 
     function positionSourceBar() {

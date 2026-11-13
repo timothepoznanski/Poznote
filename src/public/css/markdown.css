@@ -1520,6 +1520,17 @@ html[data-theme='dark'] .markdown-preview pre.indented-pre {
         margin: 0;
     }
 
+    /* The same for a table of an HTML note, while it is wider than the note
+       (js/note-table-scroll.js): the table is its own box, as a block it
+       would no longer stretch to the note width, hence only then */
+    .noteentry table[data-pz-table-scroll] {
+        display: block;
+        max-width: 100%;
+        overflow-x: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--pz-scrollbar) transparent;
+    }
+
     :is(.noteentry, .markdown-preview) .markdown-table-scroll > table :is(th, td) {
         min-width: var(--markdown-table-cell-min, 0);
         overflow-wrap: break-word;

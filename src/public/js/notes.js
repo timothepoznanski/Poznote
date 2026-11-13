@@ -1076,6 +1076,12 @@ function stripSearchHighlights(element) {
         blockedFrames[f].removeAttribute('data-embed-settled');
     }
 
+    // A table too wide for the note scrolls in its own box (js/note-table-scroll.js)
+    var scrollTables = clonedElement.querySelectorAll('table[data-pz-table-scroll]');
+    for (var st = 0; st < scrollTables.length; st++) {
+        scrollTables[st].removeAttribute('data-pz-table-scroll');
+    }
+
     var codeBlockHosts = clonedElement.querySelectorAll('.code-block-actions-host');
     for (var c = 0; c < codeBlockHosts.length; c++) {
         unwrapCodeBlockActionHost(codeBlockHosts[c]);

@@ -287,6 +287,9 @@
     function isNativeSelectionOutsideTable() {
         var sel = window.getSelection();
         if (!sel || sel.rangeCount === 0 || !sel.anchorNode) return false;
+        // A bare caret is no text selection: the drag leaves one at the start
+        // of the note, and Ctrl alone then dropped the cells before Ctrl+C
+        if (sel.isCollapsed) return false;
         var el = sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentElement;
         return !!(el && selectionTable && !selectionTable.contains(el));
     }
@@ -404,6 +407,7 @@
      */
     function probeLineMove(sel, forward) {
         var saved = sel.getRangeAt(0).cloneRange();
+        var atLineEnd = isAtWrappedLineEnd(sel, saved);
         sel.modify('move', forward ? 'forward' : 'backward', 'line');
         var moved = sel.rangeCount ? sel.getRangeAt(0) : null;
         var dest = moved && (moved.startContainer !== saved.startContainer || moved.startOffset !== saved.startOffset)
@@ -411,7 +415,43 @@
             : null;
         sel.removeAllRanges();
         sel.addRange(saved);
+        if (atLineEnd) restoreLineEnd(sel, saved);
         return dest;
+    }
+
+    function isSamePosition(range, other) {
+        return range.startContainer === other.startContainer && range.startOffset === other.startOffset;
+    }
+
+    /**
+     * The end of a wrapped line and the start of the next one are the same DOM
+     * position, only the selection's affinity tells them apart, and a range
+     * put back by addRange() always lands at the start of the next line. A
+     * native move from there went one line too far: off the last line of a
+     * cell to the next cell of the row, or past a line of a paragraph. Read the
+     * affinity here (the caret is at a line end when moving to the line
+     * boundary leaves it in place), restoreLineEnd() puts it back.
+     */
+    function isAtWrappedLineEnd(sel, saved) {
+        if (saved.startContainer.nodeType !== 3 || saved.startOffset === 0) return false;
+        sel.modify('move', 'forward', 'lineboundary');
+        // (left in place, it keeps its affinity)
+        if (sel.rangeCount > 0 && isSamePosition(sel.getRangeAt(0), saved)) return true;
+        sel.removeAllRanges();
+        sel.addRange(saved);
+        return false;
+    }
+
+    function restoreLineEnd(sel, saved) {
+        var range = document.createRange();
+        range.setStart(saved.startContainer, saved.startOffset - 1);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+        sel.modify('move', 'forward', 'lineboundary');
+        if (sel.rangeCount && isSamePosition(sel.getRangeAt(0), saved)) return;
+        sel.removeAllRanges();
+        sel.addRange(saved);
     }
 
     /** Horizontal position of the caret, used to pick the column. */
