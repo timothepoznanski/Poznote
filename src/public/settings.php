@@ -644,6 +644,7 @@ if ($canUseUserWebhooks) {
                                 'ja' => 'settings.language.japanese',
                                 'ko' => 'settings.language.korean',
                                 'de' => 'settings.language.german',
+                                'de-ch' => 'settings.language.german_swiss',
                                 'pt' => 'settings.language.portuguese',
                                 'ru' => 'settings.language.russian',
                                 'es' => 'settings.language.spanish',
