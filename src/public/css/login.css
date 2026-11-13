@@ -184,7 +184,9 @@ input[type="password"]::placeholder {
     top: 50%;
     width: 42%;
     height: 1px;
-    background: var(--pz-border-light);
+    /* Strong, as in dark mode: --pz-border-light vanished on the page
+       background, the vertical rules between the columns most of all. */
+    background: var(--pz-border-strong);
 }
 
 .oidc-divider::before {
@@ -221,18 +223,12 @@ input[type="password"]::placeholder {
     margin-top: 0.5rem;
 }
 
+/* Same blue as the Login button: a way in like the others, not a lesser one. */
 .oidc-button {
     display: block;
     text-decoration: none;
     text-align: center;
-    background: var(--pz-text);
     margin-top: 0.75rem;
-}
-
-/* Doubled class: .login-button:hover further down would otherwise repaint the
-   SSO button with the accent colour on hover and while it is pressed. */
-.oidc-button.oidc-button:hover {
-    background: color-mix(in srgb, var(--pz-text) 85%, rgb(var(--pz-shadow-rgb)));
 }
 
 /* Secondary variant shown when a previous SSO account is remembered.
@@ -363,6 +359,22 @@ input[type="password"]::placeholder {
     color: var(--pz-accent);
     font-size: 0.75rem;
     font-weight: var(--pz-weight-semibold);
+}
+
+/* Accounts opened without a password (Settings > Open without login), under
+   the password form: the same rows as the account choice after a sign-in. */
+.passwordless-login {
+    text-align: left;
+}
+
+.account-option-arrow {
+    flex: 0 0 auto;
+    color: var(--pz-text-muted);
+}
+
+.account-option:hover .account-option-arrow,
+.account-option:focus .account-option-arrow {
+    color: var(--pz-accent-text);
 }
 
 .account-select-logout {
@@ -673,21 +685,6 @@ html[data-theme='dark'] .oidc-divider span {
     background: var(--pz-chrome-bg);
 }
 
-/* The base rule fills the button with --pz-text and labels it --pz-text-inverse.
-   Both flip in dark mode, which would put a near-white slab right under the
-   accent button. A raised surface keeps the SSO button one visual step below
-   the primary action and stays in the theme's own palette. */
-html[data-theme='dark'] .oidc-button {
-    background: var(--pz-surface-sunken);
-    color: var(--pz-text-strong);
-    border-color: var(--pz-border-strong);
-}
-
-html[data-theme='dark'] .oidc-button:hover {
-    background: color-mix(in srgb, var(--pz-surface-sunken) 85%, var(--pz-text-strong));
-    border-color: var(--pz-text-subtle);
-}
-
 html[data-theme='dark'] .oidc-other-account-button {
     background: transparent;
     color: var(--pz-text-strong);
@@ -726,6 +723,114 @@ html[data-theme='dark'] .oidc-other-account-button:hover {
         font-size: 0.8125rem;
     }
 
+}
+
+/* ===========================================
+   WAYS IN: password, SSO, without a password
+   Stacked by default, as on a phone. On a wide screen, each way the page
+   offers is a column, and the "or" between them turns vertical.
+   =========================================== */
+
+.login-method {
+    min-width: 0;
+}
+
+/* Only the passwordless list says what it is when stacked: the password form
+   and the SSO button speak for themselves under each other. */
+.login-method-title {
+    display: none;
+    margin: 0 0 1.5rem;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: 1.5;
+    text-align: center;
+}
+
+/* The title is a label with its icon: an accent-tinted chip. */
+.login-method-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: var(--pz-radius);
+    background-color: var(--pz-accent-soft);
+    color: var(--pz-accent-text);
+    font-size: 13px;
+    font-weight: var(--pz-weight-semibold);
+}
+
+.login-method-label .lucide {
+    flex: 0 0 auto;
+    font-size: 14px;
+    color: var(--pz-accent-text);
+}
+
+.login-method-title-always {
+    display: block;
+}
+
+@media (min-width: 901px) {
+    .login-container-methods-2 {
+        max-width: 820px;
+    }
+
+    .login-container-methods-3 {
+        max-width: 1140px;
+    }
+
+    .login-methods-2,
+    .login-methods-3 {
+        display: grid;
+        align-items: stretch;
+    }
+
+    .login-methods-2 {
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    }
+
+    .login-methods-3 {
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+    }
+
+    .login-methods-2 .login-method-title,
+    .login-methods-3 .login-method-title {
+        display: block;
+    }
+
+    /* The "or" becomes a vertical rule with the word in its middle. */
+    .login-methods-2 > .oidc-divider,
+    .login-methods-3 > .oidc-divider {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 2rem;
+    }
+
+    .login-methods-2 > .oidc-divider::before,
+    .login-methods-3 > .oidc-divider::before,
+    .login-methods-2 > .oidc-divider::after,
+    .login-methods-3 > .oidc-divider::after {
+        left: 50%;
+        right: auto;
+        width: 1px;
+        height: calc(50% - 1rem);
+    }
+
+    .login-methods-2 > .oidc-divider::before,
+    .login-methods-3 > .oidc-divider::before {
+        top: 0;
+    }
+
+    .login-methods-2 > .oidc-divider::after,
+    .login-methods-3 > .oidc-divider::after {
+        top: auto;
+        bottom: 0;
+    }
+
+    .login-methods-2 > .oidc-divider span,
+    .login-methods-3 > .oidc-divider span {
+        padding: 0.25rem 0;
+    }
 }
 
 /* ===========================================

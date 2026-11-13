@@ -178,7 +178,7 @@
             keys.push('allow_executable_attachments');
         }
         if (document.getElementById('login-disabled-card')) {
-            keys.push('login_disabled');
+            keys.push('login_disabled_user_ids');
         }
         if (document.getElementById('two-factor-required-card')) {
             keys.push('two_factor_required');
@@ -658,6 +658,15 @@
         return String(Math.max(0, Math.min(100, lines)));
     }
 
+    // Days a remember-me cookie lasts, the same reading as
+    // poznoteRememberMeDays() in PHP: out of range comes back inside it,
+    // anything that is not a number at all falls back to the usual 30.
+    function rememberMeDays(value) {
+        var days = parseInt(String(value === null || value === undefined ? '' : value).trim(), 10);
+        if (!isFinite(days)) return '30';
+        return String(Math.max(1, Math.min(400, days)));
+    }
+
     function initInlineControls() {
         var store = window.__poznoteUserStorage || window.localStorage;
 
@@ -800,6 +809,23 @@
                 return String(Math.min(days, 365));
             }),
             save: saveSettingValue('update_check_interval_days')
+        });
+
+        // How long the "Remember me" box keeps someone signed in, instance
+        // wide (admins only, the card is in Admin Tools). Password sign-ins
+        // only: an SSO sign-in never gets that cookie.
+        initInlineControl('remember-me-days-input', {
+            load: loadSettingValue('remember_me_days', rememberMeDays),
+            save: function (value, done) {
+                var days = rememberMeDays(value);
+                setSetting('remember_me_days', days, function (success) {
+                    if (success) {
+                        var input = document.getElementById('remember-me-days-input');
+                        if (input) input.value = days;
+                    }
+                    done(success);
+                });
+            }
         });
 
         // How much of its listing a folded code block keeps on screen, read
@@ -1640,17 +1666,51 @@
         });
     }
 
+    // Open without login (login_disabled_user_ids, lib/auto-login.php): the
+    // accounts opened without a password, a JSON array of user ids. The
+    // server resolves it for the page, so the single account of the first
+    // version shows ticked too. An empty list is the option turned off.
+    function loginDisabledAccountIds(raw) {
+        var ids = [];
+        try { ids = JSON.parse(raw || '[]'); } catch (e) { ids = []; }
+        if (!Array.isArray(ids)) return [];
+        return ids.map(function (id) { return String(id); });
+    }
+
+    function loginDisabledCheckboxes() {
+        var modal = document.getElementById('loginDisabledModal');
+        if (!modal) return [];
+        return Array.prototype.slice.call(modal.querySelectorAll('[data-login-disabled-account]'));
+    }
+
     function refreshLoginDisabledBadge() {
         var badge = document.getElementById('login-disabled-status');
         if (!badge) return;
 
         var txt = getTranslations();
-        getSetting('login_disabled', function (value) {
-            var enabled = value === '1' || value === 'true';
-            badge.textContent = enabled ? txt.enabled : txt.disabled;
-            badge.className = 'setting-status ' + (enabled ? 'enabled' : 'disabled');
-            var card = document.getElementById('login-disabled-card');
-            if (card) card.setAttribute('aria-checked', enabled ? 'true' : 'false');
+        getSetting('login_disabled_user_ids', function (raw) {
+            var count = loginDisabledAccountIds(raw).length;
+            if (count === 0) {
+                badge.textContent = txt.disabled;
+            } else if (count === 1) {
+                badge.textContent = tr('settings.login_disabled.status_one', {}, '1 account');
+            } else {
+                badge.textContent = tr('settings.login_disabled.status_other', { count: count }, '{{count}} accounts');
+            }
+            badge.className = 'setting-status ' + (count > 0 ? 'enabled' : 'disabled');
+        });
+    }
+
+    function showLoginDisabledModal() {
+        var modal = document.getElementById('loginDisabledModal');
+        if (!modal) return;
+
+        getSetting('login_disabled_user_ids', function (raw) {
+            var ids = loginDisabledAccountIds(raw);
+            loginDisabledCheckboxes().forEach(function (checkbox) {
+                checkbox.checked = ids.indexOf(checkbox.getAttribute('data-login-disabled-account')) !== -1;
+            });
+            modal.style.display = 'flex';
         });
     }
 
@@ -3305,31 +3365,12 @@
             });
         }
 
-        // Open without login: instance-wide like the toggle above. Turning it
-        // on opens the instance to whoever can reach it, so that way asks first.
+        // Open without login: opens the list of accounts that may be opened
+        // without a password (#loginDisabledModal, saved further down).
         var loginDisabledCard = document.getElementById('login-disabled-card');
         if (loginDisabledCard) {
-            markToggleCard(loginDisabledCard);
             refreshLoginDisabledBadge();
-            loginDisabledCard.addEventListener('click', function () {
-                getSetting('login_disabled', function (currentValue) {
-                    var currently = currentValue === '1' || currentValue === 'true';
-                    var apply = function () {
-                        setSetting('login_disabled', currently ? '0' : '1', refreshLoginDisabledBadge);
-                    };
-                    if (currently) {
-                        apply();
-                        return;
-                    }
-                    var message = tr('settings.login_disabled.confirm', {}, 'Anyone who can reach this Poznote instance will open your account directly, with no username, password or two-factor code. Only continue if you are the only one who can reach it, or if a reverse proxy handles authentication.');
-                    if (window.modalAlert && typeof window.modalAlert.confirm === 'function') {
-                        window.modalAlert.confirm(message, tr('settings.cards.login_disabled', {}, 'Open without login'))
-                            .then(function (confirmed) { if (confirmed) apply(); });
-                    } else if (window.confirm(message)) {
-                        apply();
-                    }
-                });
-            });
+            loginDisabledCard.addEventListener('click', showLoginDisabledModal);
         }
 
         // Require two-factor: instance-wide too. Turning it on signs out every
@@ -3972,6 +4013,30 @@
                         console.debug('settings-page: closeModal(outboundHostsModal) failed:', e);
                     }
                     refreshOutboundHostsBadge();
+                });
+            });
+        }
+
+        // Save the Open without login modal: posts the ticked accounts. The
+        // warning about who can then get in is in the modal itself.
+        var saveLoginDisabledBtn = document.getElementById('saveLoginDisabledBtn');
+        if (saveLoginDisabledBtn) {
+            saveLoginDisabledBtn.addEventListener('click', function () {
+                var ids = loginDisabledCheckboxes().filter(function (checkbox) {
+                    return checkbox.checked;
+                }).map(function (checkbox) {
+                    return parseInt(checkbox.getAttribute('data-login-disabled-account'), 10);
+                });
+
+                setSetting('login_disabled_user_ids', JSON.stringify(ids), function (ok) {
+                    if (!ok) {
+                        alert(tr('display.alerts.error_saving_preference', {}, 'Error saving preference'));
+                        return;
+                    }
+                    try { closeModal('loginDisabledModal'); } catch (e) {
+                        console.debug('settings-page: closeModal(loginDisabledModal) failed:', e);
+                    }
+                    refreshLoginDisabledBadge();
                 });
             });
         }

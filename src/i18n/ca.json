@@ -209,7 +209,7 @@
       "local_backup": "Deseu arxius de còpia de seguretat complets en una carpeta del servidor, manualment o de manera planificada, i conserveu només els més recents.",
       "whats_new": "Després d'una actualització, mostra una vegada les notes de la versió nova quan obriu les notes.",
       "release_notes": "Obre les notes de totes les versions de Poznote a GitHub.",
-      "login_disabled": "Omet la pantalla d'inici de sessió: qualsevol navegador que arribi a aquesta instància obre directament el vostre compte, sense nom d'usuari, contrasenya ni codi de dos factors. Activeu-ho només si sou l'única persona que pot accedir a aquesta instància o si un servidor intermediari invers en gestiona l'autenticació. L'API continua demanant credencials.",
+      "login_disabled": "Trieu els comptes que s'obren sense contrasenya. La pàgina d'inici de sessió els llista sota el formulari de contrasenya, i qualsevol que arribi a aquesta instància els pot obrir. Quan es tria l'únic compte de la instància, no hi ha pàgina d'inici de sessió. L'API continua demanant credencials.",
       "outbound_hosts": "Els usuaris que no són administradors només poden connectar els webhooks, la sincronització amb Git i els seus propis servidors d'IA, de transcripció o MCP a amfitrions públics d'Internet. Llisteu aquí els amfitrions o les xarxes locals que poden fer servir, com ara un servidor d'Ollama o d'n8n. Els administradors no tenen límits.",
       "embeds": "Les notes poden incrustar contingut d'aquests llocs, com un vídeo de YouTube o una applet de GeoGebra. Desactiveu els que la vostra instància no hagi de carregar mai. Cap altre lloc es pot incrustar, i aquí no s'hi poden afegir llocs.",
       "diary_template": "Trieu una nota amb el contingut de la qual comença cada entrada nova del diari de l'espai de treball {{workspace}}. La llista mostra les notes d'una carpeta anomenada Templates (o Plantilles) d'aquest espai de treball. Cada espai de treball té la seva plantilla.",
@@ -223,7 +223,8 @@
       "sessions": "Mireu els navegadors i dispositius que ara mateix tenen la sessió iniciada al vostre compte, i tanqueu la sessió dels que ja no feu servir.",
       "session_lifetime": "Quant dura un inici de sessió sense activitat. Es configura amb POZNOTE_SESSION_LIFETIME_DAYS al fitxer .env, de manera que aquí només es mostra i no es pot canviar des d’aquesta pàgina. Iniciar la sessió amb «Recorda’m» dura més; iniciar-la amb SSO, no.",
       "attachments_single_line": "Mostra els adjunts de la nota en una sola línia en lloc de repartir-los en diverses. Llisca la línia amb el dit o el ratolí; quan està tallada, acaba amb «…».",
-      "attachment_links_as_cards": "Quan inseriu un adjunt en una nota amb «Enllaç a fitxer adjunt», es mostra com una targeta (una icona segons el tipus, el nom i una fletxa de baixada) en una línia pròpia, en lloc d'un enllaç dins del text."
+      "attachment_links_as_cards": "Quan inseriu un adjunt en una nota amb «Enllaç a fitxer adjunt», es mostra com una targeta (una icona segons el tipus, el nom i una fletxa de baixada) en una línia pròpia, en lloc d'un enllaç dins del text.",
+      "remember_me_days": "Quant de temps manté la sessió iniciada marcar «Recorda'm» a la pàgina d'inici de sessió. Només val per als inicis de sessió amb contrasenya. Un inici de sessió SSO dura el que indica la targeta Durada de les sessions, a Configuració > Quant a, que es configura al fitxer .env. Canviar una contrasenya, o tancar la sessió d'un dispositiu des de Dispositius connectats, la tanca de seguida, sigui quina sigui la durada configurada aquí."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "En un mòbil, la barra d'eines de damunt del teclat té un botó + que obre el mateix menú, independentment d'aquest paràmetre."
@@ -331,7 +332,8 @@
       "custom_logo": "Logotip",
       "two_factor_required": "Dos factors obligatoris",
       "sessions": "Dispositius connectats",
-      "session_lifetime": "Durada de les sessions"
+      "session_lifetime": "Durada de les sessions",
+      "remember_me_days": "Durada de «Recorda'm»"
     },
     "default_credentials": {
       "both": "Aquest compte encara fa servir el nom d'usuari i la contrasenya per defecte. Qualsevol persona que pugui accedir a aquesta instància hi pot iniciar la sessió.",
@@ -385,7 +387,8 @@
       "s3_backups": "Còpies de seguretat a l'emmagatzematge S3"
     },
     "login_disabled": {
-      "confirm": "Qualsevol persona que pugui accedir a aquesta instància del Poznote obrirà directament el vostre compte, sense nom d'usuari, contrasenya ni codi de dos factors. Continueu només si sou l'única persona que hi pot accedir o si un servidor intermediari invers en gestiona l'autenticació."
+      "status_one": "1 compte",
+      "status_other": "{{count}} comptes"
     },
     "scope": {
       "user": "Personal",
@@ -1586,6 +1589,13 @@
     },
     "code_block_collapsed_lines": {
       "unit": "línies"
+    },
+    "remember_me_days": {
+      "unit": "dies"
+    },
+    "login_disabled": {
+      "description": "Els comptes marcats s'obren sense contrasenya, des d'una llista a la pàgina d'inici de sessió. Els altres conserven la contrasenya. Si es marca l'únic compte d'aquesta instància, ja no hi ha pàgina d'inici de sessió.",
+      "warning": "Qualsevol que pugui arribar a aquesta instància pot obrir aquests comptes, sense contrasenya ni codi de dos factors. Marqueu comptes només si la instància no és accessible des d'Internet, o si un servidor intermediari invers davant seu gestiona l'autenticació. Un compte d'administrador marcat dona drets d'administrador a qualsevol."
     }
   },
   "notes_list": {
@@ -2391,10 +2401,9 @@
       "password": "Contrasenya",
       "profile": "Seleccioneu el perfil"
     },
-    "remember_me": "Recorda'm durant 30 dies",
+    "remember_me": "Recorda'm durant {{days}} dies",
+    "remember_me_one": "Recorda'm durant 1 dia",
     "button": "Inicia la sessió",
-    "oidc_button": "Continua amb {{provider}}",
-    "oidc_button_account": "Continua amb {{account}}",
     "oidc_other_account": "Inicia la sessió amb un altre compte",
     "no_profiles": "No hi ha cap perfil d'usuari disponible. Poseu-vos en contacte amb l'administrador.",
     "errors": {
@@ -2431,7 +2440,14 @@
       "enroll_intro": "L'autenticació de dos factors és obligatòria en aquesta instància. Configureu-la per continuar.",
       "enroll_submit": "Activa i inicia la sessió"
     },
-    "powered_by": "Funciona amb {{link}}"
+    "powered_by": "Funciona amb {{link}}",
+    "passwordless": {
+      "intro": "Obrir sense contrasenya"
+    },
+    "methods": {
+      "password": "Inicia la sessió amb contrasenya",
+      "sso": "Inicia la sessió amb SSO"
+    }
   },
   "restore_import": {
     "page": {

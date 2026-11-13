@@ -33,7 +33,6 @@
         "profile": "Perfil"
       },
       "button": "Iniciar sesión",
-      "remember_me": "Recordarme por 30 días",
       "no_profiles": "No hay perfiles disponibles. Por favor, contacte al administrador.",
       "oidc_button": "Continuar con {{provider}}",
       "documentation": "Documentación de Poznote",
@@ -559,7 +558,7 @@
       "local_backup": "Guarda archivos de copia de seguridad completos en una carpeta del servidor, manualmente o según una programación, conservando solo los más recientes.",
       "whats_new": "Tras una actualización, mostrar una vez las notas de la nueva versión al abrir tus notas.",
       "release_notes": "Abrir las notas de todas las versiones de Poznote en GitHub.",
-      "login_disabled": "Omite la pantalla de inicio de sesión: cualquier navegador que llegue a esta instancia abre directamente su cuenta, sin usuario, contraseña ni código de dos factores. Actívelo solo si usted es el único que puede acceder a esta instancia, o si un proxy inverso situado delante se encarga de la autenticación. La API sigue pidiendo credenciales.",
+      "login_disabled": "Elija las cuentas que se abren sin contraseña. La página de inicio de sesión las muestra bajo el formulario de contraseña, y cualquiera que llegue a esta instancia puede abrirlas. Cuando se elige la única cuenta de la instancia, no hay página de inicio de sesión. La API sigue pidiendo credenciales.",
       "outbound_hosts": "Los usuarios no administradores solo pueden conectar los webhooks, Git Sync y sus propios servidores de IA, transcripción o MCP a hosts públicos de Internet. Indica aquí los hosts o redes locales que pueden usar, como un servidor Ollama o n8n. Los administradores no tienen límites.",
       "embeds": "Las notas pueden incrustar contenido de estos sitios, como un vídeo de YouTube o un applet de GeoGebra. Desactive los que su instancia no deba cargar nunca. Ningún otro sitio puede incrustarse, y aquí no se pueden añadir sitios.",
       "diary_template": "Elija una nota cuyo contenido sirva de punto de partida para cada nueva entrada del diario del espacio de trabajo {{workspace}}. La lista muestra las notas guardadas en una carpeta llamada Plantillas (o Templates) de ese espacio. Cada espacio de trabajo tiene su propia plantilla.",
@@ -573,7 +572,8 @@
       "sessions": "Ver los navegadores y dispositivos conectados ahora mismo a tu cuenta, y cerrar la sesión de los que ya no uses.",
       "session_lifetime": "Cuánto dura un inicio de sesión sin actividad. Se configura con POZNOTE_SESSION_LIFETIME_DAYS en el archivo .env, así que aquí solo se muestra y no se puede cambiar desde esta página. Iniciar sesión con «Recordarme» dura más; iniciar sesión por SSO, no.",
       "attachments_single_line": "Muestra los adjuntos de la nota en una sola línea en lugar de repartirlos en varias. Desliza la línea con el dedo o el ratón; cuando está cortada, termina con «…».",
-      "attachment_links_as_cards": "Al insertar un adjunto en una nota con «Enlace a adjunto», se muestra como una tarjeta (un icono según su tipo, su nombre y una flecha de descarga) en su propia línea, en lugar de un enlace en el texto."
+      "attachment_links_as_cards": "Al insertar un adjunto en una nota con «Enlace a adjunto», se muestra como una tarjeta (un icono según su tipo, su nombre y una flecha de descarga) en su propia línea, en lugar de un enlace en el texto.",
+      "remember_me_days": "Cuánto tiempo mantiene la sesión abierta marcar «Recordarme» en la página de inicio de sesión. Solo vale para los inicios de sesión con contraseña. Un inicio de sesión SSO dura lo que indica la tarjeta Duración de las sesiones, en Ajustes > Acerca de, que se configura en el archivo .env. Cambiar una contraseña, o cerrar la sesión de un dispositivo desde Dispositivos conectados, la cierra de inmediato, sea cual sea la duración configurada aquí."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "En el móvil, la barra de herramientas sobre el teclado tiene un botón + que abre el mismo menú, sea cual sea este ajuste."
@@ -703,7 +703,8 @@
       "custom_logo": "Logo",
       "two_factor_required": "Exigir verificación en dos pasos",
       "sessions": "Dispositivos conectados",
-      "session_lifetime": "Duración de las sesiones"
+      "session_lifetime": "Duración de las sesiones",
+      "remember_me_days": "Duración de «Recordarme»"
     },
     "default_credentials": {
       "both": "Esta cuenta sigue usando el nombre de usuario y la contraseña predeterminados. Cualquiera que pueda acceder a esta instancia puede iniciar sesión.",
@@ -740,7 +741,8 @@
       "s3_backups": "Copias de seguridad en el almacenamiento S3"
     },
     "login_disabled": {
-      "confirm": "Cualquiera que pueda llegar a esta instancia de Poznote abrirá directamente su cuenta, sin usuario, contraseña ni código de dos factores. Continúe solo si usted es el único que puede acceder a ella, o si un proxy inverso se encarga de la autenticación."
+      "status_one": "1 cuenta",
+      "status_other": "{{count}} cuentas"
     },
     "scope": {
       "user": "Personal",
@@ -2122,6 +2124,13 @@
     },
     "code_block_collapsed_lines": {
       "unit": "líneas"
+    },
+    "remember_me_days": {
+      "unit": "días"
+    },
+    "login_disabled": {
+      "description": "Las cuentas marcadas se abren sin contraseña, desde una lista en la página de inicio de sesión. Las demás conservan su contraseña. Si se marca la única cuenta de esta instancia, ya no hay página de inicio de sesión.",
+      "warning": "Cualquiera que pueda llegar a esta instancia puede abrir estas cuentas, sin contraseña ni código de dos factores. Marque cuentas solo si la instancia no es accesible desde Internet, o si un proxy inverso delante de ella gestiona la autenticación. Una cuenta de administrador marcada da derechos de administrador a cualquiera."
     }
   },
   "notes_list": {
@@ -2805,10 +2814,9 @@
       "password": "Contraseña",
       "profile": "Selecciona tu perfil"
     },
-    "remember_me": "Recordarme por 30 días",
+    "remember_me": "Recordarme por {{days}} días",
+    "remember_me_one": "Recordarme por 1 día",
     "button": "Inicio de sesión",
-    "oidc_button": "Continuar con {{provider}}",
-    "oidc_button_account": "Continuar con {{account}}",
     "oidc_other_account": "Iniciar sesión con otra cuenta",
     "no_profiles": "No hay perfiles de usuario disponibles. Por favor, contacta al administrador.",
     "errors": {
@@ -2845,7 +2853,14 @@
       "enroll_intro": "La autenticación en dos pasos es obligatoria en esta instancia. Configúrala para continuar.",
       "enroll_submit": "Activar e iniciar sesión"
     },
-    "powered_by": "Con la tecnología de {{link}}"
+    "powered_by": "Con la tecnología de {{link}}",
+    "passwordless": {
+      "intro": "Abrir sin contraseña"
+    },
+    "methods": {
+      "password": "Iniciar sesión con contraseña",
+      "sso": "Iniciar sesión con SSO"
+    }
   },
   "restore_import": {
     "page": {

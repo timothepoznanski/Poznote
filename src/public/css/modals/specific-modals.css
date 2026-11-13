@@ -1142,6 +1142,66 @@
 }
 
 /* ============================================
+   Open without login (#loginDisabledModal, settings.php): the accounts
+   opened without a password, lib/auto-login.php
+   ============================================ */
+
+/* Higher than the 5% of every modal (modals/responsive.css): the list can be
+   long, and the Save button should stay in view. Phones keep their own
+   margin, set with !important there. */
+#loginDisabledModal .modal-content {
+    max-width: 460px;
+    margin-top: 20px;
+}
+
+.login-disabled-accounts {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 40vh;
+    overflow-y: auto;
+    margin: 16px 0;
+}
+
+.login-disabled-account {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.login-disabled-account input[type="checkbox"] {
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+.login-disabled-account-name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.login-disabled-account-badge {
+    flex: 0 0 auto;
+    padding: 2px 6px;
+    border-radius: var(--pz-radius-sm);
+    background: var(--pz-accent-soft);
+    color: var(--pz-accent-text);
+    font-size: 11px;
+}
+
+/* Inherit the modal text color so dark mode needs no override. */
+.login-disabled-warning {
+    margin: 0;
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+/* Same reason as #embedsModal: the row would touch the warning above it. */
+#loginDisabledModal .modal-buttons {
+    margin-top: 20px;
+}
+
+/* ============================================
    Local Network Access Modal (#outboundHostsModal)
    ============================================ */
 

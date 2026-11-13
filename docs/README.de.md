@@ -535,8 +535,10 @@ Passwörter werden über die Poznote-Weboberfläche verwaltet, nicht über `.env
 
 - Benutzer können ihr eigenes Passwort unter **Einstellungen > Passwort ändern** ändern.
 - Administratoren können unter **Einstellungen > Admin-Werkzeuge > Benutzerverwaltung** für jeden Benutzer ein eigenes Passwort festlegen oder es auf den Standardwert zurücksetzen.
-- Die Option **30 Tage merken** hält die Sitzung 30 Tage lang aufrecht.
+- Die Option **Angemeldet bleiben** hält die Sitzung standardmäßig 30 Tage lang aufrecht. Administratoren können diese Dauer unter **Einstellungen > Admin-Werkzeuge > Benutzer und Zugriff** ändern, von 1 bis 400 Tagen. Sie gilt nur für Anmeldungen mit Passwort, da eine SSO-Anmeldung dieses Cookie nie erhält.
+- Eine Anmeldung gilt 7 Tage ohne Aktivität und übersteht das Schließen des Browsers. Das ist es, was eine SSO-Anmeldung hält, die nie ein „Merken“-Cookie erhält, damit ein beim Identitätsanbieter deaktiviertes Konto mit dem Ablauf seiner Sitzung den Zugang verliert. Setzen Sie `POZNOTE_SESSION_LIFETIME_DAYS` in `.env` auf eine andere ganze Anzahl Tage, von 1 bis 400.
 - Eine Passwortänderung macht die bestehenden „Merken“-Cookies dieses Benutzers ungültig.
+- **Einstellungen > Mein Konto > Verbundene Geräte** listet die Browser auf, die gerade in Ihrem Konto angemeldet sind, mit ihrer letzten Aktivität, und meldet die ab, die Sie nicht mehr nutzen.
 
 #### Zwei-Faktor-Authentifizierung
 
@@ -567,7 +569,7 @@ Poznote unterstützt OpenID Connect (Authorization Code + PKCE) für Single Sign
 
 #### Funktionsweise
 
-1. Ist OIDC aktiviert, zeigt die Anmeldeseite eine Schaltfläche `Weiter mit [Anbietername]` an.
+1. Ist OIDC aktiviert, zeigt die Anmeldeseite eine Schaltfläche `[Anbietername]` an.
 2. Benutzer authentifizieren sich über den OIDC-Authorization-Code-Flow, abgesichert durch PKCE.
 3. Der Zugriff lässt sich über erlaubte Gruppen und bei Bedarf über eine ältere Liste erlaubter Benutzer einschränken.
 4. Nach der Authentifizierung verknüpft Poznote die Identität über `sub` (`oidc_subject`), dann über eine verifizierte E-Mail (von einem Admin gesetzt oder vom Anbieter synchronisiert, Groß-/Kleinschreibung egal). Ein bestehendes Profil wird nie über seinen Benutzernamen verknüpft: Damit es bei der ersten SSO-Anmeldung verknüpft wird, trage in **Settings > Admin Tools > User Management** die E-Mail ein, die der Anbieter sendet, oder füge seinen OIDC-Subject ein. Eine abgelehnte erste Anmeldung schreibt den einzufügenden Subject ins Log.

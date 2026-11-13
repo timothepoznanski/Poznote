@@ -534,8 +534,10 @@ Les contrasenyes es gestionen des de la interfície web del Poznote, no des del 
 
 - Els usuaris poden canviar la seva contrasenya des de **Paràmetres > Canvi de contrasenya**.
 - Els administradors poden definir una contrasenya personalitzada per a qualsevol usuari o restablir-ne la contrasenya per defecte des de **Paràmetres > Eines d'administració > Gestió d'usuaris**.
-- L'opció **Recorda'm durant 30 dies** conserva la sessió durant aquest temps.
+- L'opció **Recorda'm** conserva la sessió durant 30 dies de manera predeterminada. Un administrador pot canviar aquesta durada des de **Paràmetres > Eines d'administració > Usuaris i accés**, d'1 a 400 dies. Només val per als inicis de sessió amb contrasenya, ja que un inici de sessió amb SSO no rep mai aquesta galeta.
+- Un inici de sessió dura 7 dies sense activitat i sobreviu al tancament del navegador. És el que manté un inici de sessió amb SSO, que no rep mai una galeta de «Recorda'm», perquè un compte desactivat al proveïdor d'identitat perdi l'accés quan caduqui la seva sessió. Definiu `POZNOTE_SESSION_LIFETIME_DAYS` al `.env` per a un altre nombre enter de dies, d'1 a 400.
 - Canviar una contrasenya invalida les galetes de «Recorda'm» existents d'aquell usuari.
+- **Paràmetres > El meu compte > Dispositius connectats** llista els navegadors que ara mateix tenen la sessió iniciada al vostre compte, amb la seva darrera activitat, i tanca la sessió dels que ja no feu servir.
 
 #### Autenticació de dos factors
 
@@ -566,7 +568,7 @@ El Poznote admet OpenID Connect (codi d'autorització + PKCE) per a la integraci
 
 #### Com funciona
 
-1. La pàgina d'inici de sessió mostra un botó `Continua amb [Nom del proveïdor]` quan OIDC està activat.
+1. La pàgina d'inici de sessió mostra un botó `[Nom del proveïdor]` quan OIDC està activat.
 2. Els usuaris s'autentiquen amb el flux de codi d'autorització d'OIDC protegit amb PKCE.
 3. L'accés es pot restringir amb grups permesos i, si cal, amb una llista antiga d'usuaris permesos.
 4. Després de l'autenticació, el Poznote vincula la identitat pel `sub` (`oidc_subject`) i, després, per una adreça electrònica verificada (definida per un administrador o sincronitzada des del proveïdor, sense distingir majúscules i minúscules). Un perfil existent no es vincula mai pel nom d'usuari: per vincular-ne un en el seu primer inici de sessió SSO, doneu-li l'adreça electrònica que envia el proveïdor o enganxeu-hi el seu subjecte OIDC a **Paràmetres > Eines d'administració > Gestió d'usuaris**. Un primer inici de sessió rebutjat registra el subjecte que cal enganxar.

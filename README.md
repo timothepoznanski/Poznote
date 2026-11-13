@@ -535,7 +535,7 @@ Passwords are managed through the Poznote web interface, not through `.env`:
 
 - Users can change their own password from **Settings > Change Password**.
 - Administrators can set a custom password for any user or reset it to the default from **Settings > Admin Tools > User Management**.
-- The **Remember me** option keeps the session for 30 days.
+- The **Remember me** option keeps the session for 30 days by default. An administrator can change that from **Settings > Admin Tools > Users & access**, from 1 to 400 days. It applies to password sign-ins only, since an SSO sign-in never gets that cookie.
 - A sign-in lasts 7 days without activity and survives closing the browser. This is what holds an SSO sign-in, which never gets a remember-me cookie, so that an account disabled at the identity provider loses access when its session expires. Set `POZNOTE_SESSION_LIFETIME_DAYS` in `.env` for another whole number of days, from 1 to 400.
 - Changing a password invalidates existing remember-me cookies for that user.
 - **Settings > My Account > Connected devices** lists the browsers currently signed in to your account, with their last activity, and signs out the ones you no longer use.
@@ -569,7 +569,7 @@ Poznote supports OpenID Connect (authorization code + PKCE) for single sign-on i
 
 #### How it works
 
-1. The login page displays a `Continue with [Provider Name]` button when OIDC is enabled.
+1. The login page displays a `[Provider Name]` button when OIDC is enabled.
 2. Users authenticate with the OIDC authorization code flow secured by PKCE.
 3. Access can be restricted with allowed groups and, if needed, a legacy allowed users list.
 4. After authentication, Poznote links the identity by `sub` (`oidc_subject`), then by a verified email (one set by an admin or synced from the provider, case does not matter). An existing profile is never linked by its username: to link one on its first SSO login, give it the email the provider sends, or paste its OIDC subject, in **Settings > Admin Tools > User Management**. A refused first login logs the subject to paste.

@@ -535,8 +535,10 @@ As senhas são gerenciadas pela interface web do Poznote, não pelo `.env`:
 
 - Os usuários podem alterar a própria senha em **Configurações > Mudar palavra-passe**.
 - Os administradores podem definir uma senha personalizada para qualquer usuário ou redefini-la para o padrão em **Configurações > Ferramentas de administração > Gestão de utilizadores**.
-- A opção **Lembrar-me por 30 dias** mantém a sessão por 30 dias.
+- A opção **Lembrar-me** mantém a sessão por 30 dias por padrão. Um administrador pode alterar essa duração em **Configurações > Ferramentas de administração > Usuários e acesso**, de 1 a 400 dias. Vale apenas para os logins com senha, já que um login por SSO nunca recebe esse cookie.
+- Um login dura 7 dias sem atividade e sobrevive ao fechamento do navegador. É o que sustenta um login por SSO, que nunca recebe um cookie "lembrar-me", para que uma conta desativada no provedor de identidade perca o acesso quando a sessão expirar. Defina `POZNOTE_SESSION_LIFETIME_DAYS` no `.env` para outro número inteiro de dias, de 1 a 400.
 - Alterar uma senha invalida os cookies "lembrar-me" existentes desse usuário.
+- **Configurações > Minha conta > Dispositivos conectados** lista os navegadores conectados à sua conta no momento, com a última atividade de cada um, e encerra a sessão dos que você não usa mais.
 
 #### Autenticação de dois fatores
 
@@ -567,7 +569,7 @@ O Poznote oferece suporte ao OpenID Connect (authorization code + PKCE) para int
 
 #### Como funciona
 
-1. A página de login exibe um botão `Continue with [Provider Name]` quando o OIDC está ativado.
+1. A página de login exibe um botão `[Provider Name]` quando o OIDC está ativado.
 2. Os usuários se autenticam pelo fluxo authorization code do OIDC, protegido por PKCE.
 3. O acesso pode ser restrito a grupos permitidos e, se necessário, a uma lista legada de usuários permitidos.
 4. Após a autenticação, o Poznote vincula a identidade por `sub` (`oidc_subject`) e depois por um email verificado (definido por um administrador ou sincronizado a partir do provedor, sem diferenciar maiúsculas). Um perfil existente nunca é vinculado pelo nome de usuário: para vinculá-lo no primeiro login SSO, defina em **Settings > Admin Tools > User Management** o email que o provedor envia, ou cole o seu sujeito OIDC. Um primeiro login recusado registra no log o sujeito a colar.

@@ -34,7 +34,6 @@
         "profile": "个人资料"
       },
       "button": "登录",
-      "remember_me": "保持登录30天",
       "no_profiles": "没有可用的个人资料。请联系管理员。",
       "oidc_button": "使用 {{provider}} 继续",
       "documentation": "Poznote 文档",
@@ -558,7 +557,7 @@
       "local_backup": "将完整备份归档保存到服务器上的文件夹，可手动或按计划执行，并且只保留最新的几份。",
       "whats_new": "更新后，在打开笔记时显示一次新版本的发行说明。",
       "release_notes": "在 GitHub 上打开 Poznote 所有版本的版本说明。",
-      "login_disabled": "跳过登录页面：任何能访问此实例的浏览器都会直接打开您的账户，无需用户名、密码或双重验证码。仅当只有您本人能访问此实例，或其前面的反向代理负责认证时才开启。API 仍然要求凭据。",
+      "login_disabled": "选择无需密码即可打开的账户。登录页面会在密码表单下方列出它们，任何能访问此实例的人都可以打开。当选中的是实例中唯一的账户时，将完全不显示登录页面。API 仍然要求提供凭据。",
       "outbound_hosts": "非管理员用户只能将 Webhook、Git Sync 和他们自己的 AI、转录或 MCP 服务器连接到公共互联网主机。在此列出允许他们使用的本地主机或网络，例如 Ollama 或 n8n 服务器。管理员不受限制。",
       "embeds": "笔记可以嵌入这些网站的内容，例如 YouTube 视频或 GeoGebra 小程序。关闭本实例不应加载的网站。其他网站无法嵌入，也无法在此添加网站。",
       "diary_template": "选择一篇笔记，工作区 {{workspace}} 中的每个新日记条目都以其内容开头。列表显示该工作区中名为“模板”（或 Templates）的文件夹里的笔记。每个工作区都有自己的模板。",
@@ -572,7 +571,8 @@
       "sessions": "查看当前登录到您账户的浏览器和设备，并退出不再使用的设备。",
       "session_lifetime": "没有任何操作时登录状态能保持多久。通过 .env 文件中的 POZNOTE_SESSION_LIFETIME_DAYS 设置，所以这里只显示，不能在本页面修改。使用“保持登录”登录会保持更久，通过 SSO 登录则不会。",
       "attachments_single_line": "将笔记的附件显示在一行中，而不是换成多行。可用手指或鼠标滑动该行；被截断时以“…”结尾。",
-      "attachment_links_as_cards": "通过“链接到附件”在笔记中插入附件时，将其显示为单独一行的卡片（类型图标、名称和下载箭头），而不是正文中的链接。"
+      "attachment_links_as_cards": "通过“链接到附件”在笔记中插入附件时，将其显示为单独一行的卡片（类型图标、名称和下载箭头），而不是正文中的链接。",
+      "remember_me_days": "在登录页面勾选“保持登录”后，登录状态保持多久。仅适用于密码登录。通过 SSO 登录的会话时长以“设置 > 关于”中“会话有效期”卡片显示的为准，该值在 .env 文件中设置。无论此处设置的时长为何，更改密码或在“已连接的设备”中退出某台设备，都会让该设备立即退出登录。"
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "在移动设备上，键盘上方的工具栏有一个 + 按钮，无论此设置为何，它都会打开同一个菜单。"
@@ -702,7 +702,8 @@
       "custom_logo": "标志",
       "two_factor_required": "强制双重身份验证",
       "sessions": "已连接的设备",
-      "session_lifetime": "会话有效期"
+      "session_lifetime": "会话有效期",
+      "remember_me_days": "保持登录时长"
     },
     "default_credentials": {
       "both": "此账户仍在使用默认的用户名和密码。任何能访问此实例的人都可以登录。",
@@ -739,7 +740,8 @@
       "s3_backups": "S3 存储中的备份"
     },
     "login_disabled": {
-      "confirm": "任何能访问此 Poznote 实例的人都将直接打开您的账户，无需用户名、密码或双重验证码。仅当只有您本人能访问它，或由反向代理负责认证时才继续。"
+      "status_one": "1 个账户",
+      "status_other": "{{count}} 个账户"
     },
     "scope": {
       "user": "个人",
@@ -2120,6 +2122,13 @@
     },
     "code_block_collapsed_lines": {
       "unit": "行"
+    },
+    "remember_me_days": {
+      "unit": "天"
+    },
+    "login_disabled": {
+      "description": "勾选的账户可在登录页面的列表中无需密码打开。其他账户仍使用密码。如果勾选的是此实例中唯一的账户，则不再显示登录页面。",
+      "warning": "任何能访问此实例的人都可以打开这些账户，无需密码，也无需双因素验证码。只有在实例无法从互联网访问，或其前面的反向代理负责身份验证时，才勾选账户。勾选管理员账户会让任何人获得管理员权限。"
     }
   },
   "notes_list": {
@@ -2803,10 +2812,9 @@
       "password": "密码",
       "profile": "选择您的个人资料"
     },
-    "remember_me": "保持登录 30 天",
+    "remember_me": "保持登录 {{days}} 天",
+    "remember_me_one": "保持登录 1 天",
     "button": "登录",
-    "oidc_button": "使用 {{provider}} 继续",
-    "oidc_button_account": "使用 {{account}} 继续",
     "oidc_other_account": "使用其他账号登录",
     "no_profiles": "没有可用的用户个人资料。请联系管理员。",
     "errors": {
@@ -2843,7 +2851,14 @@
       "enroll_intro": "此实例要求使用双重身份验证。请先完成设置再继续。",
       "enroll_submit": "启用并登录"
     },
-    "powered_by": "由 {{link}} 驱动"
+    "powered_by": "由 {{link}} 驱动",
+    "passwordless": {
+      "intro": "无需密码打开"
+    },
+    "methods": {
+      "password": "使用密码登录",
+      "sso": "使用 SSO 登录"
+    }
   },
   "restore_import": {
     "page": {

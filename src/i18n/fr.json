@@ -33,7 +33,6 @@
         "profile": "Profil"
       },
       "button": "Connexion",
-      "remember_me": "Rester connecté pendant 30 jours",
       "no_profiles": "Aucun profil disponible. Veuillez contacter l'administrateur.",
       "oidc_button": "Continuer avec {{provider}}",
       "documentation": "Documentation Poznote",
@@ -558,7 +557,7 @@
       "local_backup": "Enregistrez des archives de sauvegarde complètes dans un dossier du serveur, manuellement ou selon une planification, en ne conservant que les plus récentes.",
       "whats_new": "Après une mise à jour, afficher une fois les notes de la nouvelle version à l'ouverture de vos notes.",
       "release_notes": "Ouvrir les notes de toutes les versions de Poznote sur GitHub.",
-      "login_disabled": "Passe l'écran de connexion : tout navigateur qui atteint cette instance ouvre directement votre compte, sans nom d'utilisateur, mot de passe ni code à deux facteurs. À n'activer que si vous êtes seul à pouvoir joindre cette instance, ou si un reverse proxy placé devant elle gère l'authentification. L'API continue de demander des identifiants.",
+      "login_disabled": "Choisissez les comptes qui s'ouvrent sans mot de passe. La page de connexion les liste sous le formulaire de mot de passe, et quiconque atteint cette instance peut les ouvrir. Quand le seul compte de l'instance est choisi, il n'y a plus de page de connexion du tout. L'API continue de demander des identifiants.",
       "outbound_hosts": "Les utilisateurs non administrateurs ne peuvent connecter les webhooks, Git Sync et leurs propres serveurs IA, de transcription ou MCP qu'à des hôtes publics d'Internet. Listez ici les hôtes ou réseaux locaux qu'ils peuvent utiliser, par exemple un serveur Ollama ou n8n. Les administrateurs ne sont pas limités.",
       "embeds": "Les notes peuvent intégrer du contenu de ces sites, comme une vidéo YouTube ou une applet GeoGebra. Désactivez ceux que votre instance ne doit jamais charger. Aucun autre site ne peut être intégré, et aucun site ne peut être ajouté ici.",
       "diary_template": "Choisissez une note dont le contenu sert de point de départ à chaque nouvelle entrée de journal de l'espace de travail {{workspace}}. La liste montre les notes rangées dans un dossier nommé Modèles (ou Templates) de cet espace. Chaque espace de travail a son propre modèle.",
@@ -572,7 +571,8 @@
       "sessions": "Voir les navigateurs et les appareils actuellement connectés à votre compte, et déconnecter ceux que vous n’utilisez plus.",
       "session_lifetime": "Combien de temps une connexion dure sans activité. Réglée avec POZNOTE_SESSION_LIFETIME_DAYS dans le fichier .env, donc affichée ici sans pouvoir être modifiée depuis cette page. Une connexion avec « Se souvenir de moi » dure plus longtemps ; une connexion par SSO, non.",
       "attachments_single_line": "Affiche les pièces jointes de la note sur une seule ligne au lieu de les répartir sur plusieurs lignes. Faites glisser la ligne avec le doigt ou la souris ; quand elle est coupée, elle se termine par « … ».",
-      "attachment_links_as_cards": "Quand vous insérez une pièce jointe dans une note avec « Lien vers une pièce jointe », l'affiche en carte (une icône selon son type, son nom et une flèche de téléchargement) sur sa propre ligne, au lieu d'un lien dans le texte."
+      "attachment_links_as_cards": "Quand vous insérez une pièce jointe dans une note avec « Lien vers une pièce jointe », l'affiche en carte (une icône selon son type, son nom et une flèche de téléchargement) sur sa propre ligne, au lieu d'un lien dans le texte.",
+      "remember_me_days": "Combien de temps cocher « Se souvenir de moi » sur la page de connexion garde quelqu'un connecté. Ne vaut que pour les connexions par mot de passe. Une connexion SSO dure le temps indiqué par la carte Durée des sessions, dans Paramètres > À propos, qui se règle dans le fichier .env. Changer un mot de passe, ou déconnecter un appareil depuis Appareils connectés, le déconnecte tout de suite, quelle que soit la durée réglée ici."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "Sur mobile, la barre d'outils au-dessus du clavier a un bouton + qui ouvre le même menu, quel que soit ce réglage."
@@ -702,7 +702,8 @@
       "custom_logo": "Logo",
       "two_factor_required": "Double authentification obligatoire",
       "sessions": "Appareils connectés",
-      "session_lifetime": "Durée des sessions"
+      "session_lifetime": "Durée des sessions",
+      "remember_me_days": "Durée du « Se souvenir de moi »"
     },
     "default_credentials": {
       "both": "Ce compte utilise encore le login et le mot de passe livrés par défaut. N'importe qui pouvant joindre cette instance peut s'y connecter.",
@@ -739,7 +740,8 @@
       "s3_backups": "Sauvegardes dans le stockage S3"
     },
     "login_disabled": {
-      "confirm": "Toute personne qui peut atteindre cette instance Poznote ouvrira directement votre compte, sans nom d'utilisateur, mot de passe ni code à deux facteurs. Ne continuez que si vous êtes seul à pouvoir la joindre, ou si un reverse proxy gère l'authentification."
+      "status_one": "1 compte",
+      "status_other": "{{count}} comptes"
     },
     "scope": {
       "user": "Personnel",
@@ -2128,6 +2130,13 @@
     },
     "code_block_collapsed_lines": {
       "unit": "lignes"
+    },
+    "remember_me_days": {
+      "unit": "jours"
+    },
+    "login_disabled": {
+      "description": "Les comptes cochés s'ouvrent sans mot de passe, depuis une liste sur la page de connexion. Les autres gardent leur mot de passe. Si le seul compte de cette instance est coché, il n'y a plus de page de connexion.",
+      "warning": "Quiconque peut atteindre cette instance peut ouvrir ces comptes, sans mot de passe ni code à deux facteurs. Ne cochez des comptes que si l'instance n'est pas joignable depuis Internet, ou si un reverse proxy placé devant elle gère l'authentification. Un compte administrateur coché donne les droits d'administrateur à n'importe qui."
     }
   },
   "notes_list": {
@@ -2810,10 +2819,9 @@
       "password": "Mot de passe",
       "profile": "Sélectionnez votre profil"
     },
-    "remember_me": "Se souvenir de moi pendant 30 jours",
+    "remember_me": "Se souvenir de moi pendant {{days}} jours",
+    "remember_me_one": "Se souvenir de moi pendant 1 jour",
     "button": "Se connecter",
-    "oidc_button": "Continuer avec {{provider}}",
-    "oidc_button_account": "Continuer avec {{account}}",
     "oidc_other_account": "Se connecter avec un autre compte",
     "no_profiles": "Aucun profil utilisateur disponible. Veuillez contacter l'administrateur.",
     "errors": {
@@ -2850,7 +2858,14 @@
       "enroll_intro": "L'authentification à deux facteurs est obligatoire sur cette instance. Configurez-la pour continuer.",
       "enroll_submit": "Activer et se connecter"
     },
-    "powered_by": "Propulsé par {{link}}"
+    "powered_by": "Propulsé par {{link}}",
+    "passwordless": {
+      "intro": "Ouvrir sans mot de passe"
+    },
+    "methods": {
+      "password": "Se connecter avec un mot de passe",
+      "sso": "Se connecter avec le SSO"
+    }
   },
   "restore_import": {
     "page": {
