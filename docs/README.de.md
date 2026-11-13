@@ -1135,17 +1135,71 @@ Konfigurieren Sie sie unter **Einstellungen > Sicherungen auf dem Server** (nur 
 - **Wiederherstellung**: Archive werden im Sicherungsordner unter `{Benutzer-ID}/` gespeichert und können mit der Standardseite [Wiederherstellen / Importieren](#wiederherstellen--importieren) wiederhergestellt werden.
 - **Kontolöschung**: Beim Löschen eines Kontos werden auch dessen Archive aus dem Sicherungsordner gelöscht.
 
-Um die Sicherungen auf einer anderen Festplatte oder einer Netzwerkfreigabe abzulegen, binden Sie diese in den Container ein und geben Sie den Pfad im Container (`/backups` in diesem Beispiel) als Sicherungsordner an:
+Um die Archive auf einem NAS oder einer anderen Festplatte abzulegen, siehe [Sicherungen auf ein NAS oder eine andere Festplatte](#nas-backups).
+
+Ein Ordner innerhalb der Anwendung selbst wird abgelehnt, außer `data/backups`. Wenn Anhänge in S3 gespeichert sind (S3-Speicher für Anhänge), sind sie in den Archiven enthalten und werden direkt aus dem Bucket abgerufen.
+
+</details>
+
+<a id="nas-backups"></a>
+<details>
+<summary><strong>Sicherungen auf ein NAS oder eine andere Festplatte</strong></summary>
+<br>
+
+Die [geplanten Sicherungen in einen Ordner auf dem Server](#local-backups) können auf ein NAS oder eine andere Festplatte geschrieben werden. Binden Sie es in den Container ein und geben Sie dann den Pfad im Container (`/backups` in den Beispielen unten) als Sicherungsordner unter **Einstellungen > Sicherungen auf dem Server** an. Poznote schreibt dorthin als der Benutzer, unter dem sein Webserver läuft, `www-data` (uid/gid `82`) mit dem Standard-Image, uid/gid `1000` mit dem [Rootless-Image](#rootless), daher muss dieser Benutzer Eigentümer des Ordners sein. Andernfalls schlägt das Speichern des Ordners fehl mit „Der Sicherungsordner kann nicht erstellt werden oder ist für den Webserver nicht beschreibbar“.
+
+**Eine andere Festplatte des Hosts**: Binden Sie einen Ordner davon per Bind-Mount ein und übergeben Sie diesen Ordner dem Poznote-Benutzer mit `sudo chown -R 82:82 /mnt/disk2/poznote-backups` (`1000:1000` mit dem Rootless-Image).
 
 ```yaml
 services:
   webserver:
     volumes:
       - "./data:/var/www/html/data"
-      - "/mnt/nas/poznote-backups:/backups"
+      - "/mnt/disk2/poznote-backups:/backups"
 ```
 
-Ein Ordner innerhalb der Anwendung selbst wird abgelehnt, außer `data/backups`. Wenn Anhänge in S3 gespeichert sind (S3-Speicher für Anhänge), sind sie in den Archiven enthalten und werden direkt aus dem Bucket abgerufen.
+**Eine SMB/CIFS-Freigabe (NAS)**: Docker kann die Freigabe selbst mit einem CIFS-Volume einbinden, ohne dass auf dem Host etwas installiert oder eingebunden werden muss. `chown` hat auf einer Freigabe keine Wirkung, der Eigentümer ergibt sich stattdessen aus den Mount-Optionen `uid` und `gid`.
+
+```yaml
+services:
+  webserver:
+    volumes:
+      - "./data:/var/www/html/data"
+      - "nas-backups:/backups"
+
+volumes:
+  nas-backups:
+    driver: local
+    driver_opts:
+      type: cifs
+      # IP-Adresse des NAS, dann der Name der Freigabe
+      device: "//192.168.1.10/poznote-backups"
+      # uid=1000,gid=1000 mit dem Rootless-Image
+      o: "username=poznote,password=CHANGE_ME,uid=82,gid=82,vers=3.0"
+```
+
+Führen Sie danach `docker compose up -d` aus und geben Sie `/backups` als Sicherungsordner an.
+
+- Verwenden Sie die IP-Adresse des NAS: Je nach Docker-Version wird ein Name in `device` möglicherweise nicht aufgelöst.
+- `vers=3.0` passt zu aktuellen NAS. Ein älteres Gerät benötigt eventuell `vers=2.1`.
+- Das Passwort steht in der Compose-Datei und wird mit dem Volume gespeichert (`docker volume inspect` zeigt es an), geben Sie Poznote daher ein eigenes Konto auf dem NAS, das nur Zugriff auf diese Freigabe hat.
+- Docker behält die Optionen, mit denen ein Volume erstellt wurde. Entfernen Sie das Volume nach einer Änderung (uid, Passwort, Adresse), damit es neu erstellt wird. Dabei wird nur die Einbindung vergessen, die Archive bleiben auf dem NAS:
+
+```bash
+docker compose down
+# Der Volume-Name beginnt mit dem Namen des Projektordners (siehe docker volume ls)
+docker volume rm poznote_nas-backups
+docker compose up -d
+```
+
+**Ist das NAS beim Start des Containers nicht erreichbar, startet Poznote nicht**, und die gesamte Anwendung ist nicht verfügbar, nicht nur die Sicherungen (Docker meldet „failed to mount local volume“). Ist das NAS nicht immer eingeschaltet, binden Sie die Freigabe stattdessen auf dem Host ein, mit `nofail`, damit Host und Poznote auch ohne sie starten, und binden Sie dann `/mnt/nas/poznote-backups` wie den Ordner einer anderen Festplatte oben per Bind-Mount ein (ohne das `chown`, die Optionen `uid` und `gid` legen den Eigentümer fest). Dafür wird das Paket `cifs-utils` auf dem Host benötigt. Die Zugangsdatei (hier `/root/.poznote-nas`) enthält zwei Zeilen, `username=poznote` und `password=CHANGE_ME`, und sollte nur für root lesbar sein (`chmod 600`):
+
+```
+# /etc/fstab
+//192.168.1.10/poznote-backups /mnt/nas/poznote-backups cifs credentials=/root/.poznote-nas,uid=82,gid=82,vers=3.0,nofail,_netdev 0 0
+```
+
+Der Container sieht die Freigabe nur, wenn der Host sie vor dem Start des Containers eingebunden hat. Ist das NAS erst später wieder da, führen Sie `docker compose restart` aus. Lassen Sie den Einhängepunkt selbst (den leeren Ordner unter der Freigabe) root gehören: Solange die Freigabe fehlt, schlagen die Sicherungen dann mit einem Fehler auf der Seite Sicherungen auf dem Server fehl, statt unbemerkt die Festplatte des Hosts zu füllen.
 
 </details>
 

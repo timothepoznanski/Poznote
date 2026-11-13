@@ -263,6 +263,7 @@
       "appearance": "外観",
       "maintenance": "メンテナンス",
       "editing": "編集",
+      "task_lists": "タスクリスト",
       "profile_sign_in": "プロフィールとログイン",
       "language_region": "言語と地域",
       "storage": "ストレージ",
@@ -5554,11 +5555,6 @@
     "markdown_view_toggle": "Markdownノートの編集とプレビューを切り替え",
     "new_note": "ノートを作成："
   },
-  "icon_context_menu": {
-    "hide": "ボタンを非表示",
-    "hide_element": "「{{name}}」を非表示",
-    "hidden_notice": "「{{name}}」を非表示にしました。要素の表示から戻せます。"
-  },
   "account_note": {
     "banner": "アカウント{{account}}のノート（閲覧のみ）",
     "open_to_edit": "開いて編集",
@@ -5912,9 +5908,6 @@
     "applied_size_to_all": "タイトルサイズをすべてのノートに適用しました",
     "change_icon": "アイコンを変更",
     "reset": "デフォルトに戻す"
-  },
-  "note_subline_menu": {
-    "label": "タイトルの下"
   },
   "speed_dial": {
     "title": "スピードダイヤル",

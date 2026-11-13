@@ -441,9 +441,11 @@ function renderRows() {
         const row = group.row;
         const visibleAttachments = group.attachments;
 
+        const noteUrl = `index.php?note=${row.noteId}${workspace ? '&workspace=' + encodeURIComponent(workspace) : ''}`;
+
         if (viewMode === 'grid') {
-            const noteUrl = `index.php?note=${row.noteId}${workspace ? '&workspace=' + encodeURIComponent(workspace) : ''}`;
-            return visibleAttachments.map(att => {
+            // Grouped by note as in the list: the note's name, then its tiles
+            const tiles = visibleAttachments.map(att => {
                 const isImage = isImageAttachment(att);
                 let media;
                 if (isImage && showThumbnails) {
@@ -457,9 +459,12 @@ function renderRows() {
                 return `<div class="attachments-grid-item">
                     <a href="#" class="attachment-file-link attachments-grid-media" data-attachment-id="${att.id}" data-note-id="${row.noteId}" title="${escapeHtml(att.filename)}" tabindex="-1" aria-hidden="true">${media}</a>
                     <a href="#" class="attachment-file-link attachments-grid-name" data-attachment-id="${att.id}" data-note-id="${row.noteId}" title="${escapeHtml(att.filename)}">${escapeHtml(att.filename)}</a>
-                    <a href="${noteUrl}" class="attachments-grid-note" title="${escapeHtml(row.noteName)}">${escapeHtml(row.noteName)}</a>
                 </div>`;
             }).join('');
+            return `<div class="attachment-row">
+                <a href="${noteUrl}" class="attachment-note-name" title="${escapeHtml(row.noteName)}">${escapeHtml(row.noteName)}</a>
+                <div class="attachments-grid attachments-grid-${gridSize}">${tiles}</div>
+            </div>`;
         }
 
         const attachmentsList = visibleAttachments.map(att => {
@@ -483,7 +488,7 @@ function renderRows() {
 
         return `
             <div class="attachment-row">
-                <a href="index.php?note=${row.noteId}${workspace ? '&workspace=' + encodeURIComponent(workspace) : ''}" class="attachment-note-name" title="${escapeHtml(row.noteName)}">
+                <a href="${noteUrl}" class="attachment-note-name" title="${escapeHtml(row.noteName)}">
                     ${escapeHtml(row.noteName)}
                 </a>
                 <div class="attachment-files-list">
@@ -499,9 +504,7 @@ function renderRows() {
     }
 
     container.classList.toggle('is-grid', viewMode === 'grid');
-    container.innerHTML = viewMode === 'grid'
-        ? '<div class="attachments-grid attachments-grid-' + gridSize + '">' + rowsHtmlArray.join('') + '</div>'
-        : rowsHtmlArray.join('');
+    container.innerHTML = rowsHtmlArray.join('');
 
     initLazyThumbnails(container);
 

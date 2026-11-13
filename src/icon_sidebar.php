@@ -519,18 +519,13 @@ window.PoznoteIconSidebarColorsConfig = <?php echo json_encode([
     'canCustomize' => !function_exists('isActiveAccountOwnedByAuthenticatedUser') || isActiveAccountOwnedByAuthenticatedUser(),
     'errorSaving' => t('display.alerts.error_saving_preference', [], 'Error saving preference'),
     // Right-click menu of the rail and the note toolbar. The rail buttons the
-    // UI Customization list refuses to hide get no "Hide" entry.
+    // UI Customization list refuses to hide get no "Element visibility" entry.
     'nonHideable' => array_values(array_filter(array_map(
         fn($key) => strpos($key, 'card:') === 0 ? substr($key, 5) : '',
         array_keys(poznoteGetNonHideableUiKeys())
     ))),
     'menuChangeColor' => t('modals.icon_sidebar_order.change_color', [], 'Change icon color'),
-    'menuHide' => t('icon_context_menu.hide', [], 'Hide button'),
     'menuCustomize' => t('common.customize_menu', [], 'Customize this menu'),
-    // Right-click Hide menu (js/hide-element-menu.js): its entries name the
-    // element, and the message that follows says where it comes back from.
-    'menuHideElement' => t('icon_context_menu.hide_element', [], 'Hide "{{name}}"'),
-    'menuHiddenNotice' => t('icon_context_menu.hidden_notice', [], '"{{name}}" is hidden. Element visibility brings it back.'),
     'menuElementVisibility' => t('modals.ui_customization.panel_title', [], 'Element visibility'),
 ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
 </script>

@@ -1340,8 +1340,7 @@ $localRestoreCardVisible = !empty(LocalBackupService::restorePageBackups());
             </div>
 
             <!-- Editing: how typing in a note behaves. The command menu shortcut
-                 and the task list insert order came from the former "Other"
-                 section. -->
+                 came from the former "Other" section. -->
             <div class="settings-group-title"><?php echo t_h('settings.groups.editing', [], 'Editing'); ?></div>
             <div class="settings-group">
 
@@ -1407,6 +1406,12 @@ $localRestoreCardVisible = !empty(LocalBackupService::restorePageBackups());
                         </select>
                     </div>
                 </div>
+
+            </div>
+
+            <!-- Task lists: settings that only apply to task list notes. -->
+            <div class="settings-group-title"><?php echo t_h('settings.groups.task_lists', [], 'Task lists'); ?></div>
+            <div class="settings-group">
 
                 <!-- Tasklist Insert Order -->
                 <div class="home-card settings-inline-card" id="tasklist-insert-order-card">

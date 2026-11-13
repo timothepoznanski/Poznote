@@ -1135,17 +1135,71 @@ Configúralas en **Configuración > Copias de seguridad en el servidor** (solo a
 - **Restauración**: los archivos se almacenan bajo `{id de usuario}/` en la carpeta de copias de seguridad y pueden restaurarse con la página estándar [Restaurar / Importar](#restaurar--importar).
 - **Eliminación de cuentas**: al eliminar una cuenta también se eliminan sus archivos de la carpeta de copias de seguridad.
 
-Para guardar las copias en otro disco o en un recurso de red, móntalo en el contenedor e introduce la ruta del contenedor (`/backups` en este ejemplo) como carpeta de copias de seguridad:
+Para guardar las copias en un NAS o en otro disco, consulta [Copias de seguridad en un NAS u otro disco](#nas-backups).
+
+Una carpeta situada dentro de la propia aplicación se rechaza, salvo `data/backups`. Cuando los adjuntos se almacenan en S3 (almacenamiento de adjuntos en S3), se incluyen en los archivos, obtenidos del bucket sobre la marcha.
+
+</details>
+
+<a id="nas-backups"></a>
+<details>
+<summary><strong>Copias de seguridad en un NAS u otro disco</strong></summary>
+<br>
+
+Las [copias de seguridad programadas en una carpeta del servidor](#local-backups) pueden escribirse en un NAS o en otro disco. Móntalo en el contenedor y luego introduce la ruta del contenedor (`/backups` en los ejemplos de abajo) como carpeta de copias de seguridad en **Configuración > Copias de seguridad en el servidor**. Poznote escribe en ella con el usuario de su servidor web, `www-data` (uid/gid `82`) con la imagen predeterminada, uid/gid `1000` con la [imagen rootless](#rootless), así que ese usuario debe ser el propietario de la carpeta. Si no, al guardar la carpeta aparece el error «La carpeta de copias de seguridad no se puede crear o el servidor web no puede escribir en ella».
+
+**Otro disco del host**: monta una carpeta suya con un bind mount y dásela al usuario de Poznote con `sudo chown -R 82:82 /mnt/disk2/poznote-backups` (`1000:1000` con la imagen rootless).
 
 ```yaml
 services:
   webserver:
     volumes:
       - "./data:/var/www/html/data"
-      - "/mnt/nas/poznote-backups:/backups"
+      - "/mnt/disk2/poznote-backups:/backups"
 ```
 
-Una carpeta situada dentro de la propia aplicación se rechaza, salvo `data/backups`. Cuando los adjuntos se almacenan en S3 (almacenamiento de adjuntos en S3), se incluyen en los archivos, obtenidos del bucket sobre la marcha.
+**Un recurso compartido SMB/CIFS (NAS)**: Docker puede montar el recurso él mismo con un volumen CIFS, sin instalar ni montar nada en el host. `chown` no tiene efecto en un recurso compartido, el propietario lo fijan las opciones de montaje `uid` y `gid`.
+
+```yaml
+services:
+  webserver:
+    volumes:
+      - "./data:/var/www/html/data"
+      - "nas-backups:/backups"
+
+volumes:
+  nas-backups:
+    driver: local
+    driver_opts:
+      type: cifs
+      # Dirección IP del NAS y nombre del recurso compartido
+      device: "//192.168.1.10/poznote-backups"
+      # uid=1000,gid=1000 con la imagen rootless
+      o: "username=poznote,password=CHANGE_ME,uid=82,gid=82,vers=3.0"
+```
+
+Después ejecuta `docker compose up -d` e introduce `/backups` como carpeta de copias de seguridad.
+
+- Usa la dirección IP del NAS: según la versión de Docker, un nombre en `device` puede no resolverse.
+- `vers=3.0` sirve para los NAS actuales. Uno más antiguo puede necesitar `vers=2.1`.
+- La contraseña queda escrita en el archivo compose y guardada con el volumen (`docker volume inspect` la muestra), así que dale a Poznote su propia cuenta en el NAS, con acceso solo a este recurso.
+- Docker conserva las opciones con las que se creó un volumen. Después de cambiarlas (uid, contraseña, dirección), elimina el volumen para que se vuelva a crear. Esto solo olvida el montaje, las copias siguen en el NAS:
+
+```bash
+docker compose down
+# El nombre del volumen empieza por el nombre de la carpeta del proyecto (ver docker volume ls)
+docker volume rm poznote_nas-backups
+docker compose up -d
+```
+
+**Si el NAS no está accesible cuando arranca el contenedor, Poznote no arranca**, y es toda la aplicación la que queda caída, no solo las copias (Docker indica «failed to mount local volume»). Si el NAS no está siempre encendido, monta mejor el recurso en el host, con `nofail` para que el host y Poznote arranquen sin él, y luego monta `/mnt/nas/poznote-backups` con un bind mount como la carpeta del otro disco de arriba (sin el `chown`, las opciones `uid` y `gid` fijan el propietario). Para ello hace falta el paquete `cifs-utils` en el host. El archivo de credenciales (aquí `/root/.poznote-nas`) contiene dos líneas, `username=poznote` y `password=CHANGE_ME`, y solo debe poder leerlo root (`chmod 600`):
+
+```
+# /etc/fstab
+//192.168.1.10/poznote-backups /mnt/nas/poznote-backups cifs credentials=/root/.poznote-nas,uid=82,gid=82,vers=3.0,nofail,_netdev 0 0
+```
+
+El contenedor solo ve el recurso si el host lo montó antes de que arrancara el contenedor. Si el NAS vuelve más tarde, ejecuta `docker compose restart`. Deja que el propio punto de montaje (la carpeta vacía bajo el recurso) pertenezca a root: mientras falte el recurso, las copias fallarán entonces con un error visible en la página Copias de seguridad en el servidor, en lugar de llenar sin avisar el disco del host.
 
 </details>
 

@@ -1140,17 +1140,71 @@ Cấu hình tại **Settings > Server Backups** (chỉ dành cho quản trị vi
   - Quản trị viên luôn thực hiện được cả hai thao tác và có thể khôi phục bất kỳ bản nén nào trong danh sách. Một bản nén đã tải về máy vẫn có thể khôi phục qua mục "Restore from a Poznote ZIP backup".
 - **Xóa tài khoản:** Xóa một tài khoản cũng sẽ xóa toàn bộ các bản nén của tài khoản đó khỏi thư mục sao lưu.
 
-Để lưu bản sao lưu trên ổ đĩa khác hoặc thư mục chia sẻ mạng, hãy mount nó vào container và nhập đường dẫn bên trong container (`/backups` trong ví dụ dưới) vào ô thư mục sao lưu:
+Để lưu các bản sao lưu trên NAS hoặc ổ đĩa khác, xem [Sao lưu sang NAS hoặc ổ đĩa khác](#nas-backups).
+
+Thư mục nằm bên trong chính mã nguồn ứng dụng sẽ bị từ chối, ngoại trừ `data/backups`. Khi tệp đính kèm được lưu trên S3 (Lưu trữ tệp đính kèm S3), chúng vẫn được gộp vào bản sao lưu bằng cách tải trực tiếp từ bucket lúc đóng gói.
+
+</details>
+
+<a id="nas-backups"></a>
+<details>
+<summary><strong>Sao lưu sang NAS hoặc ổ đĩa khác</strong></summary>
+<br>
+
+[Sao lưu định kỳ vào một thư mục trên server](#local-backups) có thể ghi sang NAS hoặc ổ đĩa khác. Hãy mount nó vào container, rồi nhập đường dẫn bên trong container (`/backups` trong các ví dụ bên dưới) vào ô thư mục sao lưu trong **Settings > Server Backups**. Poznote ghi vào đó dưới người dùng mà web server của nó chạy, `www-data` (uid/gid `82`) với image mặc định, uid/gid `1000` với [image rootless](#rootless), nên người dùng đó phải sở hữu thư mục. Nếu không, khi lưu thư mục sẽ báo lỗi "The backup folder cannot be created or is not writable by the web server".
+
+**Một ổ đĩa khác của máy chủ**: Hãy bind mount một thư mục trên ổ đó và giao thư mục cho người dùng của Poznote bằng `sudo chown -R 82:82 /mnt/disk2/poznote-backups` (`1000:1000` với image rootless).
 
 ```yaml
 services:
   webserver:
     volumes:
       - "./data:/var/www/html/data"
-      - "/mnt/nas/poznote-backups:/backups"
+      - "/mnt/disk2/poznote-backups:/backups"
 ```
 
-Thư mục nằm bên trong chính mã nguồn ứng dụng sẽ bị từ chối, ngoại trừ `data/backups`. Khi tệp đính kèm được lưu trên S3 (Lưu trữ tệp đính kèm S3), chúng vẫn được gộp vào bản sao lưu bằng cách tải trực tiếp từ bucket lúc đóng gói.
+**Thư mục chia sẻ SMB/CIFS (NAS)**: Docker có thể tự mount thư mục chia sẻ bằng một volume CIFS, không cần cài đặt hay mount gì trên máy chủ. `chown` không có tác dụng trên thư mục chia sẻ, chủ sở hữu được đặt bởi các tùy chọn mount `uid` và `gid`.
+
+```yaml
+services:
+  webserver:
+    volumes:
+      - "./data:/var/www/html/data"
+      - "nas-backups:/backups"
+
+volumes:
+  nas-backups:
+    driver: local
+    driver_opts:
+      type: cifs
+      # Địa chỉ IP của NAS, rồi đến tên thư mục chia sẻ
+      device: "//192.168.1.10/poznote-backups"
+      # uid=1000,gid=1000 với image rootless
+      o: "username=poznote,password=CHANGE_ME,uid=82,gid=82,vers=3.0"
+```
+
+Sau đó chạy `docker compose up -d` và nhập `/backups` vào ô thư mục sao lưu.
+
+- Hãy dùng địa chỉ IP của NAS: tùy phiên bản Docker, một tên trong `device` có thể không được phân giải.
+- `vers=3.0` phù hợp với các NAS hiện nay. NAS cũ hơn có thể cần `vers=2.1`.
+- Mật khẩu được ghi trong file compose và lưu cùng volume (`docker volume inspect` hiển thị nó), vì vậy hãy tạo cho Poznote một tài khoản riêng trên NAS, chỉ được truy cập thư mục chia sẻ này.
+- Docker giữ nguyên các tùy chọn lúc tạo volume. Sau khi thay đổi chúng (uid, mật khẩu, địa chỉ), hãy xóa volume để nó được tạo lại. Việc này chỉ xóa cấu hình mount, các bản sao lưu vẫn còn trên NAS:
+
+```bash
+docker compose down
+# Tên volume bắt đầu bằng tên thư mục dự án (xem docker volume ls)
+docker volume rm poznote_nas-backups
+docker compose up -d
+```
+
+**Nếu không kết nối được NAS khi container khởi động, Poznote sẽ không khởi động**, và cả ứng dụng ngừng hoạt động chứ không chỉ việc sao lưu (Docker báo "failed to mount local volume"). Nếu NAS không luôn bật, hãy mount thư mục chia sẻ trên máy chủ thay vào đó, với `nofail` để máy chủ và Poznote vẫn khởi động khi thiếu nó, rồi bind mount `/mnt/nas/poznote-backups` giống thư mục của ổ đĩa khác ở trên (không cần `chown`, các tùy chọn `uid` và `gid` đặt chủ sở hữu). Việc này cần gói `cifs-utils` trên máy chủ. File thông tin đăng nhập (ở đây là `/root/.poznote-nas`) gồm hai dòng, `username=poznote` và `password=CHANGE_ME`, và chỉ root được đọc (`chmod 600`):
+
+```
+# /etc/fstab
+//192.168.1.10/poznote-backups /mnt/nas/poznote-backups cifs credentials=/root/.poznote-nas,uid=82,gid=82,vers=3.0,nofail,_netdev 0 0
+```
+
+Container chỉ thấy thư mục chia sẻ nếu máy chủ đã mount nó trước khi container khởi động. Nếu NAS hoạt động trở lại sau đó, hãy chạy `docker compose restart`. Hãy để chính điểm mount (thư mục trống bên dưới thư mục chia sẻ) thuộc về root: khi thiếu thư mục chia sẻ, các bản sao lưu sẽ thất bại với lỗi hiển thị trên trang Server Backups, thay vì âm thầm làm đầy ổ đĩa của máy chủ.
 
 </details>
 

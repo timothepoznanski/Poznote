@@ -90,6 +90,7 @@ function poznoteGetIndexJsGroups(): array {
         'js/attachment-move.js',
         'js/note-attachment-menu.js',
         'js/attachments-row-scroll.js',
+        'js/note-table-scroll.js',
         'js/pdf-preview.js',
         'js/attachment-card-download.js',
         'js/tags-modal.js',

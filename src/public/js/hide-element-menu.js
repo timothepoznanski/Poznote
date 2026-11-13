@@ -1,13 +1,12 @@
 /**
- * Right-click an element to hide it.
+ * Right-click an element to find it in the "Element visibility" list.
  *
  * A right-click anywhere the "Element visibility" list has a box for what sits
  * under the pointer opens a small menu (the one of js/icon-sidebar-colors.js)
- * with one "Hide" entry per element found, from the one clicked outwards, plus
- * an entry leading to that list. Clicking an entry adds the element's key to
- * the 'hidden_ui_elements' user setting, exactly as unticking its box would,
- * so the two stay in step and a hidden element is ticked back on from the list
- * (a toast says so, since nothing is left behind to right-click again).
+ * with a single "Element visibility" entry. Nothing is hidden from here: the
+ * entry opens the list on the row of the innermost element found (unfolded,
+ * scrolled to and marked for a moment), where its box hides it, and where it
+ * is ticked back on later.
  *
  * What a click can land on:
  *   - card:<id>   read off the element's own id, which is what that key hides,
@@ -18,9 +17,12 @@
  *   - slash:*, folder:*, note:*, wsmenu:*   menu entries, whose key is their
  *                 data-action (ATTRIBUTE_TARGETS below).
  *
- * An element is offered only when the page's list holds its row: a key with no
- * box there could be hidden and never shown again. A row the administrator
- * locked, or already unticked, is left out too.
+ * An element is offered only when the page's list holds its row. A row the
+ * administrator locked, or already unticked, is left out too.
+ *
+ * A task row also answers on its text, which matches no key: the menu then
+ * holds only the "Element visibility" entry, opened on the "Task lists"
+ * section. A link or a selection in that text keeps the browser's menu.
  *
  * Left alone: text being edited (the browser's own menu belongs to it), and
  * the regions that answer a right-click with a menu of their own.
@@ -28,13 +30,11 @@
 (function () {
     'use strict';
 
-    // How many elements the menu offers at once, from the one under the
-    // pointer outwards, and how far up the tree it looks for them.
-    var MAX_ENTRIES = 3;
+    // How far up the tree the menu looks for an element the list holds.
     var MAX_DEPTH = 14;
 
     // Regions that answer a right-click themselves, each already carrying its
-    // own "Hide" entry or its own ticks: the icon rail and the note toolbar
+    // own "Element visibility" entry: the icon rail and the note toolbar
     // (js/icon-sidebar-colors.js, js/toolbar-icon-colors.js), the line under
     // the note title (js/note-subline-menu.js), the visibility lists and the
     // menus of this file. Named here rather than left to event.defaultPrevented,
@@ -45,8 +45,7 @@
         '.note-subline',
         '#uiCustomizationPanel',
         '#uiCustomizationSettings',
-        '#iconContextMenu',
-        '#noteSublineMenu'
+        '#iconContextMenu'
     ].join(', ');
 
     // Words the user wrote, inside an element the list could otherwise offer to
@@ -54,6 +53,12 @@
     // this a right-click on it would answer "Hide the frame around each task"
     // instead of the browser's own copy and spelling menu.
     var CONTENT_REGIONS = '.task-text, .task-subitem-text, .tasklist-embed-text';
+
+    // A task row, in a task list note or in a list embedded in a note. Its
+    // text matches no key, so a right-click on it offers only the way to the
+    // "Task lists" section of the panel, where every part of a row has a box.
+    var TASK_ROWS = '.task-list-container .task-item, .tasklist-embed-task';
+    var TASK_LISTS_SECTION = 'task-lists';
 
     // Keys read off the clicked element instead of a fixed selector: menu
     // entries whose data attribute is the second half of their key. Mirrors
@@ -70,12 +75,10 @@
 
     // Labels come from the config icon_sidebar.php renders, already
     // translated: window.t is not on every page (the dashboard loads the JS
-    // i18n runtime only with the AI panel), and the fallback carries the same
-    // {{name}} placeholder as the sentence it replaces.
-    function label(configKey, fallback, name) {
+    // i18n runtime only with the AI panel).
+    function label(configKey, fallback) {
         var config = window.PoznoteIconSidebarColorsConfig || {};
-        var text = config[configKey] || fallback;
-        return name === undefined ? text : text.split('{{name}}').join(name);
+        return config[configKey] || fallback;
     }
 
     function runtime() {
@@ -84,10 +87,10 @@
 
     function contextMenu() {
         var menu = window.PoznoteIconContextMenu;
-        return menu && typeof menu.open === 'function' && typeof menu.hideKey === 'function' ? menu : null;
+        return menu && typeof menu.open === 'function' && typeof menu.revealKey === 'function' ? menu : null;
     }
 
-    // Hiding writes a setting of the account being looked at, which only its
+    // The list edits a setting of the account being looked at, which only its
     // owner may do (the same guard as the icon rail's right-click menu).
     function mayCustomize() {
         var config = window.PoznoteIconSidebarColorsConfig;
@@ -154,6 +157,11 @@
 
         if (element.id) keys.push('card:' + element.id);
 
+        // A magnifier goes with the field it unfolds (lib/search-toggle.php)
+        if (matches(element, '.pz-search-toggle[aria-controls]')) {
+            keys.push('card:' + element.getAttribute('aria-controls'));
+        }
+
         targets().forEach(function (target) {
             if (matches(element, target.selector)) keys.push(target.key);
         });
@@ -176,7 +184,7 @@
         });
     }
 
-    // Every element the click can be said to be on, innermost first.
+    // The elements the click can be said to be on, innermost first.
     function candidates(start) {
         var found = [];
         var seen = Object.create(null);
@@ -187,7 +195,29 @@
             element = element.parentElement;
         }
 
-        return found.slice(0, MAX_ENTRIES);
+        return found;
+    }
+
+    // True when text is selected inside the element: the browser's menu, which
+    // copies it, keeps the right-click.
+    function hasSelectionIn(element) {
+        var selection = window.getSelection ? window.getSelection() : null;
+        if (!selection || selection.isCollapsed || !selection.rangeCount) return false;
+        return typeof selection.containsNode === 'function' && selection.containsNode(element, true);
+    }
+
+    function sectionPanel(sectionId) {
+        var panel = window.PoznoteUiCustomizationPanel;
+        if (!panel || typeof panel.openSection !== 'function' || typeof panel.hasSection !== 'function') return null;
+        return panel.hasSection(sectionId) ? panel : null;
+    }
+
+    function sectionItem(panel, sectionId) {
+        return {
+            icon: 'lucide-eye-off',
+            label: label('menuElementVisibility', 'Element visibility'),
+            run: function () { panel.openSection(sectionId); }
+        };
     }
 
     document.addEventListener('contextmenu', function (event) {
@@ -195,35 +225,37 @@
 
         var target = event.target;
         if (!target || !target.closest) return;
-        if (target.closest(OWNED_REGIONS) || target.closest(CONTENT_REGIONS)) return;
+        if (target.closest(OWNED_REGIONS)) return;
         if (isTextEditingContext(target)) return;
 
         var menu = contextMenu();
         if (!menu) return;
 
-        var found = candidates(target);
-        if (!found.length) return;
+        // A task row: its text (and any spot that matches no key) leads to the
+        // "Task lists" section. A link in the text and a selection keep the
+        // browser's menu (open in a new tab, copy).
+        var task = target.closest(TASK_ROWS);
+        var inTaskText = !!target.closest(CONTENT_REGIONS);
+        if (inTaskText && (!task || target.closest('a[href]') || hasSelectionIn(task))) return;
 
-        var items = found.map(function (candidate) {
-            return {
-                icon: 'lucide-eye-off',
-                label: label('menuHideElement', 'Hide "{{name}}"', candidate.name),
-                run: function () { menu.hideKey(candidate.key, candidate.element); }
-            };
-        });
-
-        // The way back: the list where anything hidden is ticked on again,
-        // opened on the row of the first element offered above.
-        var panel = window.PoznoteUiCustomizationPanel;
-        if (panel && typeof panel.open === 'function' && typeof panel.hasKey === 'function' && panel.hasKey(found[0].key)) {
-            items.push({
-                icon: 'lucide-settings',
-                label: label('menuElementVisibility', 'Element visibility'),
-                run: function () { panel.open(found[0].key); }
-            });
+        var found = inTaskText ? [] : candidates(target);
+        if (!found.length) {
+            var panel = task ? sectionPanel(TASK_LISTS_SECTION) : null;
+            if (!panel) return;
+            event.preventDefault();
+            menu.open(event, task, { items: [sectionItem(panel, TASK_LISTS_SECTION)] });
+            return;
         }
 
+        // A single way into the list, opened on the row of the element right
+        // under the pointer.
         event.preventDefault();
-        menu.open(event, found[0].element, { items: items });
+        menu.open(event, found[0].element, {
+            items: [{
+                icon: 'lucide-eye-off',
+                label: label('menuElementVisibility', 'Element visibility'),
+                run: function () { menu.revealKey(found[0].key); }
+            }]
+        });
     });
 })();

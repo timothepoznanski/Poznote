@@ -263,6 +263,7 @@
       "appearance": "Appearance",
       "maintenance": "Maintenance",
       "editing": "Editing",
+      "task_lists": "Task lists",
       "profile_sign_in": "Profile & sign-in",
       "language_region": "Language & region",
       "storage": "Storage",
@@ -5554,11 +5555,6 @@
     "markdown_view_toggle": "Switch a Markdown note between edit and preview",
     "new_note": "Create a note:"
   },
-  "icon_context_menu": {
-    "hide": "Hide button",
-    "hide_element": "Hide \"{{name}}\"",
-    "hidden_notice": "\"{{name}}\" is hidden. Element visibility brings it back."
-  },
   "account_note": {
     "banner": "Note from the account {{account}}, read-only",
     "open_to_edit": "Open to edit",
@@ -5912,9 +5908,6 @@
     "applied_size_to_all": "Title size applied to all notes",
     "change_icon": "Change icon",
     "reset": "Reset to default"
-  },
-  "note_subline_menu": {
-    "label": "Under the title"
   },
   "speed_dial": {
     "title": "Speed dial",

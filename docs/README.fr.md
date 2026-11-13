@@ -1135,17 +1135,71 @@ Configurez-les dans **Paramètres > Sauvegardes sur le serveur** (administrateur
 - **Restauration** : les archives sont stockées sous `{id utilisateur}/` dans le dossier de sauvegarde et peuvent être restaurées avec la page standard [Restauration / Import](#restauration--import).
 - **Suppression de compte** : supprimer un compte supprime aussi ses archives du dossier de sauvegarde.
 
-Pour conserver les sauvegardes sur un autre disque ou sur un partage réseau, montez-le dans le conteneur et saisissez le chemin côté conteneur (`/backups` dans cet exemple) comme dossier de sauvegarde :
+Pour conserver les archives sur un NAS ou sur un autre disque, voir [Sauvegardes vers un NAS ou un autre disque](#nas-backups).
+
+Un dossier situé dans l'application elle-même est refusé, hormis `data/backups`. Lorsque les pièces jointes sont stockées sur S3 (stockage des pièces jointes sur S3), elles sont incluses dans les archives, récupérées à la volée depuis le bucket.
+
+</details>
+
+<a id="nas-backups"></a>
+<details>
+<summary><strong>Sauvegardes vers un NAS ou un autre disque</strong></summary>
+<br>
+
+Les [sauvegardes planifiées dans un dossier du serveur](#local-backups) peuvent être écrites sur un NAS ou sur un autre disque. Montez-le dans le conteneur, puis saisissez le chemin côté conteneur (`/backups` dans les exemples ci-dessous) comme dossier de sauvegarde dans **Paramètres > Sauvegardes sur le serveur**. Poznote y écrit sous l'utilisateur de son serveur web, `www-data` (uid/gid `82`) avec l'image par défaut, uid/gid `1000` avec l'[image rootless](#rootless), et cet utilisateur doit donc être propriétaire du dossier. Sinon, l'enregistrement du dossier échoue avec « Le dossier de sauvegarde ne peut pas être créé ou n'est pas accessible en écriture par le serveur web ».
+
+**Un autre disque de l'hôte** : montez-en un dossier en bind mount, et donnez ce dossier à l'utilisateur de Poznote avec `sudo chown -R 82:82 /mnt/disk2/poznote-backups` (`1000:1000` avec l'image rootless).
 
 ```yaml
 services:
   webserver:
     volumes:
       - "./data:/var/www/html/data"
-      - "/mnt/nas/poznote-backups:/backups"
+      - "/mnt/disk2/poznote-backups:/backups"
 ```
 
-Un dossier situé dans l'application elle-même est refusé, hormis `data/backups`. Lorsque les pièces jointes sont stockées sur S3 (stockage des pièces jointes sur S3), elles sont incluses dans les archives, récupérées à la volée depuis le bucket.
+**Un partage SMB/CIFS (NAS)** : Docker peut monter le partage lui-même avec un volume CIFS, sans rien installer ni monter sur l'hôte. `chown` n'a aucun effet sur un partage, le propriétaire vient des options de montage `uid` et `gid`.
+
+```yaml
+services:
+  webserver:
+    volumes:
+      - "./data:/var/www/html/data"
+      - "nas-backups:/backups"
+
+volumes:
+  nas-backups:
+    driver: local
+    driver_opts:
+      type: cifs
+      # Adresse IP du NAS, puis nom du partage
+      device: "//192.168.1.10/poznote-backups"
+      # uid=1000,gid=1000 avec l'image rootless
+      o: "username=poznote,password=CHANGE_ME,uid=82,gid=82,vers=3.0"
+```
+
+Lancez ensuite `docker compose up -d` et saisissez `/backups` comme dossier de sauvegarde.
+
+- Utilisez l'adresse IP du NAS : selon la version de Docker, un nom dans `device` peut ne pas être résolu.
+- `vers=3.0` convient aux NAS actuels. Un NAS plus ancien peut demander `vers=2.1`.
+- Le mot de passe est écrit dans le fichier compose et conservé avec le volume (`docker volume inspect` l'affiche), donnez donc à Poznote son propre compte sur le NAS, avec accès à ce seul partage.
+- Docker garde les options avec lesquelles un volume a été créé. Après les avoir modifiées (uid, mot de passe, adresse), supprimez le volume pour qu'il soit recréé. Cela n'oublie que le montage, les archives restent sur le NAS :
+
+```bash
+docker compose down
+# Le nom du volume commence par le nom du dossier du projet (voir docker volume ls)
+docker volume rm poznote_nas-backups
+docker compose up -d
+```
+
+**Si le NAS est injoignable au démarrage du conteneur, Poznote ne démarre pas**, et c'est toute l'application qui est indisponible, pas seulement les sauvegardes (Docker signale « failed to mount local volume »). Si le NAS n'est pas toujours allumé, montez plutôt le partage sur l'hôte, avec `nofail` pour que l'hôte et Poznote démarrent sans lui, puis montez `/mnt/nas/poznote-backups` en bind mount comme le dossier d'un autre disque ci-dessus (sans le `chown`, ce sont les options `uid` et `gid` qui fixent le propriétaire). Il faut pour cela le paquet `cifs-utils` sur l'hôte. Le fichier d'identifiants (ici `/root/.poznote-nas`) contient deux lignes, `username=poznote` et `password=CHANGE_ME`, et ne doit être lisible que par root (`chmod 600`) :
+
+```
+# /etc/fstab
+//192.168.1.10/poznote-backups /mnt/nas/poznote-backups cifs credentials=/root/.poznote-nas,uid=82,gid=82,vers=3.0,nofail,_netdev 0 0
+```
+
+Le conteneur ne voit le partage que si l'hôte l'a monté avant le démarrage du conteneur. Si le NAS revient plus tard, lancez `docker compose restart`. Laissez le point de montage lui-même (le dossier vide sous le partage) appartenir à root : tant que le partage manque, les sauvegardes échouent alors avec une erreur affichée sur la page Sauvegardes sur le serveur, au lieu de remplir sans bruit le disque de l'hôte.
 
 </details>
 

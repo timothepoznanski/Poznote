@@ -612,6 +612,7 @@
       "appearance": "Erscheinungsbild",
       "maintenance": "Wartung",
       "editing": "Bearbeitung",
+      "task_lists": "Aufgabenlisten",
       "profile_sign_in": "Profil und Anmeldung",
       "language_region": "Sprache und Region",
       "storage": "Speicher",
@@ -5718,11 +5719,6 @@
     "markdown_view_toggle": "Markdown-Notiz zwischen Bearbeitung und Vorschau umschalten",
     "new_note": "Notiz erstellen:"
   },
-  "icon_context_menu": {
-    "hide": "Schaltfläche ausblenden",
-    "hide_element": "„{{name}}“ ausblenden",
-    "hidden_notice": "„{{name}}“ ist ausgeblendet. Sichtbarkeit von Elementen zeigt es wieder an."
-  },
   "account_note": {
     "banner": "Notiz aus dem Konto {{account}}, schreibgeschützt",
     "open_to_edit": "Zum Bearbeiten öffnen",
@@ -6067,9 +6063,6 @@
     "applied_size_to_all": "Titelgröße auf alle Notizen angewendet",
     "change_icon": "Symbol ändern",
     "reset": "Auf Standard zurücksetzen"
-  },
-  "note_subline_menu": {
-    "label": "Unter dem Titel"
   },
   "speed_dial": {
     "title": "Schnellwahl",

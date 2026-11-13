@@ -190,6 +190,7 @@ if (!function_exists('poznoteUiCustomizationSectionHeader')) {
 <p class="ui-custom-section-hint"><?php echo t_h('modals.ui_customization.sidebar_hint', [], 'Column of the notes tree, between the icon rail and the note.'); ?></p>
 <div class="ui-custom-items">
 <?php echo poznoteUiCustomizationListToggleAll(); ?>
+    <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:toggleSidebarBtn" checked><span><?php echo t_h('sidebar.toggle', [], 'Hide/Show left column'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:sidebarNotificationsBtn" checked><span><?php echo t_h('reminder.notifications', [], 'Notifications'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:sidebarCreateBtn" checked><span><?php echo t_h('sidebar.create', [], 'Create'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:search-bar-container" checked><span><?php echo t_h('modals.ui_customization.index_search_bar', [], 'Search bar'); ?></span></label>
@@ -365,8 +366,10 @@ if (!function_exists('poznoteUiCustomizationSectionHeader')) {
 </div>
 
 <!-- Task Lists Section: the parts of a task list note's rows
-     (tasklist:* keys, see poznoteTasklistUiSelectors() in lib/ui-customization.php) -->
-<div class="ui-custom-section" data-ui-pages="notes">
+     (tasklist:* keys, see poznoteTasklistUiSelectors() in lib/ui-customization.php).
+     data-ui-section-id: a right-click on a task opens the panel on this section
+     (js/hide-element-menu.js). -->
+<div class="ui-custom-section" data-ui-pages="notes" data-ui-section-id="task-lists">
 <?php echo poznoteUiCustomizationSectionHeader(t_h('modals.ui_customization.sections.task_lists', [], 'Task lists')); ?>
 <div class="ui-custom-items">
 <?php echo poznoteUiCustomizationListToggleAll(); ?>
@@ -416,9 +419,10 @@ if (!function_exists('poznoteUiCustomizationSectionHeader')) {
 </div>
 
 <!-- Under the Note Title Section: the line of dates and counts under the title
-     (css/notes/subline.css), in the order of the line, the same items as its
-     own right-click menu (js/note-subline-menu.js). -->
-<div class="ui-custom-section" data-ui-pages="notes">
+     (css/notes/subline.css), in the order of the line. data-ui-section-id: a
+     right-click on that line opens the panel on this section
+     (js/note-subline-menu.js). -->
+<div class="ui-custom-section" data-ui-pages="notes" data-ui-section-id="note-subline">
 <?php echo poznoteUiCustomizationSectionHeader(t_h('modals.ui_customization.sections.note_subline', [], 'Under the note title')); ?>
 <div class="ui-custom-items">
 <?php echo poznoteUiCustomizationListToggleAll(); ?>
@@ -435,13 +439,15 @@ if (!function_exists('poznoteUiCustomizationSectionHeader')) {
 <!-- Floating Buttons Section: the stack of round buttons in the bottom right
      corner of a page, and the entries of its "..." menu. Each item names the
      pages that carry its button. -->
-<div class="ui-custom-section" data-ui-pages="notes dashboard settings speed-dial">
+<div class="ui-custom-section" data-ui-pages="notes dashboard settings speed-dial" data-ui-section-id="floating-buttons">
 <?php echo poznoteUiCustomizationSectionHeader(t_h('modals.ui_customization.sections.floating_buttons', [], 'Floating buttons')); ?>
 <div class="ui-custom-items">
 <?php echo poznoteUiCustomizationListToggleAll(); ?>
     <label class="ui-custom-item" data-ui-pages="notes dashboard settings speed-dial"><input type="checkbox" data-ui-key="card:edgeCustomizeBtn" checked><span><?php echo t_h('modals.ui_customization.panel_title', [], 'Element visibility'); ?></span></label>
     <label class="ui-custom-item" data-ui-pages="notes dashboard"><input type="checkbox" data-ui-key="card:edgeAiChatBtn" checked><span><?php echo t_h('ai_chat.toolbar_button', [], 'AI assistant'); ?></span></label>
     <label class="ui-custom-item" data-ui-pages="notes settings"><input type="checkbox" data-ui-key="card:edgeFocusModeBtn" checked><span><?php echo t_h('focus_mode.button', [], 'Focus mode'); ?></span></label>
+    <label class="ui-custom-item" data-ui-pages="speed-dial"><input type="checkbox" data-ui-key="card:edgeSpeedDialBackgroundBtn" checked><span><?php echo t_h('modals.background_image.title', [], 'Background Image Settings'); ?></span></label>
+    <label class="ui-custom-item" data-ui-pages="notes settings"><input type="checkbox" data-ui-key="card:pageMoreMenuBtn" checked><span><?php echo t_h('page_menu.button', [], 'More options'); ?></span></label>
     <label class="ui-custom-item" data-ui-pages="notes"><input type="checkbox" data-ui-key="card:edgeSplitViewBtn" checked><span><?php echo t_h('page_menu.markdown_view', [], 'Markdown view (classic, live preview, rich text, split)'); ?></span></label>
     <label class="ui-custom-item" data-ui-pages="notes"><input type="checkbox" data-ui-key="card:edgeMenuNoteWidth" checked><span><?php echo t_h('index.toolbar.note_width', [], 'Note width'); ?></span></label>
     <label class="ui-custom-item" data-ui-pages="notes"><input type="checkbox" data-ui-key="card:edgeMenuNoteInfo" checked><span><?php echo t_h('common.information', [], 'Information'); ?></span></label>
@@ -501,18 +507,23 @@ if (!function_exists('poznoteUiCustomizationSectionHeader')) {
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="panel:speed-dial-labels" checked><span><?php echo t_h('speed_dial.visibility.labels', [], 'Tile names'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:speedDialSwitcher" checked><span><?php echo t_h('speed_dial.visibility.boards', [], 'List of speed dials'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:speedDialNewBtn" checked><span><?php echo t_h('speed_dial.new_button', [], 'New speed dial'); ?></span></label>
+    <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:speedDialWidthBtn" checked><span><?php echo t_h('page_menu.page_width', [], 'Page width'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:speedDialSize" checked><span><?php echo t_h('speed_dial.visibility.size', [], 'Tile size button'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="panel:speed-dial-edit" checked><span><?php echo t_h('speed_dial.visibility.edit', [], 'Open the note button'); ?></span></label>
 </div>
 </div>
 
-<!-- Dashboard Toolbar Section -->
+<!-- Dashboard Toolbar Section: the scope chip of the title, then the buttons
+     of the toolbar in their order -->
 <div class="ui-custom-section" data-ui-pages="dashboard">
 <?php echo poznoteUiCustomizationSectionHeader(t_h('modals.ui_customization.sections.dashboard_toolbar', [], 'Dashboard')); ?>
 <div class="ui-custom-items">
 <?php echo poznoteUiCustomizationListToggleAll(); ?>
+    <label class="ui-custom-item"><input type="checkbox" data-ui-key="panel:dashboard-scope" checked><span><?php echo t_h('dashboard.scope.title', [], 'Scope'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:dashboardTopbarFilter" checked><span><?php echo t_h('modals.ui_customization.dashboard_filter_bar', [], 'Filter bar'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:dashboardViewLayoutBtn" checked><span><?php echo t_h('modals.ui_customization.view_layout_toggle', [], 'View toggle (grid / list, card size)'); ?></span></label>
+    <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:dashboardViewFullHeightBtn" checked><span><?php echo t_h('dashboard.view.full_height', [], 'Full-height cards'); ?></span></label>
+    <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:dashboardWidthBtn" checked><span><?php echo t_h('page_menu.page_width', [], 'Page width'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:dashboardFilterBtn" checked><span><?php echo t_h('dashboard.filters.button', [], 'Filters'); ?></span></label>
 </div>
 </div>

@@ -13,6 +13,7 @@
 // a click on its triangle, an aligned paragraph takes its alignment. Tables and
 // Mermaid diagrams are whole blocks: the preview's own parser renders them
 // (renderedBlocksField below), nothing of js/markdown-parser.js is redone here.
+import { redo, undo } from '@codemirror/commands'
 import { syntaxTree } from '@codemirror/language'
 import { EditorSelection, EditorState, Prec, countColumn, findClusterBreak, findColumn, RangeSet, RangeValue, StateEffect, StateField } from '@codemirror/state'
 import { BlockType, BlockWrapper, Decoration, EditorView, ViewPlugin, WidgetType, keymap } from '@codemirror/view'
@@ -2050,7 +2051,61 @@ function readTableCellText(cell) {
     .replace(/\\?\|/g, '\\|')
 }
 
-// select: the cell's text selected, the caret at its end otherwise
+function isPlainArrow(event) {
+  return /^Arrow(Up|Down|Left|Right)$/.test(event.key) &&
+    !event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey && !event.isComposing
+}
+
+// Whether the arrow key would take the caret out of the cell being typed in:
+// left at its very start, right at its very end, up (down) on its first
+// (last) line. Lines are measured, not probed with Selection.modify: a probe
+// out of the cell moves the focus with it, and the cell is written back on blur
+function caretLeavesCell(cell, key) {
+  const sel = window.getSelection()
+  if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) return false
+  const caret = sel.getRangeAt(0)
+  if (!cell.contains(caret.startContainer)) return false
+  const side = document.createRange()
+  side.selectNodeContents(cell)
+  if (key === 'ArrowLeft' || key === 'ArrowRight') {
+    if (key === 'ArrowLeft') side.setEnd(caret.startContainer, caret.startOffset)
+    else side.setStart(caret.startContainer, caret.startOffset)
+    return side.toString() === ''
+  }
+  const lines = Array.from(side.getClientRects()).filter(rect => rect.height > 0)
+  const at = caret.getBoundingClientRect()
+  if (!lines.length || !at.height) return true
+  const half = at.height / 2
+  if (key === 'ArrowUp') return at.top - Math.min(...lines.map(rect => rect.top)) < half
+  return Math.max(...lines.map(rect => rect.bottom)) - at.bottom < half
+}
+
+// The caret on the line after (before) a table, left with an arrow key past
+// its last (first) row. A table that ends the note gets a line after it, as a
+// code block does (leaveCodeBlockOnArrowDown); with nothing before it, false
+function leaveTable(view, blockFrom, after) {
+  const tableBlock = getRenderedBlocks(view.state.doc).find(candidate => candidate.kind === 'table' && candidate.from === blockFrom)
+  if (!tableBlock) return false
+  const doc = view.state.doc
+  if (!after && tableBlock.from === 0) return false
+  view.focus()
+  if (after && tableBlock.to >= doc.length) {
+    view.dispatch({
+      changes: { from: doc.length, insert: '\n' },
+      selection: { anchor: doc.length + 1 },
+      userEvent: 'input',
+      scrollIntoView: true
+    })
+  } else {
+    view.dispatch({
+      selection: { anchor: after ? tableBlock.to + 1 : doc.lineAt(tableBlock.from - 1).from },
+      scrollIntoView: true
+    })
+  }
+  return true
+}
+
+// select: the cell's text selected, 'start': the caret at its start, at its end otherwise
 function startTableCellEdit(view, block, cell, select) {
   if (block._liveEditingCell === cell || view.state.readOnly) return
   const editing = view.dom.querySelector('.cm-live-cell-editing')
@@ -2110,10 +2165,12 @@ function startTableCellEdit(view, block, cell, select) {
     if (!move) return
     let rowIndex = located.rowIndex
     let cellIndex = located.cellIndex
-    if (move === 'down') {
+    if (move === 'down' || move === 'arrow-down') {
       rowIndex++
+    } else if (move === 'arrow-up') {
+      rowIndex--
     } else {
-      cellIndex += move === 'next' ? 1 : -1
+      cellIndex += move === 'next' || move === 'arrow-right' ? 1 : -1
       if (cellIndex >= located.columnCount) {
         cellIndex = 0
         rowIndex++
@@ -2122,8 +2179,18 @@ function startTableCellEdit(view, block, cell, select) {
         rowIndex--
       }
     }
-    if (rowIndex < 0) return
+    if (rowIndex < 0) {
+      // (nothing above a table that starts the note: the caret stays in its cell)
+      if ((move === 'arrow-up' || move === 'arrow-left') && !leaveTable(view, blockFrom, false)) {
+        requestAnimationFrame(() => editTableCellAt(view, blockFrom, located.rowIndex, located.cellIndex, move === 'arrow-left' ? 'start' : false))
+      }
+      return
+    }
     if (rowIndex >= located.rowCount) {
+      if (move === 'arrow-down' || move === 'arrow-right') {
+        leaveTable(view, blockFrom, true)
+        return
+      }
       if (move !== 'next') return
       // Tab out of the last cell: one more row
       const tableBlock = getRenderedBlocks(view.state.doc).find(candidate => candidate.kind === 'table' && candidate.from === blockFrom)
@@ -2133,8 +2200,9 @@ function startTableCellEdit(view, block, cell, select) {
         userEvent: 'input'
       })
     }
-    // (the table was drawn again if anything changed: its cells are new ones)
-    requestAnimationFrame(() => editTableCellAt(view, blockFrom, rowIndex, cellIndex))
+    // (the table was drawn again if anything changed: its cells are new ones;
+    // an arrow to the right lands at the start of the next cell)
+    requestAnimationFrame(() => editTableCellAt(view, blockFrom, rowIndex, cellIndex, move === 'arrow-right' ? 'start' : false))
   }
   const onKeyDown = event => {
     // Nothing typed in a cell is for the editor or for the page's shortcuts
@@ -2153,6 +2221,11 @@ function startTableCellEdit(view, block, cell, select) {
       event.preventDefault()
       finish(false)
       view.focus()
+    } else if (isPlainArrow(event) && caretLeavesCell(cell, event.key)) {
+      // The arrows go from cell to cell, and out of the table only past its
+      // edge: the browser took the caret out of the cell to the top of the note
+      event.preventDefault()
+      finish(true, 'arrow-' + event.key.slice(5).toLowerCase())
     } else if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'a') {
       // Select all: all of the cell (the browser would take the whole note,
       // and the next key would replace it)
@@ -2175,7 +2248,8 @@ function startTableCellEdit(view, block, cell, select) {
   cell.scrollIntoView({ block: 'nearest', inline: 'nearest' })
   const range = document.createRange()
   range.selectNodeContents(cell)
-  if (!select) range.collapse(false)
+  if (select === 'start') range.collapse(true)
+  else if (!select) range.collapse(false)
   const selection = window.getSelection()
   selection.removeAllRanges()
   selection.addRange(range)
@@ -2191,8 +2265,11 @@ function setupTableEditing(view, block) {
   })
   block.addEventListener('paste', event => {
     if (!block._liveEditingCell || !event.clipboardData) return
-    // Plain text, whatever was copied, its lines kept as line breaks
     event.preventDefault()
+    // Cells copied (here, from an HTML note, a spreadsheet): one per cell
+    const grid = parseClipboardCells(event.clipboardData)
+    if (grid && pasteCellGrid(view, block, block._liveEditingCell, grid)) return
+    // Plain text, whatever was copied, its lines kept as line breaks
     const text = event.clipboardData.getData('text/plain').replace(/\r\n?/g, '\n').replace(/^\n+|\n+$/g, '')
     document.execCommand('insertText', false, text)
   })
@@ -2226,9 +2303,12 @@ function setupTableEditing(view, block) {
   block.addEventListener('mousedown', event => {
     if (isSyntaxRevealed() || event.button !== 0) return
     const cell = event.target.closest ? event.target.closest('td, th') : null
-    if (!cell || cell === block._liveEditingCell) return
+    if (!cell) return
     // A link or a checkbox in the cell keeps its own click
     if (event.target.closest('a, input, button')) return
+    // (a drag from here to another cell selects the cells between)
+    startCellRangeDrag(view, block, cell)
+    if (cell === block._liveEditingCell) return
     event.preventDefault()
     startTableCellEdit(view, block, cell)
   })
@@ -2244,6 +2324,346 @@ function setupTableEditing(view, block) {
       event.stopPropagation()
     }
   })
+}
+
+// --- Several cells selected (rich text) -------------------------------------
+// As in an HTML note (js/table-cell-selection.js): a drag from one cell to
+// another selects the rectangle of cells between them. Ctrl/Cmd+C copies them
+// (an HTML table, as the HTML note's selection does, each cell carrying its
+// Markdown in data-md, plus tab-separated text), Ctrl/Cmd+X cuts them,
+// Delete/Backspace empties them, Ctrl/Cmd+Z and Y undo and redo, Escape or a
+// click drops the selection. Cells
+// copied this way, from an HTML note or from a spreadsheet, pasted in a cell
+// being typed in fill the cells from there, rows and columns added as needed.
+// The selection is kept as row and column indexes: the cells themselves are
+// replaced each time the table is drawn again.
+
+const CELL_RANGE_CLASS = 'pz-cell-selected'
+const CELLS_CLIPBOARD_MARKER = '<!-- poznote-table-cells -->'
+const INTERNAL_CLIPBOARD_MARKER = '<!-- poznote-internal -->'
+let cellRangeDrag = null // { view, block, row, col } while the button is down
+let cellRange = null // { view, block, anchor: [row, col], focus: [row, col] }
+let cellRangeClipboard = null // { html, text } for the next copy event
+let cellRangeListening = false
+
+function cellIndexes(block, cell) {
+  const row = cell.closest('tr')
+  const table = cell.closest('table')
+  if (!row || !table || !block.contains(table)) return null
+  return [Array.from(table.querySelectorAll('tr')).indexOf(row), Array.from(row.children).indexOf(cell)]
+}
+
+function cellRangeRect(range) {
+  return {
+    r1: Math.min(range.anchor[0], range.focus[0]),
+    r2: Math.max(range.anchor[0], range.focus[0]),
+    c1: Math.min(range.anchor[1], range.focus[1]),
+    c2: Math.max(range.anchor[1], range.focus[1])
+  }
+}
+
+function cellRangeCells(range) {
+  const rect = cellRangeRect(range)
+  const rows = range.block.querySelectorAll('tr')
+  const cells = []
+  for (let r = rect.r1; r <= rect.r2; r++) {
+    for (let c = rect.c1; c <= rect.c2; c++) {
+      const cell = rows[r] ? rows[r].children[c] : null
+      if (cell) cells.push(cell)
+    }
+  }
+  return cells
+}
+
+function paintCellRange() {
+  document.querySelectorAll('.cm-live-block-table .' + CELL_RANGE_CLASS).forEach(cell => cell.classList.remove(CELL_RANGE_CLASS))
+  if (cellRange && cellRange.block.isConnected) cellRangeCells(cellRange).forEach(cell => cell.classList.add(CELL_RANGE_CLASS))
+}
+
+function clearCellRange() {
+  cellRange = null
+  paintCellRange()
+}
+
+// The selection still stands for what is drawn: the table may have been drawn
+// again since (an edit elsewhere in it, undo), its cells then lost the class
+function cellRangeIsLive() {
+  if (!cellRange || !cellRange.block.isConnected) return false
+  const cells = cellRangeCells(cellRange)
+  return cells.length > 0 && cells.every(cell => cell.classList.contains(CELL_RANGE_CLASS))
+}
+
+function startCellRangeDrag(view, block, cell) {
+  const at = cellIndexes(block, cell)
+  if (!at || view.state.readOnly) return
+  ensureCellRangeListeners()
+  cellRangeDrag = { view, block, row: at[0], col: at[1] }
+}
+
+function tableBlockOfElement(view, block) {
+  let blockPos
+  try {
+    blockPos = view.posAtDOM(block)
+  } catch (error) {
+    return null
+  }
+  return getRenderedBlocks(view.state.doc).find(candidate => candidate.kind === 'table' && blockPos >= candidate.from && blockPos <= candidate.to) || null
+}
+
+// The table's source as cells: rows[r][c] the Markdown of each drawn cell
+// (row 0 the header), separator the cells of the |---|---| line
+function readTableSource(doc, tableBlock) {
+  const first = doc.lineAt(tableBlock.from).number
+  const last = doc.lineAt(tableBlock.to).number
+  const cellsOf = text => getTableLineCells(text).map(cell => text.slice(cell.from, cell.to))
+  const rows = []
+  let separator = []
+  for (let number = first; number <= last; number++) {
+    const cells = cellsOf(doc.line(number).text)
+    if (number === first + 1) separator = cells
+    else rows.push(cells)
+  }
+  return { rows, separator }
+}
+
+function writeTableSource(view, tableBlock, source) {
+  const columns = Math.max(source.separator.length, ...source.rows.map(row => row.length))
+  const pad = (cells, filler) => cells.concat(Array(Math.max(0, columns - cells.length)).fill(filler))
+  const line = cells => '| ' + cells.map(cell => cell || ' ').join(' | ') + ' |'
+  const lines = source.rows.map(row => line(pad(row, '')))
+  lines.splice(1, 0, line(pad(source.separator, '---')))
+  view.dispatch({
+    changes: { from: tableBlock.from, to: tableBlock.to, insert: lines.join('\n') },
+    userEvent: 'input'
+  })
+}
+
+// Empties the selected cells (Delete, Backspace, Cut)
+function clearCellRangeContents() {
+  const range = cellRange
+  const tableBlock = range ? tableBlockOfElement(range.view, range.block) : null
+  if (!tableBlock) return
+  const source = readTableSource(range.view.state.doc, tableBlock)
+  const rect = cellRangeRect(range)
+  for (let r = rect.r1; r <= rect.r2; r++) {
+    for (let c = rect.c1; c <= rect.c2; c++) {
+      if (source.rows[r] && c < source.rows[r].length) source.rows[r][c] = ''
+    }
+  }
+  writeTableSource(range.view, tableBlock, source)
+  // (drawn again: the same cells take the highlight back)
+  requestAnimationFrame(paintCellRange)
+}
+
+function escapeHtmlAttribute(text) {
+  return String(text).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+function cellRangeClipboardPayload() {
+  const range = cellRange
+  const tableBlock = tableBlockOfElement(range.view, range.block)
+  const source = tableBlock ? readTableSource(range.view.state.doc, tableBlock) : { rows: [] }
+  const rect = cellRangeRect(range)
+  const rows = range.block.querySelectorAll('tr')
+  const htmlRows = []
+  const textRows = []
+  for (let r = rect.r1; r <= rect.r2; r++) {
+    const htmlCells = []
+    const textCells = []
+    for (let c = rect.c1; c <= rect.c2; c++) {
+      const cell = rows[r] ? rows[r].children[c] : null
+      const markdown = source.rows[r] && source.rows[r][c] !== undefined ? source.rows[r][c] : ''
+      htmlCells.push('<td data-md="' + escapeHtmlAttribute(markdown) + '">' + (cell ? cell.innerHTML : '') + '</td>')
+      textCells.push(cell ? cell.textContent.replace(/ /g, ' ').replace(/\s+/g, ' ').trim() : '')
+    }
+    htmlRows.push('<tr>' + htmlCells.join('') + '</tr>')
+    textRows.push(textCells.join('\t'))
+  }
+  return {
+    html: CELLS_CLIPBOARD_MARKER + INTERNAL_CLIPBOARD_MARKER + '<table><tbody>' + htmlRows.join('') + '</tbody></table>',
+    text: textRows.join('\n')
+  }
+}
+
+// execCommand('copy') needs a selection: an offscreen one, the copy event
+// below writes the cells
+function copyCellRange(cut) {
+  cellRangeClipboard = cellRangeClipboardPayload()
+  const temp = document.createElement('span')
+  temp.textContent = '​'
+  temp.style.cssText = 'position:fixed;left:-9999px;top:0;'
+  document.body.appendChild(temp)
+  const selection = window.getSelection()
+  const range = document.createRange()
+  range.selectNodeContents(temp)
+  selection.removeAllRanges()
+  selection.addRange(range)
+  try {
+    document.execCommand('copy')
+  } catch (error) {
+    console.error('Cell copy error:', error)
+  }
+  selection.removeAllRanges()
+  temp.remove()
+  cellRangeClipboard = null
+  if (cut) clearCellRangeContents()
+}
+
+// The inline Markdown of a cell copied from an HTML table (a cell holds
+// nothing else): bold, italics, strikethrough, highlight, code, links, images
+function cellHtmlToMarkdown(node) {
+  if (node.nodeType === 3) return node.data.replace(/\s+/g, ' ')
+  if (node.nodeType !== 1) return ''
+  const tag = node.nodeName.toLowerCase()
+  if (tag === 'br') return '\n'
+  if (tag === 'img') return node.getAttribute('src') ? '![' + (node.getAttribute('alt') || '') + '](' + node.getAttribute('src') + ')' : ''
+  const inner = Array.from(node.childNodes).map(cellHtmlToMarkdown).join('')
+  if (!inner.trim()) return inner
+  const wrap = mark => mark + inner.trim() + mark
+  if (tag === 'strong' || tag === 'b') return wrap('**')
+  if (tag === 'em' || tag === 'i') return wrap('*')
+  if (tag === 's' || tag === 'del' || tag === 'strike') return wrap('~~')
+  if (tag === 'mark') return wrap('==')
+  if (tag === 'code') return wrap('`')
+  if (tag === 'a' && node.getAttribute('href')) return '[' + inner.trim() + '](' + node.getAttribute('href') + ')'
+  if (/^(p|div|li|h[1-6])$/.test(tag)) return '\n' + inner + '\n'
+  return inner
+}
+
+// Cells on the clipboard as a grid of Markdown, or null for anything else
+// (one value, or text that is not tab-separated: typed into the cell as it is)
+function parseClipboardCells(clipboardData) {
+  const html = clipboardData.getData('text/html')
+  const plain = clipboardData.getData('text/plain')
+  const toCell = text => String(text || '').replace(/\r\n?/g, '\n').trim()
+    .replace(/[ \t]*\n[ \t]*/g, '<br>').replace(/\\?\|/g, '\\|')
+  let grid = null
+  if (html && /<t[rdh]\b/i.test(html)) {
+    const doc = new DOMParser().parseFromString(/<table\b/i.test(html) ? html : '<table>' + html + '</table>', 'text/html')
+    const table = doc.querySelector('table')
+    if (table && table.rows.length) {
+      grid = Array.from(table.rows).map(row => Array.from(row.cells).map(cell =>
+        cell.hasAttribute('data-md') ? cell.getAttribute('data-md') : toCell(cellHtmlToMarkdown(cell))))
+    }
+  }
+  if (!grid && plain && plain.indexOf('\t') !== -1) {
+    grid = plain.replace(/\r\n?/g, '\n').replace(/\n+$/, '').split('\n').map(line => line.split('\t').map(toCell))
+  }
+  if (!grid || !grid.length) return null
+  return grid.length > 1 || grid[0].length > 1 ? grid : null
+}
+
+function pasteCellGrid(view, block, cell, grid) {
+  const at = cellIndexes(block, cell)
+  if (!at || !block._liveFinishEdit) return false
+  // What was typed in the cell first, then the cells written over
+  block._liveFinishEdit(true)
+  const tableBlock = tableBlockOfElement(view, block)
+  if (!tableBlock) return false
+  const source = readTableSource(view.state.doc, tableBlock)
+  const columns = Math.max(source.separator.length, ...source.rows.map(row => row.length))
+  grid.forEach((values, r) => {
+    const rowIndex = at[0] + r
+    while (source.rows.length <= rowIndex) source.rows.push(Array(columns).fill(''))
+    values.forEach((value, c) => {
+      const row = source.rows[rowIndex]
+      while (row.length <= at[1] + c) row.push('')
+      row[at[1] + c] = value
+    })
+  })
+  writeTableSource(view, tableBlock, source)
+  // The cells pasted stay selected
+  cellRange = {
+    view,
+    block,
+    anchor: at,
+    focus: [at[0] + grid.length - 1, at[1] + Math.max(...grid.map(values => values.length)) - 1]
+  }
+  requestAnimationFrame(paintCellRange)
+  return true
+}
+
+function ensureCellRangeListeners() {
+  if (cellRangeListening) return
+  cellRangeListening = true
+
+  // A left click anywhere drops the selection (a drag may start a new one)
+  window.addEventListener('mousedown', event => {
+    if (event.button === 0 && cellRange) clearCellRange()
+  }, true)
+
+  document.addEventListener('mouseover', event => {
+    const drag = cellRangeDrag
+    if (!drag || !event.target.closest) return
+    const cell = event.target.closest('td, th')
+    const at = cell && drag.block.contains(cell) ? cellIndexes(drag.block, cell) : null
+    if (!at) return
+    // While in the cell it started from, the drag selects its text
+    if (!cellRange && at[0] === drag.row && at[1] === drag.col) return
+    if (!cellRange) {
+      // The cell being typed in is written back first (drawn again if it changed)
+      if (drag.block._liveFinishEdit) drag.block._liveFinishEdit(true)
+      cellRange = { view: drag.view, block: drag.block, anchor: [drag.row, drag.col], focus: at }
+    } else {
+      cellRange.focus = at
+    }
+    paintCellRange()
+    const selection = window.getSelection()
+    if (selection && selection.rangeCount) selection.removeAllRanges()
+  })
+
+  document.addEventListener('mousemove', () => {
+    if (!cellRangeDrag || !cellRange) return
+    const selection = window.getSelection()
+    if (selection && !selection.isCollapsed) selection.removeAllRanges()
+  })
+
+  document.addEventListener('mouseup', () => {
+    cellRangeDrag = null
+  })
+
+  window.addEventListener('keydown', event => {
+    if (!cellRange) return
+    if (!cellRangeIsLive()) {
+      clearCellRange()
+      return
+    }
+    const key = window.poznoteShortcutKey ? window.poznoteShortcutKey(event) : (event.key || '').toLowerCase()
+    const mod = event.ctrlKey || event.metaKey
+    if (mod && (key === 'c' || key === 'x')) {
+      event.preventDefault()
+      event.stopPropagation()
+      copyCellRange(key === 'x')
+    } else if (!mod && (key === 'delete' || key === 'backspace')) {
+      event.preventDefault()
+      event.stopPropagation()
+      clearCellRangeContents()
+    } else if (mod && !event.altKey && (key === 'z' || key === 'y')) {
+      // Undo and redo, the focus being nowhere once the cells are selected;
+      // the cells stay selected
+      event.preventDefault()
+      event.stopPropagation()
+      if (key === 'y' || event.shiftKey) redo(cellRange.view)
+      else undo(cellRange.view)
+      requestAnimationFrame(paintCellRange)
+    } else if (key === 'escape') {
+      event.preventDefault()
+      event.stopPropagation()
+      clearCellRange()
+    }
+  }, true)
+
+  // The browser's own Copy (Edit menu) copies the cells too
+  document.addEventListener('copy', event => {
+    if (!event.clipboardData) return
+    const payload = cellRangeClipboard || (cellRangeIsLive() && window.getSelection().isCollapsed ? cellRangeClipboardPayload() : null)
+    if (!payload) return
+    event.clipboardData.setData('text/html', payload.html)
+    event.clipboardData.setData('text/plain', payload.text)
+    event.preventDefault()
+    event.stopPropagation()
+    cellRangeClipboard = null
+  }, true)
 }
 
 // --- Tables reached from the page (js/table-toolbar.js) ------------

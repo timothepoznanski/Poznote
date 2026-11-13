@@ -1140,17 +1140,71 @@ Configure it in **Settings > Server Backups** (administrators only).
   - Administrators can always do both, and restore any archive from the list. A downloaded archive can still be restored with "Restore from a Poznote ZIP backup".
 - **Account deletion**: Deleting an account also deletes its archives from the backup folder.
 
-To keep the backups on another disk or on a network share, mount it in the container and enter the container path (`/backups` in this example) as the backup folder:
+To keep the archives on a NAS or on another disk, see [Backups to a NAS or another disk](#nas-backups).
+
+A folder inside the application itself is refused, apart from `data/backups`. When attachments are stored in S3 (S3 Attachment Storage), they are included in the archives, fetched from the bucket on the fly.
+
+</details>
+
+<a id="nas-backups"></a>
+<details>
+<summary><strong>Backups to a NAS or another disk</strong></summary>
+<br>
+
+The [scheduled backups to a folder on the server](#local-backups) can be written to a NAS or to another disk. Mount it in the container, then enter the container path (`/backups` in the examples below) as the backup folder in **Settings > Server Backups**. Poznote writes to it as the user its web server runs as, `www-data` (uid/gid `82`) with the default image, uid/gid `1000` with the [rootless image](#rootless), so that user must own the folder. Otherwise saving the folder fails with "The backup folder cannot be created or is not writable by the web server".
+
+**Another disk of the host**: Bind-mount a folder of it, and give that folder to the Poznote user with `sudo chown -R 82:82 /mnt/disk2/poznote-backups` (`1000:1000` with the rootless image).
 
 ```yaml
 services:
   webserver:
     volumes:
       - "./data:/var/www/html/data"
-      - "/mnt/nas/poznote-backups:/backups"
+      - "/mnt/disk2/poznote-backups:/backups"
 ```
 
-A folder inside the application itself is refused, apart from `data/backups`. When attachments are stored in S3 (S3 Attachment Storage), they are included in the archives, fetched from the bucket on the fly.
+**An SMB/CIFS share (NAS)**: Docker can mount the share itself with a CIFS volume, with nothing to install or mount on the host. `chown` has no effect on a share, the owner comes from the `uid` and `gid` mount options instead.
+
+```yaml
+services:
+  webserver:
+    volumes:
+      - "./data:/var/www/html/data"
+      - "nas-backups:/backups"
+
+volumes:
+  nas-backups:
+    driver: local
+    driver_opts:
+      type: cifs
+      # IP address of the NAS, then the name of the share
+      device: "//192.168.1.10/poznote-backups"
+      # uid=1000,gid=1000 with the rootless image
+      o: "username=poznote,password=CHANGE_ME,uid=82,gid=82,vers=3.0"
+```
+
+Then run `docker compose up -d` and enter `/backups` as the backup folder.
+
+- Use the IP address of the NAS: depending on the Docker version, a name in `device` may not be resolved.
+- `vers=3.0` suits current NAS. An older one may need `vers=2.1`.
+- The password is written in the compose file and stored with the volume (`docker volume inspect` shows it), so give Poznote its own account on the NAS, with access to this share only.
+- Docker keeps the options a volume was created with. After changing them (uid, password, address), remove the volume so that it is created again. This only forgets the mount, the archives stay on the NAS:
+
+```bash
+docker compose down
+# The volume name starts with the name of the project folder (see docker volume ls)
+docker volume rm poznote_nas-backups
+docker compose up -d
+```
+
+**If the NAS is unreachable when the container starts, Poznote does not start**, and the whole application is down, not only the backups (Docker reports "failed to mount local volume"). If the NAS is not always on, mount the share on the host instead, with `nofail` so that the host and Poznote start without it, then bind-mount `/mnt/nas/poznote-backups` like the folder of another disk above (without the `chown`, the `uid` and `gid` options set the owner). This needs the `cifs-utils` package on the host. The credentials file (`/root/.poznote-nas` here) holds two lines, `username=poznote` and `password=CHANGE_ME`, and should be readable by root only (`chmod 600`):
+
+```
+# /etc/fstab
+//192.168.1.10/poznote-backups /mnt/nas/poznote-backups cifs credentials=/root/.poznote-nas,uid=82,gid=82,vers=3.0,nofail,_netdev 0 0
+```
+
+The container only sees the share if the host mounted it before the container started. If the NAS comes back later, run `docker compose restart`. Leave the mount point itself (the empty folder under the share) owned by root: while the share is missing, the backups then fail with an error shown on the Server Backups page, instead of quietly filling the disk of the host.
 
 </details>
 

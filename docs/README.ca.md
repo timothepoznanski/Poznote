@@ -1135,17 +1135,71 @@ Configureu-ho a **Paràmetres > Còpies de seguretat al servidor** (només admin
 - **Restauració**: els arxius s'emmagatzemen a `{user id}/` a la carpeta de còpies de seguretat i es poden restaurar amb la pàgina estàndard [Restauració / Importació](#restauració--importació).
 - **Supressió de comptes**: suprimir un compte també en suprimeix els arxius de la carpeta de còpies de seguretat.
 
-Per conservar les còpies de seguretat en un altre disc o en una unitat de xarxa compartida, munteu-lo al contenidor i introduïu el camí del contenidor (`/backups` en aquest exemple) com a carpeta de còpies de seguretat:
+Per conservar les còpies en un NAS o en un altre disc, vegeu [Còpies de seguretat en un NAS o un altre disc](#nas-backups).
+
+Es rebutja una carpeta dins de la mateixa aplicació, excepte `data/backups`. Quan els fitxers adjunts s'emmagatzemen a S3 (emmagatzematge de fitxers adjunts a S3), s'inclouen als arxius, obtinguts del cubell al moment.
+
+</details>
+
+<a id="nas-backups"></a>
+<details>
+<summary><strong>Còpies de seguretat en un NAS o un altre disc</strong></summary>
+<br>
+
+Les [còpies de seguretat planificades a una carpeta del servidor](#local-backups) es poden escriure en un NAS o en un altre disc. Munteu-lo al contenidor i després introduïu el camí del contenidor (`/backups` als exemples de sota) com a carpeta de còpies de seguretat a **Paràmetres > Còpies de seguretat al servidor**. Poznote hi escriu amb l'usuari del seu servidor web, `www-data` (uid/gid `82`) amb la imatge per defecte, uid/gid `1000` amb la [imatge rootless](#rootless), de manera que aquest usuari n'ha de ser el propietari. Si no, desar la carpeta falla amb «La carpeta de còpies de seguretat no es pot crear o el servidor web no hi pot escriure».
+
+**Un altre disc de l'amfitrió**: munteu-ne una carpeta amb un bind mount i doneu aquesta carpeta a l'usuari de Poznote amb `sudo chown -R 82:82 /mnt/disk2/poznote-backups` (`1000:1000` amb la imatge rootless).
 
 ```yaml
 services:
   webserver:
     volumes:
       - "./data:/var/www/html/data"
-      - "/mnt/nas/poznote-backups:/backups"
+      - "/mnt/disk2/poznote-backups:/backups"
 ```
 
-Es rebutja una carpeta dins de la mateixa aplicació, excepte `data/backups`. Quan els fitxers adjunts s'emmagatzemen a S3 (emmagatzematge de fitxers adjunts a S3), s'inclouen als arxius, obtinguts del cubell al moment.
+**Una unitat compartida SMB/CIFS (NAS)**: Docker pot muntar la unitat ell mateix amb un volum CIFS, sense instal·lar ni muntar res a l'amfitrió. `chown` no té cap efecte en una unitat compartida, el propietari el fixen les opcions de muntatge `uid` i `gid`.
+
+```yaml
+services:
+  webserver:
+    volumes:
+      - "./data:/var/www/html/data"
+      - "nas-backups:/backups"
+
+volumes:
+  nas-backups:
+    driver: local
+    driver_opts:
+      type: cifs
+      # Adreça IP del NAS i nom de la unitat compartida
+      device: "//192.168.1.10/poznote-backups"
+      # uid=1000,gid=1000 amb la imatge rootless
+      o: "username=poznote,password=CHANGE_ME,uid=82,gid=82,vers=3.0"
+```
+
+Després executeu `docker compose up -d` i introduïu `/backups` com a carpeta de còpies de seguretat.
+
+- Feu servir l'adreça IP del NAS: segons la versió de Docker, un nom a `device` pot no resoldre's.
+- `vers=3.0` va bé per als NAS actuals. Un de més antic pot necessitar `vers=2.1`.
+- La contrasenya queda escrita al fitxer compose i desada amb el volum (`docker volume inspect` la mostra), així que doneu a Poznote un compte propi al NAS, amb accés només a aquesta unitat.
+- Docker conserva les opcions amb què es va crear un volum. Després de canviar-les (uid, contrasenya, adreça), elimineu el volum perquè es torni a crear. Això només oblida el muntatge, les còpies es queden al NAS:
+
+```bash
+docker compose down
+# El nom del volum comença pel nom de la carpeta del projecte (vegeu docker volume ls)
+docker volume rm poznote_nas-backups
+docker compose up -d
+```
+
+**Si el NAS no és accessible quan arrenca el contenidor, Poznote no arrenca**, i és tota l'aplicació la que queda aturada, no només les còpies (Docker indica «failed to mount local volume»). Si el NAS no està sempre encès, munteu millor la unitat a l'amfitrió, amb `nofail` perquè l'amfitrió i Poznote arrenquin sense ella, i després munteu `/mnt/nas/poznote-backups` amb un bind mount com la carpeta de l'altre disc de dalt (sense el `chown`, les opcions `uid` i `gid` fixen el propietari). Per a això cal el paquet `cifs-utils` a l'amfitrió. El fitxer de credencials (aquí `/root/.poznote-nas`) conté dues línies, `username=poznote` i `password=CHANGE_ME`, i només l'ha de poder llegir root (`chmod 600`):
+
+```
+# /etc/fstab
+//192.168.1.10/poznote-backups /mnt/nas/poznote-backups cifs credentials=/root/.poznote-nas,uid=82,gid=82,vers=3.0,nofail,_netdev 0 0
+```
+
+El contenidor només veu la unitat si l'amfitrió la va muntar abans que arrenqués el contenidor. Si el NAS torna més tard, executeu `docker compose restart`. Deixeu que el punt de muntatge mateix (la carpeta buida sota la unitat) pertanyi a root: mentre falti la unitat, les còpies fallaran amb un error visible a la pàgina Còpies de seguretat al servidor, en lloc d'omplir sense avisar el disc de l'amfitrió.
 
 </details>
 

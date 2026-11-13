@@ -1135,17 +1135,71 @@ tar -czvf poznote-full-backup.tar.gz data/
 - **恢复**：归档存放在备份文件夹的 `{用户 id}/` 下，可以使用标准的[恢复 / 导入](#还原--导入)页面进行恢复。
 - **删除账户**：删除账户时，也会从备份文件夹中删除该账户的归档。
 
-如需将备份保存在另一块磁盘或网络共享上，请将其挂载到容器中，并把容器内的路径（本例中为 `/backups`）填写为备份文件夹：
+如需将归档保存在 NAS 或另一块磁盘上，请参阅[备份到 NAS 或另一块磁盘](#nas-backups)。
+
+位于应用程序自身目录内的文件夹会被拒绝，`data/backups` 除外。当附件存储在 S3（S3 附件存储）时，它们会包含在归档中，并从存储桶即时获取。
+
+</details>
+
+<a id="nas-backups"></a>
+<details>
+<summary><strong>备份到 NAS 或另一块磁盘</strong></summary>
+<br>
+
+[按计划备份到服务器上的文件夹](#local-backups)可以写入 NAS 或另一块磁盘。将其挂载到容器中，然后在 **设置 > 服务器上的备份** 中把容器内的路径（下面示例中的 `/backups`）填写为备份文件夹。Poznote 以其 Web 服务器的运行用户写入该文件夹，默认镜像为 `www-data`（uid/gid `82`），[rootless 镜像](#rootless)为 uid/gid `1000`，因此该用户必须是文件夹的所有者。否则保存文件夹时会报错“无法创建备份文件夹，或 Web 服务器对其没有写入权限”。
+
+**主机上的另一块磁盘**：以绑定挂载方式挂载其中的一个文件夹，并用 `sudo chown -R 82:82 /mnt/disk2/poznote-backups` 将该文件夹交给 Poznote 用户（rootless 镜像为 `1000:1000`）。
 
 ```yaml
 services:
   webserver:
     volumes:
       - "./data:/var/www/html/data"
-      - "/mnt/nas/poznote-backups:/backups"
+      - "/mnt/disk2/poznote-backups:/backups"
 ```
 
-位于应用程序自身目录内的文件夹会被拒绝，`data/backups` 除外。当附件存储在 S3（S3 附件存储）时，它们会包含在归档中，并从存储桶即时获取。
+**SMB/CIFS 共享（NAS）**：Docker 可以通过 CIFS 卷自行挂载共享，主机上无需安装或挂载任何东西。`chown` 对共享无效，所有者由挂载选项 `uid` 和 `gid` 决定。
+
+```yaml
+services:
+  webserver:
+    volumes:
+      - "./data:/var/www/html/data"
+      - "nas-backups:/backups"
+
+volumes:
+  nas-backups:
+    driver: local
+    driver_opts:
+      type: cifs
+      # NAS 的 IP 地址，然后是共享名称
+      device: "//192.168.1.10/poznote-backups"
+      # rootless 镜像使用 uid=1000,gid=1000
+      o: "username=poznote,password=CHANGE_ME,uid=82,gid=82,vers=3.0"
+```
+
+然后运行 `docker compose up -d`，并将 `/backups` 填写为备份文件夹。
+
+- 请使用 NAS 的 IP 地址：根据 Docker 版本，`device` 中的主机名可能无法解析。
+- `vers=3.0` 适用于当前的 NAS。较旧的设备可能需要 `vers=2.1`。
+- 密码写在 compose 文件中，并随卷一起保存（`docker volume inspect` 会显示），因此请在 NAS 上为 Poznote 创建专用账户，只允许访问这个共享。
+- Docker 会保留创建卷时的选项。修改选项（uid、密码、地址）后，请删除该卷以便重新创建。这只会删除挂载配置，归档仍保留在 NAS 上：
+
+```bash
+docker compose down
+# 卷名以项目文件夹名称开头（参见 docker volume ls）
+docker volume rm poznote_nas-backups
+docker compose up -d
+```
+
+**如果容器启动时 NAS 无法访问，Poznote 将无法启动**，整个应用都不可用，而不仅仅是备份（Docker 会报告“failed to mount local volume”）。如果 NAS 并非一直开机，请改为在主机上挂载共享，并加上 `nofail`，使主机和 Poznote 在没有它时也能启动，然后像上面另一块磁盘的文件夹那样以绑定挂载方式挂载 `/mnt/nas/poznote-backups`（不需要 `chown`，所有者由 `uid` 和 `gid` 选项决定）。这需要在主机上安装 `cifs-utils` 软件包。凭据文件（此处为 `/root/.poznote-nas`）包含两行，`username=poznote` 和 `password=CHANGE_ME`，并且应仅允许 root 读取（`chmod 600`）：
+
+```
+# /etc/fstab
+//192.168.1.10/poznote-backups /mnt/nas/poznote-backups cifs credentials=/root/.poznote-nas,uid=82,gid=82,vers=3.0,nofail,_netdev 0 0
+```
+
+只有当主机在容器启动之前挂载了共享，容器才能看到它。如果 NAS 稍后才恢复，请运行 `docker compose restart`。让挂载点本身（共享下方的空文件夹）保持归 root 所有：这样在共享缺失期间，备份会失败并在“服务器上的备份”页面显示错误，而不会悄悄占满主机的磁盘。
 
 </details>
 

@@ -1135,17 +1135,71 @@ tar -czvf poznote-full-backup.tar.gz data/
 - **복원:** 아카이브는 백업 폴더의 `{user id}/` 아래에 저장되며 표준 [복원 / 가져오기](#복원--가져오기) 페이지에서 복원할 수 있습니다.
 - **계정 삭제:** 계정을 삭제하면 백업 폴더에 있는 해당 계정의 아카이브도 삭제됩니다.
 
-백업을 다른 디스크나 네트워크 공유에 보관하려면 컨테이너에 마운트하고 컨테이너 쪽 경로(이 예에서는 `/backups`)를 백업 폴더로 입력하세요.
+아카이브를 NAS나 다른 디스크에 보관하려면 [NAS 또는 다른 디스크에 백업](#nas-backups)을 참고하세요.
+
+애플리케이션 자체 안에 있는 폴더는 `data/backups`를 제외하고 거부됩니다. 첨부 파일을 S3에 저장하는 경우(S3 첨부 파일 저장) 아카이브에 포함되며 버킷에서 바로 가져옵니다.
+
+</details>
+
+<a id="nas-backups"></a>
+<details>
+<summary><strong>NAS 또는 다른 디스크에 백업</strong></summary>
+<br>
+
+[서버의 폴더로 예약 백업](#local-backups)은 NAS나 다른 디스크에 쓸 수 있습니다. 그것을 컨테이너에 마운트한 다음, **설정 > 관리자 도구 > 서버 백업**에서 컨테이너 쪽 경로(아래 예에서는 `/backups`)를 백업 폴더로 입력하세요. Poznote는 웹 서버가 실행되는 사용자로 이 폴더에 씁니다. 기본 이미지에서는 `www-data`(uid/gid `82`), [rootless 이미지](#rootless)에서는 uid/gid `1000`이므로, 이 사용자가 폴더의 소유자여야 합니다. 그렇지 않으면 폴더를 저장할 때 "백업 폴더를 만들 수 없거나 웹 서버가 쓸 수 없습니다" 오류가 납니다.
+
+**호스트의 다른 디스크**: 그 디스크의 폴더를 바인드 마운트하고, `sudo chown -R 82:82 /mnt/disk2/poznote-backups`로 그 폴더를 Poznote 사용자에게 넘기세요(rootless 이미지는 `1000:1000`).
 
 ```yaml
 services:
   webserver:
     volumes:
       - "./data:/var/www/html/data"
-      - "/mnt/nas/poznote-backups:/backups"
+      - "/mnt/disk2/poznote-backups:/backups"
 ```
 
-애플리케이션 자체 안에 있는 폴더는 `data/backups`를 제외하고 거부됩니다. 첨부 파일을 S3에 저장하는 경우(S3 첨부 파일 저장) 아카이브에 포함되며 버킷에서 바로 가져옵니다.
+**SMB/CIFS 공유(NAS)**: Docker가 CIFS 볼륨으로 공유를 직접 마운트할 수 있으므로, 호스트에 아무것도 설치하거나 마운트할 필요가 없습니다. 공유에서는 `chown`이 효과가 없고, 소유자는 마운트 옵션 `uid`와 `gid`로 정해집니다.
+
+```yaml
+services:
+  webserver:
+    volumes:
+      - "./data:/var/www/html/data"
+      - "nas-backups:/backups"
+
+volumes:
+  nas-backups:
+    driver: local
+    driver_opts:
+      type: cifs
+      # NAS의 IP 주소와 공유 이름
+      device: "//192.168.1.10/poznote-backups"
+      # rootless 이미지는 uid=1000,gid=1000
+      o: "username=poznote,password=CHANGE_ME,uid=82,gid=82,vers=3.0"
+```
+
+그다음 `docker compose up -d`를 실행하고 `/backups`를 백업 폴더로 입력하세요.
+
+- NAS의 IP 주소를 사용하세요. Docker 버전에 따라 `device`에 쓴 이름이 해석되지 않을 수 있습니다.
+- `vers=3.0`은 최신 NAS에 맞습니다. 오래된 NAS에는 `vers=2.1`이 필요할 수 있습니다.
+- 비밀번호는 compose 파일에 적히고 볼륨과 함께 저장되므로(`docker volume inspect`로 보입니다), NAS에 Poznote 전용 계정을 만들어 이 공유에만 접근하게 하세요.
+- Docker는 볼륨을 만들 때의 옵션을 유지합니다. 옵션(uid, 비밀번호, 주소)을 바꾼 뒤에는 볼륨을 삭제해 다시 만들어지게 하세요. 마운트 설정만 지워지고 아카이브는 NAS에 남습니다:
+
+```bash
+docker compose down
+# 볼륨 이름은 프로젝트 폴더 이름으로 시작합니다(docker volume ls 참고)
+docker volume rm poznote_nas-backups
+docker compose up -d
+```
+
+**컨테이너가 시작될 때 NAS에 연결할 수 없으면 Poznote가 시작되지 않으며**, 백업만이 아니라 애플리케이션 전체를 쓸 수 없게 됩니다(Docker는 "failed to mount local volume"을 보고합니다). NAS가 항상 켜져 있지 않다면, 대신 호스트에서 공유를 마운트하되 호스트와 Poznote가 공유 없이도 시작되도록 `nofail`을 붙이고, 위의 다른 디스크 폴더처럼 `/mnt/nas/poznote-backups`를 바인드 마운트하세요(`chown` 없이, `uid`와 `gid` 옵션이 소유자를 정합니다). 이를 위해 호스트에 `cifs-utils` 패키지가 필요합니다. 자격 증명 파일(여기서는 `/root/.poznote-nas`)에는 `username=poznote`와 `password=CHANGE_ME` 두 줄을 쓰고, root만 읽을 수 있게 하세요(`chmod 600`):
+
+```
+# /etc/fstab
+//192.168.1.10/poznote-backups /mnt/nas/poznote-backups cifs credentials=/root/.poznote-nas,uid=82,gid=82,vers=3.0,nofail,_netdev 0 0
+```
+
+컨테이너는 호스트가 컨테이너 시작 전에 공유를 마운트한 경우에만 공유를 봅니다. NAS가 나중에 돌아오면 `docker compose restart`를 실행하세요. 마운트 지점 자체(공유 아래의 빈 폴더)는 root 소유로 두세요. 그러면 공유가 없는 동안 백업이 서버 백업 페이지에 표시되는 오류로 실패하고, 호스트의 디스크를 조용히 채우지 않습니다.
 
 </details>
 
