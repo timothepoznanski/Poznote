@@ -162,6 +162,7 @@
       "code_line_numbers": "Mostra els números de línia als blocs de codi de la previsualització Markdown.",
       "code_block_collapsed_lines": "Quantes línies d'un bloc de codi continuen visibles un cop plegat, de 0 a 100. Amb 0, un bloc plegat no mostra res del seu codi. Un bloc que no tingui més línies que això no rep la fletxa per plegar, plegar-lo no amagaria res.",
       "attachment_previews": "Mostra previsualitzacions dels fitxers adjunts dins de les notes.",
+      "attachments_show_inserted_images": "Les imatges enganxades o inserides en una nota es desen com a adjunts. S'amaguen a les llistes d'adjunts perquè no ofeguin els altres fitxers. Activa aquesta opció per mostrar-les també.",
       "attachments_at_bottom": "Mostra la secció de fitxers adjunts a la part inferior de les notes en lloc de la part superior.",
       "allow_executable_attachments": "Permet adjuntar scripts i executables (.sh, .ps1, .bat, .exe, .py...) a les notes, per a tots els comptes d'aquesta instància. El Poznote no els executa mai, només els emmagatzema i els serveix. Els tipus de fitxer que un servidor web podria executar, com ara .php, continuen bloquejats.",
       "backlinks_at_bottom": "Mostra la secció d'enllaços entrants a la part inferior de les notes en lloc de la part superior.",
@@ -208,7 +209,7 @@
       "local_backup": "Deseu arxius de còpia de seguretat complets en una carpeta del servidor, manualment o de manera planificada, i conserveu només els més recents.",
       "whats_new": "Després d'una actualització, mostra una vegada les notes de la versió nova quan obriu les notes.",
       "release_notes": "Obre les notes de totes les versions de Poznote a GitHub.",
-      "login_disabled": "Omet la pantalla d'inici de sessió: qualsevol navegador que arribi a aquesta instància obre directament el vostre compte, sense nom d'usuari, contrasenya ni codi de dos factors. Activeu-ho només si sou l'única persona que pot accedir a aquesta instància o si un servidor intermediari invers en gestiona l'autenticació. L'API continua demanant credencials.",
+      "login_disabled": "Trieu els comptes que s'obren sense contrasenya. La pàgina d'inici de sessió els llista sota el formulari de contrasenya, i qualsevol que arribi a aquesta instància els pot obrir. Quan es tria l'únic compte de la instància, no hi ha pàgina d'inici de sessió. L'API continua demanant credencials.",
       "outbound_hosts": "Els usuaris que no són administradors només poden connectar els webhooks, la sincronització amb Git i els seus propis servidors d'IA, de transcripció o MCP a amfitrions públics d'Internet. Llisteu aquí els amfitrions o les xarxes locals que poden fer servir, com ara un servidor d'Ollama o d'n8n. Els administradors no tenen límits.",
       "embeds": "Les notes poden incrustar contingut d'aquests llocs, com un vídeo de YouTube o una applet de GeoGebra. Desactiveu els que la vostra instància no hagi de carregar mai. Cap altre lloc es pot incrustar, i aquí no s'hi poden afegir llocs.",
       "diary_template": "Trieu una nota amb el contingut de la qual comença cada entrada nova del diari de l'espai de treball {{workspace}}. La llista mostra les notes d'una carpeta anomenada Templates (o Plantilles) d'aquest espai de treball. Cada espai de treball té la seva plantilla.",
@@ -220,7 +221,10 @@
       "update_badge_level": "Tria quines versions posen el punt vermell a les entrades de Configuració. Triïs el que triïs, la nova versió continua anunciant-se en aquesta pàgina, no s'amaga res.",
       "update_check_interval": "Amb quina freqüència Poznote comprova en segon pla si hi ha una versió més recent. El punt només pot aparèixer després d'una comprovació, així que un interval més llarg el retarda. La targeta Versió de dalt continua comprovant-ho de seguida quan hi fas clic.",
       "sessions": "Mireu els navegadors i dispositius que ara mateix tenen la sessió iniciada al vostre compte, i tanqueu la sessió dels que ja no feu servir.",
-      "session_lifetime": "Quant dura un inici de sessió sense activitat. Es configura amb POZNOTE_SESSION_LIFETIME_DAYS al fitxer .env, de manera que aquí només es mostra i no es pot canviar des d’aquesta pàgina. Iniciar la sessió amb «Recorda’m» dura més; iniciar-la amb SSO, no."
+      "session_lifetime": "Quant dura un inici de sessió sense activitat. Es configura amb POZNOTE_SESSION_LIFETIME_DAYS al fitxer .env, de manera que aquí només es mostra i no es pot canviar des d’aquesta pàgina. Iniciar la sessió amb «Recorda’m» dura més; iniciar-la amb SSO, no.",
+      "attachments_single_line": "Mostra els adjunts de la nota en una sola línia en lloc de repartir-los en diverses. Llisca la línia amb el dit o el ratolí; quan està tallada, acaba amb «…».",
+      "attachment_links_as_cards": "Quan inseriu un adjunt en una nota amb «Enllaç a fitxer adjunt», es mostra com una targeta (una icona segons el tipus, el nom i una fletxa de baixada) en una línia pròpia, en lloc d'un enllaç dins del text.",
+      "remember_me_days": "Quant de temps manté la sessió iniciada marcar «Recorda'm» a la pàgina d'inici de sessió. Només val per als inicis de sessió amb contrasenya. Un inici de sessió SSO dura el que indica la targeta Durada de les sessions, a Configuració > Quant a, que es configura al fitxer .env. Canviar una contrasenya, o tancar la sessió d'un dispositiu des de Dispositius connectats, la tanca de seguida, sigui quina sigui la durada configurada aquí."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "En un mòbil, la barra d'eines de damunt del teclat té un botó + que obre el mateix menú, independentment d'aquest paràmetre."
@@ -328,7 +332,8 @@
       "custom_logo": "Logotip",
       "two_factor_required": "Dos factors obligatoris",
       "sessions": "Dispositius connectats",
-      "session_lifetime": "Durada de les sessions"
+      "session_lifetime": "Durada de les sessions",
+      "remember_me_days": "Durada de «Recorda'm»"
     },
     "default_credentials": {
       "both": "Aquest compte encara fa servir el nom d'usuari i la contrasenya per defecte. Qualsevol persona que pugui accedir a aquesta instància hi pot iniciar la sessió.",
@@ -382,7 +387,8 @@
       "s3_backups": "Còpies de seguretat a l'emmagatzematge S3"
     },
     "login_disabled": {
-      "confirm": "Qualsevol persona que pugui accedir a aquesta instància del Poznote obrirà directament el vostre compte, sense nom d'usuari, contrasenya ni codi de dos factors. Continueu només si sou l'única persona que hi pot accedir o si un servidor intermediari invers en gestiona l'autenticació."
+      "status_one": "1 compte",
+      "status_other": "{{count}} comptes"
     },
     "scope": {
       "user": "Personal",
@@ -564,6 +570,7 @@
       "code_block_line_numbers": "Números de línia als blocs de codi",
       "code_block_collapsed_lines": "Blocs de codi plegats",
       "attachment_previews_in_note": "Previsualitzacions dels fitxers adjunts",
+      "attachments_show_inserted_images": "Imatges inserides als adjunts",
       "attachments_at_bottom": "Fitxers adjunts a baix",
       "backlinks_at_bottom": "Enllaços entrants a baix",
       "note_virtual_space": "Espai sota la nota",
@@ -581,7 +588,9 @@
       "markdown_view_cycle": "Menú de visualització",
       "tab_follows_note": "La pestanya segueix la nota oberta",
       "update_badge_level": "Punt d'actualització",
-      "update_check_interval": "Comprovació d'actualitzacions"
+      "update_check_interval": "Comprovació d'actualitzacions",
+      "attachments_single_line": "Adjunts en una línia",
+      "attachment_links_as_cards": "Enllaços d'adjunts com a targetes"
     },
     "badges": {
       "font_size_default": "per defecte ({{size}} px)",
@@ -838,17 +847,22 @@
       "show_thumbnails": "Mostra les miniatures en aquesta llista",
       "show_inline_images": "Mostra també les imatges que ja són visibles al contingut de la nota",
       "all_file_types": "Tots els tipus",
-      "file_type_filter": "Filtra per tipus de fitxer"
+      "file_type_filter": "Filtra per tipus de fitxer",
+      "grid_view": "Vista de quadrícula",
+      "list_view": "Vista de llista",
+      "pager_status": "Pàgina {{page}} de {{pages}}, {{total}} adjunts"
     },
     "context_menu": {
       "open": "Obre",
       "download": "Baixa",
+      "insert_into_note": "Insereix a la nota",
       "transcribe": "Transcriu",
       "delete": "Suprimeix",
       "delete_confirm_title": "Supressió del fitxer adjunt",
       "delete_confirm_message": "Voleu suprimir «{{filename}}»? S'eliminarà de la nota i no es podrà recuperar.",
       "delete_confirm_message_unnamed": "Voleu suprimir aquest fitxer adjunt? S'eliminarà de la nota i no es podrà recuperar.",
-      "move": "Mou a una altra nota"
+      "move": "Mou a una altra nota",
+      "preview_size": "Mida de les previsualitzacions"
     },
     "move": {
       "title": "Trasllat del fitxer adjunt",
@@ -865,7 +879,12 @@
       "message_many": "Voleu inserir les {{count}} imatges a la nota o afegir-les als adjunts?",
       "attach": "Afegeix com a adjunt",
       "insert": "Insereix a la nota"
-    }
+    },
+    "picker": {
+      "no_images": "Aquesta nota no té cap imatge als seus adjunts."
+    },
+    "inserted_images_toggle": "Mostra també les imatges inserides a les notes",
+    "inserted_images_toggle_note": "Mostra també les imatges inserides a la nota"
   },
   "modals": {
     "paste_markdown": {
@@ -999,7 +1018,8 @@
         "mobile_editor_bar": "Barra de l'editor per a mòbils",
         "sidebar": "Barra lateral",
         "task_lists": "Llistes de tasques",
-        "code_blocks": "Blocs de codi"
+        "code_blocks": "Blocs de codi",
+        "kanban": "Kanban"
       },
       "badge_all_visible": "Tot visible",
       "badge_hidden_count_admin": "{{count}} amagats ({{admin}} per l'administrador)",
@@ -1569,6 +1589,13 @@
     },
     "code_block_collapsed_lines": {
       "unit": "línies"
+    },
+    "remember_me_days": {
+      "unit": "dies"
+    },
+    "login_disabled": {
+      "description": "Els comptes marcats s'obren sense contrasenya, des d'una llista a la pàgina d'inici de sessió. Els altres conserven la contrasenya. Si es marca l'únic compte d'aquesta instància, ja no hi ha pàgina d'inici de sessió.",
+      "warning": "Qualsevol que pugui arribar a aquesta instància pot obrir aquests comptes, sense contrasenya ni codi de dos factors. Marqueu comptes només si la instància no és accessible des d'Internet, o si un servidor intermediari invers davant seu gestiona l'autenticació. Un compte d'administrador marcat dona drets d'administrador a qualsevol."
     }
   },
   "notes_list": {
@@ -1801,6 +1828,7 @@
     "checklist": "Llista de comprovació",
     "done": "Fet",
     "image": "Imatge",
+    "image_from_attachments": "Imatge dels adjunts",
     "take_photo": "Fes una foto",
     "excalidraw": "Excalidraw",
     "mermaid": "Mermaid",
@@ -2373,10 +2401,9 @@
       "password": "Contrasenya",
       "profile": "Seleccioneu el perfil"
     },
-    "remember_me": "Recorda'm durant 30 dies",
+    "remember_me": "Recorda'm durant {{days}} dies",
+    "remember_me_one": "Recorda'm durant 1 dia",
     "button": "Inicia la sessió",
-    "oidc_button": "Continua amb {{provider}}",
-    "oidc_button_account": "Continua amb {{account}}",
     "oidc_other_account": "Inicia la sessió amb un altre compte",
     "no_profiles": "No hi ha cap perfil d'usuari disponible. Poseu-vos en contacte amb l'administrador.",
     "errors": {
@@ -2413,7 +2440,14 @@
       "enroll_intro": "L'autenticació de dos factors és obligatòria en aquesta instància. Configureu-la per continuar.",
       "enroll_submit": "Activa i inicia la sessió"
     },
-    "powered_by": "Funciona amb {{link}}"
+    "powered_by": "Funciona amb {{link}}",
+    "passwordless": {
+      "intro": "Obrir sense contrasenya"
+    },
+    "methods": {
+      "password": "Inicia la sessió amb contrasenya",
+      "sso": "Inicia la sessió amb SSO"
+    }
   },
   "restore_import": {
     "page": {
@@ -2990,6 +3024,10 @@
     "empty": {
       "message": "Creeu subcarpetes en aquesta carpeta per fer servir la visualització Kanban. Cada subcarpeta es convertirà en una columna.",
       "title": "Encara no hi ha subcarpetes"
+    },
+    "background": {
+      "button": "Imatge de fons",
+      "description": "Puja una imatge de fons per a aquest tauler Kanban. Es mostra darrere de les columnes."
     }
   },
   "sidebar": {

@@ -162,6 +162,7 @@
       "code_line_numbers": "Show line numbers in code blocks in the markdown preview.",
       "code_block_collapsed_lines": "How many lines of a code block stay on screen once it is folded, from 0 to 100. At 0 a folded block shows none of its listing. A block with no more lines than this is not offered the fold chevron, folding it would hide nothing.",
       "attachment_previews": "Show previews of attachments inside notes.",
+      "attachments_show_inserted_images": "Images pasted or inserted in a note are stored as attachments. They are hidden from the attachment lists so that they do not bury the other files. Enable this to list them too.",
       "attachments_at_bottom": "Show the attachments section at the bottom of notes instead of the top.",
       "allow_executable_attachments": "Allow scripts and executables (.sh, .ps1, .bat, .exe, .py, ...) to be attached to notes, for every account on this instance. Poznote never runs them, it only stores and serves them. File types a web server could execute, such as .php, stay blocked.",
       "backlinks_at_bottom": "Show the backlinks section at the bottom of notes instead of the top.",
@@ -208,7 +209,7 @@
       "local_backup": "Save complete backup archives into a folder of the server, manually or on a schedule, and keep only the most recent ones.",
       "whats_new": "After an update, show the release notes of the new version once when you open your notes.",
       "release_notes": "Open the notes of every Poznote release on GitHub.",
-      "login_disabled": "Skip the login screen: any browser that reaches this instance opens your account directly, without username, password or two-factor code. Only turn it on if you are the only one who can reach this instance, or if a reverse proxy in front of it handles authentication. The API keeps asking for credentials.",
+      "login_disabled": "Choose the accounts that open without a password. The login page lists them under the password form, and anyone who reaches this instance can open them. When the only account of the instance is chosen, there is no login page at all. The API keeps asking for credentials.",
       "outbound_hosts": "Non-admin users can only connect webhooks, Git Sync and their own AI, transcription or MCP servers to public internet hosts. List here the local hosts or networks they may use, such as an Ollama or n8n server. Administrators are not limited.",
       "embeds": "Notes can embed content from these sites, such as a YouTube video or a GeoGebra applet. Switch off the ones your instance should never load. No other site can be framed, and no site can be added here.",
       "diary_template": "Choose a note whose content every new diary entry of the {{workspace}} workspace starts with. The list shows the notes kept in a folder named Templates in that workspace. Each workspace has its own template.",
@@ -220,7 +221,10 @@
       "update_badge_level": "Choose which releases put the red dot on the Settings entries. Whatever you pick, the new version is still announced on this page, so nothing is hidden.",
       "update_check_interval": "How often Poznote checks in the background whether a newer version is available. The dot can only appear after a check, so a longer interval delays it. The Version card above still checks right away whenever you click it.",
       "sessions": "See the browsers and devices currently signed in to your account, and sign out the ones you no longer use.",
-      "session_lifetime": "How long a sign-in lasts without activity. Set with POZNOTE_SESSION_LIFETIME_DAYS in the .env file, so it is shown here but cannot be changed from this page. Signing in with \"Remember me\" lasts longer; signing in through SSO does not."
+      "session_lifetime": "How long a sign-in lasts without activity. Set with POZNOTE_SESSION_LIFETIME_DAYS in the .env file, so it is shown here but cannot be changed from this page. Signing in with \"Remember me\" lasts longer; signing in through SSO does not.",
+      "attachments_single_line": "Show the note's attachments on a single line instead of wrapping them onto several lines. Slide the line with a finger or the mouse; when it is cut, it ends with \"…\".",
+      "attachment_links_as_cards": "When you insert an attachment into a note with \"Link to attachment\", show it as a card (an icon for its type, its name and a download arrow) on a line of its own, instead of a link in the text.",
+      "remember_me_days": "How long ticking \"Remember me\" on the login page keeps someone signed in. It only applies to password sign-ins. An SSO sign-in lasts as long as the Session lifetime shown in Settings > About, which is set in the .env file. Changing a password, or signing a device out from Connected devices, signs it out right away, whatever the duration set here."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "On mobile, the toolbar above the keyboard has a + button that opens the same menu, whatever this is set to."
@@ -328,7 +332,8 @@
       "custom_logo": "Logo",
       "two_factor_required": "Require two-factor",
       "sessions": "Connected devices",
-      "session_lifetime": "Session lifetime"
+      "session_lifetime": "Session lifetime",
+      "remember_me_days": "Remember me duration"
     },
     "default_credentials": {
       "both": "This account still uses the username and the password it shipped with. Anyone who can reach this instance can sign in to it.",
@@ -382,7 +387,8 @@
       "s3_backups": "Backups in S3 storage"
     },
     "login_disabled": {
-      "confirm": "Anyone who can reach this Poznote instance will open your account directly, with no username, password or two-factor code. Only continue if you are the only one who can reach it, or if a reverse proxy handles authentication."
+      "status_one": "1 account",
+      "status_other": "{{count}} accounts"
     },
     "scope": {
       "user": "Personal",
@@ -564,6 +570,7 @@
       "code_block_line_numbers": "Code block line numbers",
       "code_block_collapsed_lines": "Folded code blocks",
       "attachment_previews_in_note": "Attachment previews",
+      "attachments_show_inserted_images": "Inserted images in attachments",
       "attachments_at_bottom": "Attachments at bottom",
       "backlinks_at_bottom": "Backlinks at bottom",
       "note_virtual_space": "Space below the note",
@@ -581,7 +588,9 @@
       "markdown_view_cycle": "View menu",
       "tab_follows_note": "Tab follows the open note",
       "update_badge_level": "Update dot",
-      "update_check_interval": "Update check"
+      "update_check_interval": "Update check",
+      "attachments_single_line": "Attachments on one line",
+      "attachment_links_as_cards": "Attachment links as cards"
     },
     "badges": {
       "font_size_default": "default ({{size}}px)",
@@ -838,17 +847,22 @@
       "show_thumbnails": "Show thumbnails in this list",
       "show_inline_images": "Also show images already visible in the note content",
       "all_file_types": "All types",
-      "file_type_filter": "Filter by file type"
+      "file_type_filter": "Filter by file type",
+      "grid_view": "Grid view",
+      "list_view": "List view",
+      "pager_status": "Page {{page}} of {{pages}}, {{total}} attachments"
     },
     "context_menu": {
       "open": "Open",
       "download": "Download",
+      "insert_into_note": "Insert into the note",
       "transcribe": "Transcribe",
       "delete": "Delete",
       "delete_confirm_title": "Delete attachment",
       "delete_confirm_message": "Delete \"{{filename}}\"? It is removed from the note and cannot be recovered.",
       "delete_confirm_message_unnamed": "Delete this attachment? It is removed from the note and cannot be recovered.",
-      "move": "Move to another note"
+      "move": "Move to another note",
+      "preview_size": "Preview size"
     },
     "move": {
       "title": "Move attachment",
@@ -865,7 +879,12 @@
       "message_many": "Insert the {{count}} images into the note, or add them to the attachments?",
       "attach": "Add as attachment",
       "insert": "Insert into the note"
-    }
+    },
+    "picker": {
+      "no_images": "This note has no image in its attachments."
+    },
+    "inserted_images_toggle": "Also show images inserted in the notes",
+    "inserted_images_toggle_note": "Also show images inserted in the note"
   },
   "modals": {
     "paste_markdown": {
@@ -999,7 +1018,8 @@
         "mobile_editor_bar": "Mobile editor bar",
         "sidebar": "Sidebar",
         "task_lists": "Task lists",
-        "code_blocks": "Code blocks"
+        "code_blocks": "Code blocks",
+        "kanban": "Kanban"
       },
       "badge_all_visible": "All visible",
       "badge_hidden_count_admin": "{{count}} hidden ({{admin}} by the administrator)",
@@ -1569,6 +1589,13 @@
     },
     "code_block_collapsed_lines": {
       "unit": "lines"
+    },
+    "remember_me_days": {
+      "unit": "days"
+    },
+    "login_disabled": {
+      "description": "Ticked accounts open without a password, from a list on the login page. The others keep their password. If the only account of this instance is ticked, there is no login page at all.",
+      "warning": "Anyone who can reach this instance can open these accounts, with no password and no two-factor code. Only tick accounts if the instance cannot be reached from the internet, or if a reverse proxy in front of it handles authentication. A ticked administrator account gives administrator rights to anyone."
     }
   },
   "notes_list": {
@@ -1801,6 +1828,7 @@
     "checklist": "Checklist",
     "done": "Done",
     "image": "Image",
+    "image_from_attachments": "Image from attachments",
     "take_photo": "Take a photo",
     "excalidraw": "Excalidraw",
     "mermaid": "Mermaid",
@@ -2373,10 +2401,9 @@
       "password": "Password",
       "profile": "Select your profile"
     },
-    "remember_me": "Remember me for 30 days",
+    "remember_me": "Remember me for {{days}} days",
+    "remember_me_one": "Remember me for 1 day",
     "button": "Login",
-    "oidc_button": "Continue with {{provider}}",
-    "oidc_button_account": "Continue with {{account}}",
     "oidc_other_account": "Sign in with another account",
     "no_profiles": "No user profiles available. Please contact the administrator.",
     "errors": {
@@ -2413,7 +2440,14 @@
       "enroll_intro": "Two-factor authentication is required on this instance. Set it up to continue.",
       "enroll_submit": "Turn on and sign in"
     },
-    "powered_by": "Powered by {{link}}"
+    "powered_by": "Powered by {{link}}",
+    "passwordless": {
+      "intro": "Open without a password"
+    },
+    "methods": {
+      "password": "Sign in with a password",
+      "sso": "Sign in with SSO"
+    }
   },
   "restore_import": {
     "page": {
@@ -2990,6 +3024,10 @@
     "empty": {
       "message": "Create subfolders in this folder to use the Kanban view. Each subfolder will become a column.",
       "title": "No subfolders yet"
+    },
+    "background": {
+      "button": "Background image",
+      "description": "Upload a background image for this Kanban board. It is shown behind the columns."
     }
   },
   "sidebar": {

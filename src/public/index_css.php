@@ -43,6 +43,7 @@ function poznoteGetIndexCssGroups(): array {
             'css/components/embed-blocked.css',
             'css/components/resize-handle.css',
             'css/components/toggle-block.css',
+            'css/components/attachment-card.css',
             'css/utilities.css',
             'css/layout.css',
             'css/icon-sidebar.css',

@@ -256,13 +256,13 @@ function poznotePlanAttachmentMove(array $attachment, $sourceContent, bool $refe
     ];
 }
 
-function poznoteCountDisplayableAttachments($attachments, $content = '') {
+function poznoteCountDisplayableAttachments($attachments, $content = '', bool $includeEmbeddedImages = false) {
     $count = 0;
     foreach (poznoteFilterVisibleAttachments($attachments) as $attachment) {
         if (empty($attachment['id'])) {
             continue;
         }
-        if (poznoteAttachmentIsEmbeddedImageInContent($attachment, $content)) {
+        if (!$includeEmbeddedImages && poznoteAttachmentIsEmbeddedImageInContent($attachment, $content)) {
             continue;
         }
         $count++;
@@ -416,7 +416,12 @@ function poznoteBuildAudioPlayerUrl($noteId, $attachmentId, $workspace = '') {
     return '/audio_player.php?' . http_build_query($query);
 }
 
-function poznoteRenderAttachmentPreviews($noteId, $attachments, $workspace = '', $content = '') {
+// Attachments the content already shows (or links to) get no tile, except the
+// images it shows when the "Inserted images in attachments" setting asks for
+// them ($includeEmbeddedImages): the tiles stand in for the attachments row,
+// which lists those images too, and a note with only pasted images would
+// otherwise show nothing at all under a blue paperclip.
+function poznoteRenderAttachmentPreviews($noteId, $attachments, $workspace = '', $content = '', bool $includeEmbeddedImages = false) {
     if (is_string($attachments)) {
         $decoded = json_decode($attachments, true);
         $attachments = is_array($decoded) ? $decoded : [];
@@ -430,7 +435,8 @@ function poznoteRenderAttachmentPreviews($noteId, $attachments, $workspace = '',
         if (!is_array($attachment) || empty($attachment['id']) || poznoteAttachmentIsSnapshotOnly($attachment)) {
             continue;
         }
-        if (poznoteAttachmentIsReferencedInContent($attachment, $content)) {
+        if (poznoteAttachmentIsReferencedInContent($attachment, $content)
+            && !($includeEmbeddedImages && poznoteAttachmentIsEmbeddedImageInContent($attachment, $content))) {
             continue;
         }
 
@@ -472,7 +478,10 @@ function poznoteRenderAttachmentPreviews($noteId, $attachments, $workspace = '',
                 . '<img src="' . $safeFileUrl . '" alt="' . $safeFilename . '" loading="lazy" decoding="async">'
                 . '</a>';
         } elseif ($kind === 'pdf') {
-            $mediaHtml = '<iframe class="note-attachment-preview-media note-attachment-preview-frame" src="' . $safeFileUrl . '" title="' . $safeFilename . '" loading="lazy"></iframe>';
+            // The first page, drawn as an image by js/pdf-preview.js; the file icon until then
+            $mediaHtml = '<a class="note-attachment-preview-media note-attachment-preview-pdf-page" href="' . $safeFileUrl . '" target="_blank" rel="noopener noreferrer" data-pdf-src="' . $safeFileUrl . '" title="' . $safeFilename . '">'
+                . '<i class="lucide lucide-file-text" aria-hidden="true"></i>'
+                . '</a>';
         } elseif ($kind === 'video') {
             $mediaHtml = '<div class="note-attachment-preview-media"><video controls preload="metadata" playsinline src="' . $safeFileUrl . '"></video></div>';
         } elseif ($kind === 'audio') {

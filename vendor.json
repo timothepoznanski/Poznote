@@ -415,6 +415,47 @@
         "poznote-chrome-extension/popup.js (injected into the active tab with clip.js, on 'Save page text')"
       ],
       "notes": "GitHub-flavoured tables, strikethrough and task lists for turndown. Browser IIFE exposing window.turndownPluginGfm."
+    },
+    {
+      "id": "pdfjs-dist",
+      "version": "6.4.299",
+      "license": "Apache-2.0",
+      "homepage": "https://github.com/mozilla/pdf.js",
+      "files": [
+        {
+          "path": "src/public/js/pdfjs/pdf.min.js",
+          "url": "https://cdn.jsdelivr.net/npm/pdfjs-dist@6.4.299/build/pdf.min.mjs",
+          "sha256": "57456c8e0c81e46be31174b499ef77f2b9f5ee46d04412ba627320a36755d4c2"
+        },
+        {
+          "path": "src/public/js/pdfjs/pdf.worker.min.js",
+          "url": "https://cdn.jsdelivr.net/npm/pdfjs-dist@6.4.299/build/pdf.worker.min.mjs",
+          "sha256": "9536359f1b8367850d485731ca1d5e45c159a7b7a0912325e539937aa21ceb18"
+        },
+        {
+          "path": "src/public/js/pdfjs/LICENSE",
+          "url": "https://cdn.jsdelivr.net/npm/pdfjs-dist@6.4.299/LICENSE",
+          "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+        }
+      ],
+      "vendored": "2026-11-13",
+      "updated": "2026-11-13",
+      "verified": "2026-11-13",
+      "loaded_by": [
+        "src/public/js/pdf-preview.js (dynamic import, when a PDF attachment preview comes into view)"
+      ],
+      "files_removed": [
+        "build/pdf.mjs",
+        "build/pdf.worker.mjs",
+        "build/pdf.sandbox*",
+        "cmaps/",
+        "standard_fonts/",
+        "wasm/",
+        "web/",
+        "legacy/",
+        "image_decoders/"
+      ],
+      "notes": "ES module build. Saved with a .js extension (bytes unchanged) because nginx's mime.types does not map .mjs, and a module script or module worker served as application/octet-stream is refused. Only the first page of a PDF is drawn, as a thumbnail; cMaps, standard fonts and the wasm image decoders are not vendored, so a PDF that needs them still renders, with system fonts in place of non-embedded ones and without JPEG 2000 / JBIG2 images."
     }
   ]
 }

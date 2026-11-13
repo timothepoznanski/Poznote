@@ -238,8 +238,9 @@ class UsersController {
             setRememberMeCookie('', time() - 3600);
             return;
         }
+        require_once dirname(__DIR__, 3) . '/lib/remember-me-duration.php';
         $token = buildRememberMeToken((string)$user['username'], (int)$user['id'], $timestamp, $secret);
-        setRememberMeCookie($token, $timestamp + REMEMBER_ME_DURATION);
+        setRememberMeCookie($token, $timestamp + poznoteRememberMeDurationSeconds());
     }
     
     /**
@@ -1704,7 +1705,8 @@ class UsersController {
      */
     public function endRememberMeToken(int $userId, string $fingerprint): void {
         require_once dirname(__DIR__, 3) . '/users/db_master.php';
-        revokeRememberMeToken($userId, $fingerprint, time() + REMEMBER_ME_DURATION);
+        require_once dirname(__DIR__, 3) . '/lib/remember-me-duration.php';
+        revokeRememberMeToken($userId, $fingerprint, time() + poznoteRememberMeDurationSeconds());
     }
 
     /**

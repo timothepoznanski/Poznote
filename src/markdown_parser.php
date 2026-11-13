@@ -748,6 +748,25 @@ function sanitizeMarkdownTaskListEmbed($html) {
         . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '</a></div>';
 }
 
+// An attachment card ("Attachment links as cards", js/attachments.js): a line
+// that is only <a class="attachment-card attachment-card-KIND"
+// href="/api/v1/notes/N/attachments/ID">name</a>. Rebuilt from the address,
+// the kind and the name alone, so nothing else written in the source
+// survives; an address that is not an attachment leaves the line as text.
+const POZNOTE_MARKDOWN_ATTACHMENT_CARD_LINE = '/^[ \t]*<a\s+class="attachment-card(?:\s+attachment-card-([a-z]+))?"\s+href="([^"\n]*)"\s*>([^<\n]*)<\/a>[ \t]*$/m';
+const POZNOTE_ATTACHMENT_CARD_KINDS = ['pdf', 'doc', 'sheet', 'slides', 'archive', 'image', 'audio', 'video', 'code', 'text', 'file'];
+
+function sanitizeMarkdownAttachmentCard(array $matches) {
+    $href = html_entity_decode($matches[2], ENT_QUOTES, 'UTF-8');
+    if (!preg_match('#^/api/v1/notes/\d+/attachments/[A-Za-z0-9_-]+$#', $href)) {
+        return null;
+    }
+    $kind = in_array($matches[1], POZNOTE_ATTACHMENT_CARD_KINDS, true) ? $matches[1] : 'file';
+    $name = html_entity_decode($matches[3], ENT_QUOTES, 'UTF-8');
+    return '<div class="attachment-card-line"><a class="attachment-card attachment-card-' . $kind . '" href="'
+        . htmlspecialchars($href, ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . '</a></div>';
+}
+
 function normalizeMarkdownImageBorderClass($borderClass) {
     return in_array($borderClass, ['img-with-border', 'img-with-border-no-padding'], true) ? $borderClass : '';
 }
@@ -963,6 +982,19 @@ function parseMarkdown($text) {
     $text = preg_replace_callback('#<div\b(?=[^>]*\bdata-task-embed\s*=\s*(["\'])\d+\1)[^>]*>[\s\S]*?</div>#i', function($matches) use (&$protectedElements, &$protectedIndex) {
         $placeholder = "\x00PTASKEMBED" . $protectedIndex . "\x00";
         $protectedElements[$protectedIndex] = sanitizeMarkdownTaskListEmbed($matches[0]);
+        $protectedIndex++;
+        return "\n" . $placeholder . "\n";
+    }, $text);
+
+    // Attachment cards, block HTML of their own (sanitizeMarkdownAttachmentCard())
+    $text = preg_replace_callback(POZNOTE_MARKDOWN_ATTACHMENT_CARD_LINE, function($matches) use (&$protectedElements, &$protectedIndex) {
+        $card = sanitizeMarkdownAttachmentCard($matches);
+        // Not an attachment: the line stays, and is escaped as text
+        if ($card === null) {
+            return $matches[0];
+        }
+        $placeholder = "\x00PATTCARD" . $protectedIndex . "\x00";
+        $protectedElements[$protectedIndex] = $card;
         $protectedIndex++;
         return "\n" . $placeholder . "\n";
     }, $text);
@@ -1298,10 +1330,21 @@ function parseMarkdown($text) {
             continue;
         }
 
-        if (preg_match('/^\s*\x00PTASKEMBED(\d+)\x00\s*$/', $line, $matches)) {
+        if (preg_match('/^\s*\x00P(?:TASKEMBED|ATTCARD)(\d+)\x00\s*$/', $line, $matches)) {
             $flushParagraph();
             $index = (int)$matches[1];
             $result[] = isset($protectedElements[$index]) ? $protectedElements[$index] : $line;
+            continue;
+        }
+
+        // A line that is only an embedded player (iframe, video, audio) is a
+        // block of its own, even right under or over a line of text (a dropped
+        // audio file is written with no blank line around it): inside a
+        // paragraph, the <br> after a block element draws an empty line.
+        // Same markup as the player between two blank lines.
+        if (preg_match('/^\s*\x00P(?:IFRAME|VIDEO|AUDIO)\d+\x00\s*$/', $line)) {
+            $flushParagraph();
+            $result[] = '<p data-line="' . $i . '">' . $applyInlineStyles(trim($line, " \t\r")) . '</p>';
             continue;
         }
 

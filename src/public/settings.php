@@ -133,7 +133,10 @@ $settingsPageUserKeys = [
     'code_block_line_numbers',
     'code_block_collapsed_lines',
     'attachment_previews_in_note',
+    'attachments_show_inserted_images',
     'attachments_at_bottom',
+    'attachments_single_line',
+    'attachment_links_as_cards',
     'backlinks_at_bottom',
     'note_virtual_space',
     'default_image_border_no_padding',
@@ -332,6 +335,9 @@ if ($isAdmin) {
         // instance configured through the environment variable.
         $settingsPageConfig['settings']['allow_executable_attachments'] = poznoteExecutableAttachmentsAllowed() ? '1' : '0';
         $settingsPageConfig['settings']['login_disabled'] = getGlobalSetting('login_disabled', '0') === '1' ? '1' : '0';
+        // Resolved too: an instance that never saved the list still has the
+        // single account of the first version ticked.
+        $settingsPageConfig['settings']['login_disabled_user_ids'] = json_encode(getAutoLoginAccountIds());
         $settingsPageConfig['settings']['two_factor_required'] = getGlobalSetting('two_factor_required', '0') === '1' ? '1' : '0';
     } catch (Exception $e) {
         // Keep the page usable if the master database is temporarily unavailable.
@@ -1429,6 +1435,26 @@ $localRestoreCardVisible = !empty(LocalBackupService::restorePageBackups());
                     </div>
                 </div>
 
+                <!-- The note's attachments on one line that slides sideways -->
+                <div class="home-card" id="attachments-single-line-card">
+                    <span class="setting-help" data-tooltip="<?php echo t_h('settings.card_help.attachments_single_line', [], 'Show the note\'s attachments on a single line instead of wrapping them onto several lines. Slide the line with a finger or the mouse; when it is cut, it ends with "…".'); ?>"><i class="lucide lucide-help-circle"></i></span>
+                    <div class="home-card-icon"><i class="lucide lucide-move-horizontal"></i></div>
+                    <div class="home-card-content">
+                        <span class="home-card-title"><?php echo t_h('display.cards.attachments_single_line', [], 'Attachments on one line'); ?></span>
+                        <span id="attachments-single-line-status" class="setting-status disabled"><?php echo t_h('common.disabled'); ?></span>
+                    </div>
+                </div>
+
+                <!-- "Link to attachment" inserts a card instead of a plain link -->
+                <div class="home-card" id="attachment-links-as-cards-card">
+                    <span class="setting-help" data-tooltip="<?php echo t_h('settings.card_help.attachment_links_as_cards', [], 'When you insert an attachment into a note with "Link to attachment", show it as a card (an icon for its type, its name and a download arrow) on a line of its own, instead of a link in the text.'); ?>"><i class="lucide lucide-help-circle"></i></span>
+                    <div class="home-card-icon"><i class="lucide lucide-file-text"></i></div>
+                    <div class="home-card-content">
+                        <span class="home-card-title"><?php echo t_h('display.cards.attachment_links_as_cards', [], 'Attachment links as cards'); ?></span>
+                        <span id="attachment-links-as-cards-status" class="setting-status disabled"><?php echo t_h('common.disabled'); ?></span>
+                    </div>
+                </div>
+
                 <!-- Attachment Previews in Notes -->
                 <div class="home-card" id="attachment-previews-card">
                     <span class="setting-help" data-tooltip="<?php echo t_h('settings.card_help.attachment_previews', [], 'Show previews of attachments inside notes.'); ?>"><i class="lucide lucide-help-circle"></i></span>
@@ -1436,6 +1462,16 @@ $localRestoreCardVisible = !empty(LocalBackupService::restorePageBackups());
                     <div class="home-card-content">
                         <span class="home-card-title"><?php echo t_h('display.cards.attachment_previews_in_note', [], 'Attachment previews'); ?></span>
                         <span id="attachment-previews-status" class="setting-status disabled"><?php echo t_h('common.disabled'); ?></span>
+                    </div>
+                </div>
+
+                <!-- Images inserted in the note, listed with the other attachments -->
+                <div class="home-card" id="attachments-inserted-images-card">
+                    <span class="setting-help" data-tooltip="<?php echo t_h('settings.card_help.attachments_show_inserted_images', [], 'Images pasted or inserted in a note are stored as attachments. They are hidden from the attachment lists so that they do not bury the other files. Enable this to list them too.'); ?>"><i class="lucide lucide-help-circle"></i></span>
+                    <div class="home-card-icon"><i class="lucide lucide-image"></i></div>
+                    <div class="home-card-content">
+                        <span class="home-card-title"><?php echo t_h('display.cards.attachments_show_inserted_images', [], 'Inserted images in attachments'); ?></span>
+                        <span id="attachments-inserted-images-status" class="setting-status disabled"><?php echo t_h('common.disabled'); ?></span>
                     </div>
                 </div>
             </div>
@@ -1711,9 +1747,22 @@ $localRestoreCardVisible = !empty(LocalBackupService::restorePageBackups());
                     </div>
                 </div>
 
+                <!-- How long a "Remember me" cookie lasts (instance-wide) -->
+                <div class="home-card settings-inline-card settings-card-stacks" id="remember-me-days-card">
+                    <span class="setting-help" data-tooltip="<?php echo t_h('settings.card_help.remember_me_days', [], 'How long ticking "Remember me" on the login page keeps someone signed in. It only applies to password sign-ins. An SSO sign-in lasts as long as the Session lifetime shown in Settings > About, which is set in the .env file. Changing a password, or signing a device out from Connected devices, signs it out right away, whatever the duration set here.'); ?>"><i class="lucide lucide-help-circle"></i></span>
+                    <div class="home-card-icon"><i class="lucide lucide-clock"></i></div>
+                    <div class="home-card-content">
+                        <label class="home-card-title" for="remember-me-days-input"><?php echo t_h('settings.cards.remember_me_days', [], 'Remember me duration'); ?></label>
+                        <input type="number" id="remember-me-days-input" class="settings-inline-control settings-inline-number" data-control="remember-me-days-input"
+                               min="<?php echo POZNOTE_REMEMBER_ME_DAYS_MIN; ?>" max="<?php echo POZNOTE_REMEMBER_ME_DAYS_MAX; ?>" step="1" inputmode="numeric"
+                               aria-describedby="remember-me-days-unit">
+                        <span class="settings-inline-unit" id="remember-me-days-unit"><?php echo t_h('modals.remember_me_days.unit', [], 'days'); ?></span>
+                    </div>
+                </div>
+
                 <!-- Open without login (instance-wide) -->
                 <div class="home-card" id="login-disabled-card">
-                    <span class="setting-help" data-tooltip="<?php echo t_h('settings.card_help.login_disabled', [], 'Skip the login screen: any browser that reaches this instance opens your account directly, without username, password or two-factor code. Only turn it on if you are the only one who can reach this instance, or if a reverse proxy in front of it handles authentication. The API keeps asking for credentials.'); ?>"><i class="lucide lucide-help-circle"></i></span>
+                    <span class="setting-help" data-tooltip="<?php echo t_h('settings.card_help.login_disabled', [], 'Choose the accounts that open without a password. The login page lists them under the password form, and anyone who reaches this instance can open them. When the only account of the instance is chosen, there is no login page at all. The API keeps asking for credentials.'); ?>"><i class="lucide lucide-help-circle"></i></span>
                     <div class="home-card-icon">
                         <i class="lucide lucide-lock-open"></i>
                     </div>
@@ -2377,6 +2426,32 @@ $localRestoreCardVisible = !empty(LocalBackupService::restorePageBackups());
             <div class="modal-buttons">
                 <button type="button" class="btn-cancel" data-action="close-modal" data-modal="disasterRecoveryModal"><?php echo t_h('common.close', [], 'Close'); ?></button>
                 <button type="button" class="btn-primary" id="disasterRecoveryRunBtn"><?php echo t_h('multiuser.admin.maintenance.repair_registry', [], 'Rebuild'); ?></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Open without login: the accounts opened without a password
+         (lib/auto-login.php). Saved as login_disabled_user_ids by
+         js/settings-page.js; ticking nobody turns the option off. -->
+    <div id="loginDisabledModal" class="modal">
+        <div class="modal-content">
+            <h3><?php echo t_h('settings.cards.login_disabled', [], 'Open without login'); ?></h3>
+            <p><?php echo t_h('modals.login_disabled.description', [], 'Ticked accounts open without a password, from a list on the login page. The others keep their password. If the only account of this instance is ticked, there is no login page at all.'); ?></p>
+            <div class="login-disabled-accounts">
+                <?php foreach (getAllUserProfiles() as $loginDisabledProfile): ?>
+                <label class="login-disabled-account">
+                    <input type="checkbox" data-login-disabled-account="<?php echo (int)$loginDisabledProfile['id']; ?>">
+                    <span class="login-disabled-account-name"><?php echo htmlspecialchars((string)$loginDisabledProfile['username'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></span>
+                    <?php if (!empty($loginDisabledProfile['is_admin'])): ?>
+                    <span class="login-disabled-account-badge"><?php echo t_h('ai_settings.users_admin', [], 'Administrator'); ?></span>
+                    <?php endif; ?>
+                </label>
+                <?php endforeach; ?>
+            </div>
+            <p class="login-disabled-warning"><?php echo t_h('modals.login_disabled.warning', [], 'Anyone who can reach this instance can open these accounts, with no password and no two-factor code. Only tick accounts if the instance cannot be reached from the internet, or if a reverse proxy in front of it handles authentication. A ticked administrator account gives administrator rights to anyone.'); ?></p>
+            <div class="modal-buttons">
+                <button type="button" class="btn-cancel" data-action="close-modal" data-modal="loginDisabledModal"><?php echo t_h('common.cancel'); ?></button>
+                <button type="button" class="btn-primary" id="saveLoginDisabledBtn"><?php echo t_h('common.save'); ?></button>
             </div>
         </div>
     </div>

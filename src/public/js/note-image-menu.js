@@ -436,6 +436,12 @@ function getMenuImageFromTarget(target) {
     if (!img || !img.src || img.src.trim() === '') return null;
     // Attachment cards have their own menu (js/note-attachment-menu.js)
     if (img.closest('.note-attachment-previews')) return null;
+    // The first page of a PDF (js/pdf-preview.js) is a picture of an
+    // attachment, not an image of the note: its link takes the attachment menu
+    if (img.classList.contains('note-attachment-preview-pdf-image')) return null;
+    // Same for the preview an attachment card shows in the note: it takes the
+    // attachment menu, with its "Preview size" slider, like the tiles above
+    if (img.closest('figure.note-attachment-preview')) return null;
     return img;
 }
 

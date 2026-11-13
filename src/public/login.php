@@ -112,6 +112,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'selec
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
+// An account the administrator ticked in Settings > Open without login,
+// chosen from the list under the password form. openAccountWithoutPassword()
+// refuses any account that is not ticked.
+$passwordlessError = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'open_without_password') {
+    if (isset($_POST['csrf_token']) && hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'])
+        && openAccountWithoutPassword((int)($_POST['account_user_id'] ?? 0))) {
+        unset($_SESSION['post_login_redirect']);
+        poznoteRenderLoginRedirectAndExit($redirectAfter, $currentLang);
+    }
+    $passwordlessError = t('login.account_select.invalid', [], 'Unable to select this account.', $currentLang);
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // Second step of a password login on a profile with two-factor on. The
 // password was accepted by authenticate(), which parked the login in the
 // session instead of opening it; this finishes or abandons it.
@@ -272,6 +286,22 @@ if (isset($_GET['oidc_error'])) {
         }
     }
 }
+
+// Password login is governed solely by POZNOTE_OIDC_DISABLE_NORMAL_LOGIN.
+// The form is either rendered and usable, or not rendered at all.
+$showNormalLogin = !(function_exists('oidc_is_enabled') && oidc_is_enabled() && defined('OIDC_DISABLE_NORMAL_LOGIN') && OIDC_DISABLE_NORMAL_LOGIN);
+
+// Accounts the administrator ticked in Settings > Open without login,
+// offered next to the password form. When every active account is ticked,
+// nobody has a password to type and the form is left out.
+$passwordlessProfiles = getPasswordlessLoginProfiles();
+$allAccountsPasswordless = $passwordlessProfiles !== [] && count($passwordlessProfiles) === count(getAllUserProfiles());
+$passwordLoginVisible = $showNormalLogin && !$allAccountsPasswordless;
+$oidcLoginVisible = function_exists('oidc_is_enabled') && oidc_is_enabled();
+
+// The ways in that the page offers: password, SSO, without a password. On a
+// wide screen each one is a column (css/login.css), stacked on a phone.
+$loginMethodCount = $renderLoginStep ? 1 : max(1, (int)$passwordLoginVisible + (int)$oidcLoginVisible + (int)($passwordlessProfiles !== []));
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars($currentLang ?? 'en', ENT_QUOTES); ?>">
@@ -299,7 +329,7 @@ if (isset($_GET['oidc_error'])) {
     <script src="js/theme-manager.js?v=<?php echo rawurlencode(poznoteGetThemeAssetVersion()); ?>"></script>
 </head>
 <body>
-    <div class="login-container">
+    <div class="login-container<?php echo $loginMethodCount > 1 ? ' login-container-methods-' . $loginMethodCount : ''; ?>">
         <div class="login-header">
             <div class="logo">
                 <?php echo poznoteLogoMark('logo-favicon', t('app.name', [], 'Poznote', $currentLang ?? 'en')); ?>
@@ -313,12 +343,6 @@ if (isset($_GET['oidc_error'])) {
         <div class="info session-expired-notice"><?php echo t_h('login.session_expired', [], 'Your session has ended. Sign in again to get back to where you were.', $currentLang); ?></div>
         <?php endif; ?>
 
-        <?php
-        // Password login is governed solely by POZNOTE_OIDC_DISABLE_NORMAL_LOGIN.
-        // The form is either rendered and usable, or not rendered at all.
-        $showNormalLogin = !(function_exists('oidc_is_enabled') && oidc_is_enabled() && defined('OIDC_DISABLE_NORMAL_LOGIN') && OIDC_DISABLE_NORMAL_LOGIN);
-        $passwordLoginVisible = $showNormalLogin;
-        ?>
 
         <?php 
         // Sign-in hint for a fresh install, spelling out both shipped defaults.
@@ -330,7 +354,7 @@ if (isset($_GET['oidc_error'])) {
         $defaultAdminProfile = poznoteFindPristineDefaultProfile();
         $defaultAdminUsername = $defaultAdminProfile['username'] ?? null;
 
-        if ($defaultAdminUsername && !$renderTotpChallenge && !$renderTotpEnrollment && !$renderEnrolledCodes):
+        if ($defaultAdminUsername && $passwordLoginVisible && !$renderTotpChallenge && !$renderTotpEnrollment && !$renderEnrolledCodes):
         ?>
         <div class="admin-warning">
             <?php echo t('login.admin_warning', ['username' => $defaultAdminUsername], 'Please log in with the username <code>' . htmlspecialchars($defaultAdminUsername) . '</code> and the password <code>admin</code>. Once logged in, change your password immediately in the settings. You can also change your username.', $currentLang ?? 'en'); ?>
@@ -470,7 +494,10 @@ if (isset($_GET['oidc_error'])) {
                 <a class="login-button totp-continue-button" href="login.php<?php echo $redirectAfter !== null ? '?redirect=' . rawurlencode($redirectAfter) : ''; ?>"><?php echo t_h('two_factor.modal.saved_codes', [], 'I have saved my codes', $currentLang); ?></a>
             </div>
         <?php else: ?>
-            <?php if ($showNormalLogin): ?>
+            <div class="login-methods login-methods-<?php echo $loginMethodCount; ?>">
+            <?php if ($passwordLoginVisible): ?>
+            <section class="login-method login-method-password">
+            <h2 class="login-method-title"><span class="login-method-label"><i class="lucide lucide-key" aria-hidden="true"></i><span><?php echo t_h('login.methods.password', [], 'Sign in with a password', $currentLang); ?></span></span></h2>
             <form method="POST" class="password-login-form">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES); ?>">
                 <?php if ($redirectAfter !== null): ?>
@@ -494,19 +521,30 @@ if (isset($_GET['oidc_error'])) {
                 <div class="form-group remember-me-group remember-me-unified">
                     <label class="remember-me-label">
                         <input type="checkbox" name="remember_me" value="1" id="remember_me">
-                        <span><?php echo t_h('login.remember_me', [], 'Remember me for 30 days', $currentLang ?? 'en'); ?></span>
+                        <span><?php
+                            // The duration is an instance setting (Settings >
+                            // Admin Tools > Users & access). One day has its
+                            // own key: "for 1 days" is not a sentence.
+                            $rememberMeDays = poznoteRememberMeDurationDays();
+                            echo $rememberMeDays === 1
+                                ? t_h('login.remember_me_one', [], 'Remember me for 1 day', $currentLang ?? 'en')
+                                : t_h('login.remember_me', ['days' => $rememberMeDays], 'Remember me for {{days}} days', $currentLang ?? 'en');
+                        ?></span>
                     </label>
                 </div>
                 <button type="submit" class="login-button"><?php echo t_h('login.button', [], 'Login', $currentLang ?? 'en'); ?></button>
             </form>
+            </section>
             <?php endif; ?>
 
-            <?php if (function_exists('oidc_is_enabled') && oidc_is_enabled()): ?>
-                <?php if ($showNormalLogin): ?>
+            <?php if ($oidcLoginVisible): ?>
+                <?php if ($passwordLoginVisible): ?>
                     <div class="oidc-divider">
                         <span><?php echo t_h('login.or', [], 'or', $currentLang ?? 'en'); ?></span>
                     </div>
                 <?php endif; ?>
+                <section class="login-method login-method-sso">
+                <h2 class="login-method-title"><span class="login-method-label"><i class="lucide lucide-shield" aria-hidden="true"></i><span><?php echo t_h('login.methods.sso', [], 'Sign in with SSO', $currentLang); ?></span></span></h2>
 
                 <?php
                 // Real links, not an href="#" wired by js/login-page.js at
@@ -516,12 +554,12 @@ if (isset($_GET['oidc_error'])) {
                 // second one worked).
                 $oidcRedirectParam = $redirectAfter !== null ? 'redirect=' . rawurlencode($redirectAfter) : '';
                 ?>
-                <a class="login-button oidc-button" href="oidc_login.php<?php echo $oidcRedirectParam !== '' ? '?' . $oidcRedirectParam : ''; ?>" id="oidc-login-btn"<?php if (!$passwordLoginVisible && !$justLoggedOut): ?> autofocus<?php endif; ?>><?php echo t_h('login.oidc_button', ['provider' => (defined('OIDC_PROVIDER_NAME') ? OIDC_PROVIDER_NAME : 'SSO')], 'Continue with SSO', $currentLang ?? 'en'); ?></a>
+                <a class="login-button oidc-button" href="oidc_login.php<?php echo $oidcRedirectParam !== '' ? '?' . $oidcRedirectParam : ''; ?>" id="oidc-login-btn"<?php if (!$passwordLoginVisible && !$justLoggedOut): ?> autofocus<?php endif; ?>><?php echo htmlspecialchars(defined('OIDC_PROVIDER_NAME') && OIDC_PROVIDER_NAME !== '' ? (string)OIDC_PROVIDER_NAME : 'SSO', ENT_QUOTES, 'UTF-8'); ?></a>
                 <a class="login-button oidc-button oidc-other-account-button" href="oidc_login.php?prompt=select_account<?php echo $oidcRedirectParam !== '' ? '&amp;' . $oidcRedirectParam : ''; ?>" id="oidc-other-account-btn" hidden style="display:none"><?php echo t_h('login.oidc_other_account', [], 'Sign in with another account', $currentLang ?? 'en'); ?></a>
                 <script>
                 // Put the remembered SSO account in the button label and in its
-                // link before the first paint (the generic "Continue with
-                // <provider>" label showed until the scripts loaded)
+                // link before the first paint (the provider name showed until
+                // the scripts loaded)
                 (function () {
                     var hint = null;
                     try {
@@ -530,9 +568,8 @@ if (isset($_GET['oidc_error'])) {
                         // localStorage unavailable - hint is best-effort only
                     }
                     if (!hint) return;
-                    var template = <?php echo json_encode(t('login.oidc_button_account', [], 'Continue with {{account}}', $currentLang ?? 'en'), JSON_HEX_TAG | JSON_HEX_AMP); ?>;
                     var button = document.getElementById('oidc-login-btn');
-                    button.textContent = template.replace('{{account}}', hint);
+                    button.textContent = hint;
                     // Sending the hint lets the provider skip its account chooser
                     // (which escapes the PWA Custom Tab on mobile when several
                     // accounts are signed in)
@@ -572,9 +609,43 @@ if (isset($_GET['oidc_error'])) {
                     window.addEventListener('pageshow', reset);
                 })();
                 </script>
+                <?php if ($oidcError): ?>
+                    <div class="error oidc-error"><?php echo htmlspecialchars($oidcError); ?></div>
+                <?php endif; ?>
+                </section>
             <?php endif; ?>
-            
-            <?php if ($oidcError): ?>
+
+            <?php if ($passwordlessProfiles !== []): ?>
+                <?php if ($passwordLoginVisible || $oidcLoginVisible): ?>
+                    <div class="oidc-divider">
+                        <span><?php echo t_h('login.or', [], 'or', $currentLang); ?></span>
+                    </div>
+                <?php endif; ?>
+                <section class="login-method login-method-passwordless passwordless-login">
+                    <h2 class="login-method-title login-method-title-always"><span class="login-method-label"><i class="lucide lucide-lock-open" aria-hidden="true"></i><span><?php echo t_h('login.passwordless.intro', [], 'Open without a password', $currentLang); ?></span></span></h2>
+                    <?php if ($passwordlessError): ?>
+                        <div class="error account-select-error"><?php echo htmlspecialchars($passwordlessError); ?></div>
+                    <?php endif; ?>
+                    <form method="POST" class="account-select-form">
+                        <input type="hidden" name="action" value="open_without_password">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES); ?>">
+                        <?php if ($redirectAfter !== null): ?>
+                            <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($redirectAfter, ENT_QUOTES); ?>">
+                        <?php endif; ?>
+                        <div class="account-select-list">
+                            <?php foreach ($passwordlessProfiles as $profile): ?>
+                                <button type="submit" name="account_user_id" value="<?php echo (int)$profile['id']; ?>" class="account-option">
+                                    <span class="account-option-name"><?php echo htmlspecialchars((string)($profile['username'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></span>
+                                    <i class="lucide lucide-arrow-right account-option-arrow" aria-hidden="true"></i>
+                                </button>
+                            <?php endforeach; ?>
+                        </div>
+                    </form>
+                </section>
+            <?php endif; ?>
+            </div>
+
+            <?php if ($oidcError && !$oidcLoginVisible): ?>
                 <div class="error oidc-error"><?php echo htmlspecialchars($oidcError); ?></div>
             <?php endif; ?>
 

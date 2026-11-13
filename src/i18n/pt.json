@@ -33,7 +33,6 @@
         "profile": "Perfil"
       },
       "button": "Entrar",
-      "remember_me": "Lembrar-me por 30 dias",
       "no_profiles": "Nenhum perfil disponível. Por favor, contate o administrador.",
       "oidc_button": "Continuar com {{provider}}",
       "documentation": "Documentação do Poznote",
@@ -172,7 +171,11 @@
       "no_boards": "Ainda não há quadros Kanban.",
       "hint": "Ative a visualização Kanban em uma pasta para vê-la aqui."
     },
-    "add_note": "Adicionar nota"
+    "add_note": "Adicionar nota",
+    "background": {
+      "button": "Imagem de fundo",
+      "description": "Envie uma imagem de fundo para este quadro Kanban. Ela é exibida atrás das colunas."
+    }
   },
   "folders": {
     "delete": {
@@ -411,17 +414,22 @@
       "show_inline_images": "Mostrar também as imagens já visíveis no conteúdo da nota",
       "all_file_types": "Todos os tipos",
       "file_type_filter": "Filtrar por tipo de arquivo",
-      "download": "Baixar"
+      "download": "Baixar",
+      "grid_view": "Vista em grelha",
+      "list_view": "Vista em lista",
+      "pager_status": "Página {{page}} de {{pages}}, {{total}} anexos"
     },
     "context_menu": {
       "open": "Abrir",
       "download": "Baixar",
+      "insert_into_note": "Inserir na nota",
       "transcribe": "Transcrever",
       "delete": "Excluir",
       "delete_confirm_title": "Excluir anexo",
       "delete_confirm_message": "Excluir \"{{filename}}\"? Ele será removido da nota e não poderá ser recuperado.",
       "delete_confirm_message_unnamed": "Excluir este anexo? Ele será removido da nota e não poderá ser recuperado.",
-      "move": "Mover para outra nota"
+      "move": "Mover para outra nota",
+      "preview_size": "Tamanho das pré-visualizações"
     },
     "move": {
       "title": "Mover anexo",
@@ -438,7 +446,12 @@
       "message_many": "Inserir as {{count}} imagens na nota ou adicioná-las aos anexos?",
       "attach": "Adicionar como anexo",
       "insert": "Inserir na nota"
-    }
+    },
+    "picker": {
+      "no_images": "Esta nota não tem nenhuma imagem nos seus anexos."
+    },
+    "inserted_images_toggle": "Mostrar também as imagens inseridas nas notas",
+    "inserted_images_toggle_note": "Mostrar também as imagens inseridas na nota"
   },
   "auth": {
     "api": {
@@ -498,6 +511,7 @@
       "code_line_numbers": "Mostre os números de linha nos blocos de código na pré-visualização de markdown.",
       "code_block_collapsed_lines": "Quantas linhas de um bloco de código ficam visíveis depois de recolhido, de 0 a 100. Com 0, um bloco recolhido não mostra nada do seu código. Um bloco que não tenha mais linhas do que isto não recebe a seta para recolher, recolhê-lo não esconderia nada.",
       "attachment_previews": "Mostre pré-visualizações dos anexos dentro das notas.",
+      "attachments_show_inserted_images": "As imagens coladas ou inseridas numa nota são guardadas como anexos. Ficam ocultas nas listas de anexos para não esconder os outros ficheiros. Ative esta opção para mostrá-las também.",
       "attachments_at_bottom": "Mostre a seção de anexos na parte inferior das notas em vez do topo.",
       "allow_executable_attachments": "Permite anexar scripts e executáveis (.sh, .ps1, .bat, .exe, .py, ...), para todas as contas desta instância. O Poznote nunca os executa, apenas os armazena e os entrega. Os tipos que um servidor web poderia executar, como .php, continuam bloqueados.",
       "backlinks_at_bottom": "Mostre a seção de backlinks na parte inferior das notas em vez do topo.",
@@ -544,7 +558,7 @@
       "local_backup": "Salve arquivos de backup completos em uma pasta do servidor, manualmente ou conforme um agendamento, mantendo apenas os mais recentes.",
       "whats_new": "Após uma atualização, mostrar uma vez as notas da nova versão ao abrir as suas notas.",
       "release_notes": "Abrir as notas de todas as versões do Poznote no GitHub.",
-      "login_disabled": "Ignora a tela de login: qualquer navegador que chegue a esta instância abre diretamente a sua conta, sem nome de usuário, senha ou código de dois fatores. Ative apenas se só você consegue acessar esta instância, ou se um proxy reverso à frente dela cuida da autenticação. A API continua pedindo credenciais.",
+      "login_disabled": "Escolha as contas que abrem sem senha. A página de login as lista abaixo do formulário de senha, e qualquer pessoa que chegue a esta instância pode abri-las. Quando a única conta da instância é escolhida, não há página de login. A API continua pedindo credenciais.",
       "outbound_hosts": "Os utilizadores não administradores só podem ligar os webhooks, o Git Sync e os seus próprios servidores de IA, transcrição ou MCP a hosts públicos da Internet. Indique aqui os hosts ou redes locais que podem usar, como um servidor Ollama ou n8n. Os administradores não têm limites.",
       "embeds": "As notas podem incorporar conteúdo destes sites, como um vídeo do YouTube ou um applet do GeoGebra. Desative os que a sua instância nunca deve carregar. Nenhum outro site pode ser incorporado, e não é possível adicionar sites aqui.",
       "diary_template": "Escolha uma nota cujo conteúdo serve de ponto de partida para cada nova entrada do diário do espaço de trabalho {{workspace}}. A lista mostra as notas guardadas numa pasta chamada Modelos (ou Templates) desse espaço. Cada espaço de trabalho tem o seu próprio modelo.",
@@ -556,7 +570,10 @@
       "update_badge_level": "Escolha que versões colocam o ponto vermelho nas entradas das Definições. Seja qual for a escolha, a nova versão continua a ser anunciada nesta página, nada fica escondido.",
       "update_check_interval": "Com que frequência o Poznote verifica em segundo plano se existe uma versão mais recente. O ponto só pode aparecer depois de uma verificação, por isso um intervalo maior atrasa-o. O cartão Versão acima continua a verificar logo que clica nele.",
       "sessions": "Veja os navegadores e dispositivos conectados à sua conta agora e encerre a sessão dos que você não usa mais.",
-      "session_lifetime": "Quanto tempo um login dura sem atividade. Definido com POZNOTE_SESSION_LIFETIME_DAYS no arquivo .env, por isso aparece aqui mas não pode ser alterado nesta página. Entrar com \"Lembrar-me\" dura mais; entrar por SSO, não."
+      "session_lifetime": "Quanto tempo um login dura sem atividade. Definido com POZNOTE_SESSION_LIFETIME_DAYS no arquivo .env, por isso aparece aqui mas não pode ser alterado nesta página. Entrar com \"Lembrar-me\" dura mais; entrar por SSO, não.",
+      "attachments_single_line": "Mostra os anexos da nota numa única linha em vez de os repartir por várias. Deslize a linha com o dedo ou o rato; quando está cortada, termina com «…».",
+      "attachment_links_as_cards": "Ao inserir um anexo numa nota com «Link para anexo», mostra-o como um cartão (um ícone conforme o tipo, o nome e uma seta de transferência) numa linha própria, em vez de uma ligação no texto.",
+      "remember_me_days": "Por quanto tempo marcar \"Lembrar-me\" na página de login mantém alguém conectado. Vale apenas para os logins com senha. Um login SSO dura o tempo indicado pelo cartão Duração das sessões, em Configurações > Sobre, que é definido no arquivo .env. Mudar uma senha, ou desconectar um dispositivo em Dispositivos conectados, o desconecta na hora, seja qual for a duração definida aqui."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "No telemóvel, a barra de ferramentas acima do teclado tem um botão + que abre o mesmo menu, seja qual for esta definição."
@@ -686,7 +703,8 @@
       "custom_logo": "Logótipo",
       "two_factor_required": "Exigir dois fatores",
       "sessions": "Dispositivos conectados",
-      "session_lifetime": "Duração das sessões"
+      "session_lifetime": "Duração das sessões",
+      "remember_me_days": "Duração do \"Lembrar-me\""
     },
     "default_credentials": {
       "both": "Esta conta ainda usa o nome de usuário e a palavra-passe de origem. Qualquer pessoa que consiga aceder a esta instância pode entrar.",
@@ -723,7 +741,8 @@
       "s3_backups": "Backups no armazenamento S3"
     },
     "login_disabled": {
-      "confirm": "Qualquer pessoa que consiga chegar a esta instância do Poznote abrirá diretamente a sua conta, sem nome de usuário, senha ou código de dois fatores. Continue apenas se só você consegue acessá-la, ou se um proxy reverso cuida da autenticação."
+      "status_one": "1 conta",
+      "status_other": "{{count}} contas"
     },
     "scope": {
       "user": "Pessoal",
@@ -933,6 +952,7 @@
       "code_block_line_numbers": "Números de linha em blocos de código",
       "code_block_collapsed_lines": "Blocos de código recolhidos",
       "attachment_previews_in_note": "Pré-visualizações de anexos",
+      "attachments_show_inserted_images": "Imagens inseridas nos anexos",
       "attachments_at_bottom": "Anexos no final",
       "backlinks_at_bottom": "Backlinks no final",
       "note_virtual_space": "Espaço abaixo da nota",
@@ -952,7 +972,9 @@
       "markdown_view_cycle": "Menu de visualizações",
       "tab_follows_note": "O separador segue a nota aberta",
       "update_badge_level": "Ponto de atualização",
-      "update_check_interval": "Verificação de atualizações"
+      "update_check_interval": "Verificação de atualizações",
+      "attachments_single_line": "Anexos numa linha",
+      "attachment_links_as_cards": "Links de anexos como cartões"
     },
     "badges": {
       "font_size_default": "padrão ({{size}}px)",
@@ -1531,7 +1553,8 @@
         "mobile_editor_bar": "Barra de edição móvel",
         "sidebar": "Barra lateral",
         "task_lists": "Listas de tarefas",
-        "code_blocks": "Blocos de código"
+        "code_blocks": "Blocos de código",
+        "kanban": "Kanban"
       },
       "check_all": "Marcar todos",
       "uncheck_all": "Desmarcar todos",
@@ -2101,6 +2124,13 @@
     },
     "code_block_collapsed_lines": {
       "unit": "linhas"
+    },
+    "remember_me_days": {
+      "unit": "dias"
+    },
+    "login_disabled": {
+      "description": "As contas marcadas abrem sem senha, a partir de uma lista na página de login. As outras mantêm a senha. Se a única conta desta instância for marcada, não há mais página de login.",
+      "warning": "Qualquer pessoa que consiga chegar a esta instância pode abrir essas contas, sem senha e sem código de dois fatores. Só marque contas se a instância não puder ser acessada pela internet, ou se um proxy reverso na frente dela cuidar da autenticação. Uma conta de administrador marcada dá direitos de administrador a qualquer pessoa."
     }
   },
   "notes_list": {
@@ -2331,6 +2361,7 @@
     "checklist": "Lista de verificação",
     "done": "Feito",
     "image": "Imagem",
+    "image_from_attachments": "Imagem dos anexos",
     "take_photo": "Tirar uma foto",
     "excalidraw": "Excalidraw",
     "mermaid": "Mermaid",
@@ -2783,10 +2814,9 @@
       "password": "Senha",
       "profile": "Selecione seu perfil"
     },
-    "remember_me": "Lembrar-me por 30 dias",
+    "remember_me": "Lembrar-me por {{days}} dias",
+    "remember_me_one": "Lembrar-me por 1 dia",
     "button": "Login",
-    "oidc_button": "Continuar com {{provider}}",
-    "oidc_button_account": "Continuar com {{account}}",
     "oidc_other_account": "Entrar com outra conta",
     "no_profiles": "Nenhum perfil de usuário disponível. Por favor, entre em contato com o administrador.",
     "errors": {
@@ -2823,7 +2853,14 @@
       "enroll_intro": "A autenticação em dois fatores é obrigatória nesta instância. Configure-a para continuar.",
       "enroll_submit": "Ativar e entrar"
     },
-    "powered_by": "Com tecnologia {{link}}"
+    "powered_by": "Com tecnologia {{link}}",
+    "passwordless": {
+      "intro": "Abrir sem senha"
+    },
+    "methods": {
+      "password": "Entrar com senha",
+      "sso": "Entrar com SSO"
+    }
   },
   "restore_import": {
     "page": {

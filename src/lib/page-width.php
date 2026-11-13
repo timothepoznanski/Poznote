@@ -17,6 +17,8 @@ const POZNOTE_PAGE_WIDTH_MAX = 100;
 const POZNOTE_PAGE_WIDTH_PAGES = [
     'speed-dial' => ['setting' => 'speed_dial_width', 'var' => '--speed-dial-width', 'column' => '.speed-dial-grid', 'default' => null],
     'dashboard' => ['setting' => 'dashboard_width', 'var' => '--dashboard-width', 'column' => '.dashboard-content', 'default' => 100],
+    // attachments_list.php: its own column (900px as a list, 1100px as a grid) without a setting
+    'attachments' => ['setting' => 'attachments_list_width', 'var' => '--attachments-list-width', 'column' => '.attachments-list-container', 'default' => null],
 ];
 
 /** A stored width as a whole percentage, null for the page's own layout. */

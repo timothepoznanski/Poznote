@@ -33,7 +33,6 @@
         "profile": "Profil"
       },
       "button": "Connexion",
-      "remember_me": "Rester connecté pendant 30 jours",
       "no_profiles": "Aucun profil disponible. Veuillez contacter l'administrateur.",
       "oidc_button": "Continuer avec {{provider}}",
       "documentation": "Documentation Poznote",
@@ -171,7 +170,11 @@
       "expand": "Déplier le sous-dossier",
       "collapse": "Replier le sous-dossier"
     },
-    "add_note": "Ajouter une note"
+    "add_note": "Ajouter une note",
+    "background": {
+      "button": "Image de fond",
+      "description": "Ajoutez une image de fond à ce tableau Kanban. Elle s'affiche derrière les colonnes."
+    }
   },
   "folders": {
     "delete": {
@@ -410,17 +413,22 @@
       "show_inline_images": "Afficher aussi les images déjà visibles dans le contenu de la note",
       "all_file_types": "Tous les types",
       "file_type_filter": "Filtrer par type de fichier",
-      "download": "Télécharger"
+      "download": "Télécharger",
+      "grid_view": "Vue en grille",
+      "list_view": "Vue en liste",
+      "pager_status": "Page {{page}} sur {{pages}}, {{total}} pièces jointes"
     },
     "context_menu": {
       "open": "Ouvrir",
       "download": "Télécharger",
+      "insert_into_note": "Insérer dans la note",
       "transcribe": "Transcrire",
       "delete": "Supprimer",
       "delete_confirm_title": "Supprimer la pièce jointe",
       "delete_confirm_message": "Supprimer « {{filename}} » ? La pièce jointe est retirée de la note et ne pourra pas être récupérée.",
       "delete_confirm_message_unnamed": "Supprimer cette pièce jointe ? Elle est retirée de la note et ne pourra pas être récupérée.",
-      "move": "Déplacer vers une autre note"
+      "move": "Déplacer vers une autre note",
+      "preview_size": "Taille des aperçus"
     },
     "move": {
       "title": "Déplacer la pièce jointe",
@@ -437,7 +445,12 @@
       "message_many": "Insérer les {{count}} images dans la note, ou les ajouter aux pièces jointes ?",
       "attach": "Ajouter en pièce jointe",
       "insert": "Insérer dans la note"
-    }
+    },
+    "picker": {
+      "no_images": "Cette note n'a aucune image dans ses pièces jointes."
+    },
+    "inserted_images_toggle": "Afficher aussi les images insérées dans les notes",
+    "inserted_images_toggle_note": "Afficher aussi les images insérées dans la note"
   },
   "auth": {
     "api": {
@@ -497,6 +510,7 @@
       "code_line_numbers": "Affichez les numéros de ligne dans les blocs de code de l'aperçu markdown.",
       "code_block_collapsed_lines": "Combien de lignes d'un bloc de code restent affichées une fois le bloc replié, de 0 à 100. À 0, un bloc replié ne montre rien de son listing. Un bloc qui n'a pas plus de lignes que ça ne reçoit pas le chevron, le replier ne masquerait rien.",
       "attachment_previews": "Affichez un aperçu des pièces jointes dans les notes.",
+      "attachments_show_inserted_images": "Les images collées ou insérées dans une note sont enregistrées comme pièces jointes. Elles sont masquées dans les listes de pièces jointes pour ne pas noyer les autres fichiers. Activez cette option pour les y afficher aussi.",
       "attachments_at_bottom": "Affichez la section des pièces jointes en bas des notes plutôt qu'en haut.",
       "allow_executable_attachments": "Autorise les scripts et exécutables (.sh, .ps1, .bat, .exe, .py, ...) en pièce jointe, pour tous les comptes de cette instance. Poznote ne les exécute jamais, il ne fait que les stocker et les servir. Les types qu'un serveur web pourrait exécuter, comme .php, restent bloqués.",
       "backlinks_at_bottom": "Affichez la section des rétroliens en bas des notes plutôt qu'en haut.",
@@ -543,7 +557,7 @@
       "local_backup": "Enregistrez des archives de sauvegarde complètes dans un dossier du serveur, manuellement ou selon une planification, en ne conservant que les plus récentes.",
       "whats_new": "Après une mise à jour, afficher une fois les notes de la nouvelle version à l'ouverture de vos notes.",
       "release_notes": "Ouvrir les notes de toutes les versions de Poznote sur GitHub.",
-      "login_disabled": "Passe l'écran de connexion : tout navigateur qui atteint cette instance ouvre directement votre compte, sans nom d'utilisateur, mot de passe ni code à deux facteurs. À n'activer que si vous êtes seul à pouvoir joindre cette instance, ou si un reverse proxy placé devant elle gère l'authentification. L'API continue de demander des identifiants.",
+      "login_disabled": "Choisissez les comptes qui s'ouvrent sans mot de passe. La page de connexion les liste sous le formulaire de mot de passe, et quiconque atteint cette instance peut les ouvrir. Quand le seul compte de l'instance est choisi, il n'y a plus de page de connexion du tout. L'API continue de demander des identifiants.",
       "outbound_hosts": "Les utilisateurs non administrateurs ne peuvent connecter les webhooks, Git Sync et leurs propres serveurs IA, de transcription ou MCP qu'à des hôtes publics d'Internet. Listez ici les hôtes ou réseaux locaux qu'ils peuvent utiliser, par exemple un serveur Ollama ou n8n. Les administrateurs ne sont pas limités.",
       "embeds": "Les notes peuvent intégrer du contenu de ces sites, comme une vidéo YouTube ou une applet GeoGebra. Désactivez ceux que votre instance ne doit jamais charger. Aucun autre site ne peut être intégré, et aucun site ne peut être ajouté ici.",
       "diary_template": "Choisissez une note dont le contenu sert de point de départ à chaque nouvelle entrée de journal de l'espace de travail {{workspace}}. La liste montre les notes rangées dans un dossier nommé Modèles (ou Templates) de cet espace. Chaque espace de travail a son propre modèle.",
@@ -555,7 +569,10 @@
       "update_badge_level": "Choisissez quelles versions posent la pastille rouge sur les entrées Réglages. Quel que soit le choix, la nouvelle version reste annoncée sur cette page, rien n'est caché.",
       "update_check_interval": "À quelle fréquence Poznote vérifie en arrière-plan s'il existe une version plus récente. La pastille n'apparaît qu'après une vérification, donc un intervalle plus long la retarde. La carte Version ci-dessus vérifie toujours tout de suite quand on clique dessus.",
       "sessions": "Voir les navigateurs et les appareils actuellement connectés à votre compte, et déconnecter ceux que vous n’utilisez plus.",
-      "session_lifetime": "Combien de temps une connexion dure sans activité. Réglée avec POZNOTE_SESSION_LIFETIME_DAYS dans le fichier .env, donc affichée ici sans pouvoir être modifiée depuis cette page. Une connexion avec « Se souvenir de moi » dure plus longtemps ; une connexion par SSO, non."
+      "session_lifetime": "Combien de temps une connexion dure sans activité. Réglée avec POZNOTE_SESSION_LIFETIME_DAYS dans le fichier .env, donc affichée ici sans pouvoir être modifiée depuis cette page. Une connexion avec « Se souvenir de moi » dure plus longtemps ; une connexion par SSO, non.",
+      "attachments_single_line": "Affiche les pièces jointes de la note sur une seule ligne au lieu de les répartir sur plusieurs lignes. Faites glisser la ligne avec le doigt ou la souris ; quand elle est coupée, elle se termine par « … ».",
+      "attachment_links_as_cards": "Quand vous insérez une pièce jointe dans une note avec « Lien vers une pièce jointe », l'affiche en carte (une icône selon son type, son nom et une flèche de téléchargement) sur sa propre ligne, au lieu d'un lien dans le texte.",
+      "remember_me_days": "Combien de temps cocher « Se souvenir de moi » sur la page de connexion garde quelqu'un connecté. Ne vaut que pour les connexions par mot de passe. Une connexion SSO dure le temps indiqué par la carte Durée des sessions, dans Paramètres > À propos, qui se règle dans le fichier .env. Changer un mot de passe, ou déconnecter un appareil depuis Appareils connectés, le déconnecte tout de suite, quelle que soit la durée réglée ici."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "Sur mobile, la barre d'outils au-dessus du clavier a un bouton + qui ouvre le même menu, quel que soit ce réglage."
@@ -685,7 +702,8 @@
       "custom_logo": "Logo",
       "two_factor_required": "Double authentification obligatoire",
       "sessions": "Appareils connectés",
-      "session_lifetime": "Durée des sessions"
+      "session_lifetime": "Durée des sessions",
+      "remember_me_days": "Durée du « Se souvenir de moi »"
     },
     "default_credentials": {
       "both": "Ce compte utilise encore le login et le mot de passe livrés par défaut. N'importe qui pouvant joindre cette instance peut s'y connecter.",
@@ -722,7 +740,8 @@
       "s3_backups": "Sauvegardes dans le stockage S3"
     },
     "login_disabled": {
-      "confirm": "Toute personne qui peut atteindre cette instance Poznote ouvrira directement votre compte, sans nom d'utilisateur, mot de passe ni code à deux facteurs. Ne continuez que si vous êtes seul à pouvoir la joindre, ou si un reverse proxy gère l'authentification."
+      "status_one": "1 compte",
+      "status_other": "{{count}} comptes"
     },
     "scope": {
       "user": "Personnel",
@@ -935,6 +954,7 @@
       "code_block_line_numbers": "Numéros de ligne des blocs de code",
       "code_block_collapsed_lines": "Blocs de code repliés",
       "attachment_previews_in_note": "Aperçus des pièces jointes",
+      "attachments_show_inserted_images": "Images insérées dans les pièces jointes",
       "attachments_at_bottom": "Pièces jointes en bas",
       "backlinks_at_bottom": "Backlinks en bas",
       "note_virtual_space": "Espace sous la note",
@@ -952,7 +972,9 @@
       "markdown_view_cycle": "Menu des vues",
       "tab_follows_note": "L'onglet suit la note ouverte",
       "update_badge_level": "Pastille de mise à jour",
-      "update_check_interval": "Vérification des mises à jour"
+      "update_check_interval": "Vérification des mises à jour",
+      "attachments_single_line": "Pièces jointes sur une ligne",
+      "attachment_links_as_cards": "Liens de pièces jointes en carte"
     },
     "badges": {
       "font_size_default": "par défaut ({{size}}px)",
@@ -1531,7 +1553,8 @@
         "mobile_editor_bar": "Barre d’édition mobile",
         "sidebar": "Barre latérale",
         "task_lists": "Listes de tâches",
-        "code_blocks": "Blocs de code"
+        "code_blocks": "Blocs de code",
+        "kanban": "Kanban"
       },
       "badge_all_visible": "Tout visible",
       "badge_hidden_count_admin": "{{count}} masqué(s), dont {{admin}} par l'administrateur",
@@ -2107,6 +2130,13 @@
     },
     "code_block_collapsed_lines": {
       "unit": "lignes"
+    },
+    "remember_me_days": {
+      "unit": "jours"
+    },
+    "login_disabled": {
+      "description": "Les comptes cochés s'ouvrent sans mot de passe, depuis une liste sur la page de connexion. Les autres gardent leur mot de passe. Si le seul compte de cette instance est coché, il n'y a plus de page de connexion.",
+      "warning": "Quiconque peut atteindre cette instance peut ouvrir ces comptes, sans mot de passe ni code à deux facteurs. Ne cochez des comptes que si l'instance n'est pas joignable depuis Internet, ou si un reverse proxy placé devant elle gère l'authentification. Un compte administrateur coché donne les droits d'administrateur à n'importe qui."
     }
   },
   "notes_list": {
@@ -2338,6 +2368,7 @@
     "checklist": "Cases à cocher",
     "done": "Fait",
     "image": "Image",
+    "image_from_attachments": "Image depuis les pièces jointes",
     "take_photo": "Prendre une photo",
     "excalidraw": "Excalidraw",
     "mermaid": "Mermaid",
@@ -2788,10 +2819,9 @@
       "password": "Mot de passe",
       "profile": "Sélectionnez votre profil"
     },
-    "remember_me": "Se souvenir de moi pendant 30 jours",
+    "remember_me": "Se souvenir de moi pendant {{days}} jours",
+    "remember_me_one": "Se souvenir de moi pendant 1 jour",
     "button": "Se connecter",
-    "oidc_button": "Continuer avec {{provider}}",
-    "oidc_button_account": "Continuer avec {{account}}",
     "oidc_other_account": "Se connecter avec un autre compte",
     "no_profiles": "Aucun profil utilisateur disponible. Veuillez contacter l'administrateur.",
     "errors": {
@@ -2828,7 +2858,14 @@
       "enroll_intro": "L'authentification à deux facteurs est obligatoire sur cette instance. Configurez-la pour continuer.",
       "enroll_submit": "Activer et se connecter"
     },
-    "powered_by": "Propulsé par {{link}}"
+    "powered_by": "Propulsé par {{link}}",
+    "passwordless": {
+      "intro": "Ouvrir sans mot de passe"
+    },
+    "methods": {
+      "password": "Se connecter avec un mot de passe",
+      "sso": "Se connecter avec le SSO"
+    }
   },
   "restore_import": {
     "page": {

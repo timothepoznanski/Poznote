@@ -535,8 +535,10 @@ Las contraseñas se gestionan desde la interfaz web de Poznote, no desde `.env`:
 
 - Los usuarios pueden cambiar su propia contraseña desde **Configuración > Cambiar contraseña**.
 - Los administradores pueden definir una contraseña personalizada para cualquier usuario, o restablecer la contraseña por defecto, desde **Configuración > Herramientas de administración > Gestión de usuarios**.
-- La opción **Recordarme por 30 días** mantiene la sesión abierta durante ese tiempo.
+- La opción **Recordarme** mantiene la sesión abierta durante 30 días de forma predeterminada. Un administrador puede cambiar esa duración desde **Configuración > Herramientas de administración > Usuarios y acceso**, de 1 a 400 días. Solo vale para los inicios de sesión con contraseña, ya que un inicio de sesión por SSO nunca recibe esa cookie.
+- Un inicio de sesión dura 7 días sin actividad y sobrevive al cierre del navegador. Es lo que mantiene un inicio de sesión por SSO, que nunca recibe una cookie de «recordarme», para que una cuenta desactivada en el proveedor de identidad pierda el acceso al caducar su sesión. Ajusta `POZNOTE_SESSION_LIFETIME_DAYS` en `.env` para otro número entero de días, de 1 a 400.
 - Cambiar una contraseña invalida las cookies de «recordarme» existentes de ese usuario.
+- **Configuración > Mi cuenta > Dispositivos conectados** enumera los navegadores con sesión abierta en tu cuenta, con su última actividad, y cierra la sesión de los que ya no uses.
 
 #### Autenticación de dos factores
 
@@ -567,7 +569,7 @@ Poznote admite OpenID Connect (código de autorización + PKCE) para el inicio d
 
 #### Cómo funciona
 
-1. La página de inicio de sesión muestra un botón `Continue with [Provider Name]` cuando OIDC está activado.
+1. La página de inicio de sesión muestra un botón `[Provider Name]` cuando OIDC está activado.
 2. Los usuarios se autentican con el flujo de código de autorización de OIDC, protegido por PKCE.
 3. El acceso puede restringirse con grupos permitidos y, si hace falta, con una lista heredada de usuarios permitidos.
 4. Tras la autenticación, Poznote vincula la identidad por `sub` (`oidc_subject`) y después por un email verificado (definido por un administrador o sincronizado desde el proveedor, sin distinguir mayúsculas). Un perfil existente nunca se vincula por su nombre de usuario: para vincularlo en su primer inicio de sesión SSO, asígnale en **Settings > Admin Tools > User Management** el email que envía el proveedor, o pega su sujeto OIDC. Un primer inicio de sesión rechazado registra en el log el sujeto que hay que pegar.

@@ -378,10 +378,10 @@ if (!(!function_exists('isActiveAccountOwnedByAuthenticatedUser') || isActiveAcc
     }));
 }
 
-// With the login screen turned off (Settings > Open without login) there is nothing
-// to log out of: the next page would open the same session again. Accounts
-// are still switched from the workspace menu.
-if (function_exists('isAutoLoginSession') && isAutoLoginSession()) {
+// With no login screen at all (Settings > Open without login, single account)
+// there is nothing to log out of: the next page would open the same session
+// again. When the login page lists several accounts, Logout leads back to it.
+if (function_exists('isLogoutPointless') && isLogoutPointless()) {
     $iconSidebarBottomItems = array_values(array_filter($iconSidebarBottomItems, static function (array $item): bool {
         return ($item['id'] ?? '') !== 'iconSidebarLogoutBtn';
     }));

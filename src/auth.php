@@ -73,7 +73,13 @@ function getAuthConfig($key, $default) {
 
 // Remember me cookie settings
 define("REMEMBER_ME_COOKIE", 'poznote_remember_' . ($configured_port ?? '8040'));
-define("REMEMBER_ME_DURATION", 30 * 24 * 60 * 60); // 30 days
+
+// How long a remember-me cookie lasts is an instance setting an administrator
+// changes in Settings > Admin Tools (30 days by default, as it always was).
+// A function and not a constant: this file is included on every request,
+// including the ones that never look at a cookie, and the value is read from
+// master.db. See lib/remember-me-duration.php.
+require_once __DIR__ . '/lib/remember-me-duration.php';
 
 /**
  * Set or clear the remember-me cookie with proper security attributes.
@@ -175,7 +181,7 @@ function poznoteEndRememberMeCookieOnLogout(): void {
         }
         require_once __DIR__ . '/users/db_master.php';
         foreach ($ended as $fingerprint => $userId) {
-            revokeRememberMeToken((int)$userId, (string)$fingerprint, time() + REMEMBER_ME_DURATION);
+            revokeRememberMeToken((int)$userId, (string)$fingerprint, time() + poznoteRememberMeDurationSeconds());
         }
     } catch (Throwable $e) {
         error_log('Poznote: could not end the remember-me cookie at logout: ' . $e->getMessage());
@@ -713,10 +719,10 @@ function purgeLegacyPublicWorkspaceSession(): void {
 function isAuthenticated() {
     purgeLegacyPublicWorkspaceSession();
 
-    // A session opened without a login lasts as long as the option that
-    // opened it: turned off, or handed to another account, it ends here and
+    // A session opened without a password lasts as long as its account stays
+    // ticked: option turned off, or the account unticked, it ends here and
     // the request is judged again from scratch.
-    if (isAutoLoginSession() && (int)($_SESSION['login_user_id'] ?? 0) !== getAutoLoginAccountId()) {
+    if (isAutoLoginSession() && !in_array((int)($_SESSION['login_user_id'] ?? 0), getAutoLoginAccountIds(), true)) {
         $_SESSION = [];
     }
 
@@ -764,7 +770,7 @@ function isAuthenticated() {
                 // far-future value cannot defeat the expiry window.
                 $timestampValid = ctype_digit((string)$timestamp)
                     && (int)$timestamp <= time() + 60
-                    && time() - (int)$timestamp < REMEMBER_ME_DURATION;
+                    && time() - (int)$timestamp < poznoteRememberMeDurationSeconds();
                 if ($timestampValid) {
                     require_once __DIR__ . '/users/db_master.php';
                     $user = getUserProfileById((int)$userId);
@@ -808,7 +814,7 @@ function isAuthenticated() {
 
                             if ($validLegacyHash) {
                                 $newTimestamp = time();
-                                setRememberMeCookie(buildRememberMeToken($username, (int)$userId, $newTimestamp, $secretToUse), time() + REMEMBER_ME_DURATION);
+                                setRememberMeCookie(buildRememberMeToken($username, (int)$userId, $newTimestamp, $secretToUse), time() + poznoteRememberMeDurationSeconds());
                             }
 
                             return $activeAccountSelected;
@@ -834,43 +840,90 @@ function isAuthenticated() {
 }
 
 /**
- * The account opened without a login (Settings > Admin Tools > Open without
- * login): the administrator who turned the option on, recorded with it in the
- * master database. 0 while the option is off. Read once per request.
+ * The accounts an administrator ticked in Settings > Admin Tools > Open
+ * without login (lib/auto-login.php). Nothing while the option is off. Read
+ * once per request.
+ *
+ * @return int[]
  */
-function getAutoLoginAccountId(): int {
-    static $accountId = null;
-    if ($accountId === null) {
-        $accountId = 0;
+function getAutoLoginAccountIds(): array {
+    static $accountIds = null;
+    if ($accountIds === null) {
         require_once __DIR__ . '/users/db_master.php';
-        if (filter_var(getGlobalSetting('login_disabled', '0'), FILTER_VALIDATE_BOOL)) {
-            $accountId = max(0, (int)getGlobalSetting('login_disabled_user_id', '0'));
-        }
+        require_once __DIR__ . '/lib/auto-login.php';
+        $accountIds = poznoteAutoLoginAccountIds(
+            getGlobalSetting('login_disabled', '0'),
+            getGlobalSetting('login_disabled_user_ids', ''),
+            getGlobalSetting('login_disabled_user_id', '')
+        );
     }
-    return $accountId;
+    return $accountIds;
 }
 
 function isLoginDisabled(): bool {
-    return getAutoLoginAccountId() > 0;
+    return getAutoLoginAccountIds() !== [];
 }
 
 /**
- * True for a session opened by signInWithoutCredentials(): there is nothing
- * to sign out of, the next request would open the same session again.
+ * The ticked accounts that can be opened from the login page, by username.
+ * Read once per request.
+ */
+function getPasswordlessLoginProfiles(): array {
+    static $profiles = null;
+    if ($profiles === null) {
+        $profiles = [];
+        if (isLoginDisabled()) {
+            require_once __DIR__ . '/users/db_master.php';
+            $profiles = poznotePasswordlessProfiles(getAllUserProfiles(), getAutoLoginAccountIds());
+        }
+    }
+    return $profiles;
+}
+
+/**
+ * The account opened with no login screen at all: the single active account
+ * of the instance, when it is ticked. Null in every other case, where the
+ * login page offers the ticked accounts instead. Read once per request.
+ */
+function getDirectAutoLoginProfile(): ?array {
+    static $resolved = false;
+    static $profile = null;
+    if (!$resolved) {
+        $resolved = true;
+        if (isLoginDisabled()) {
+            require_once __DIR__ . '/users/db_master.php';
+            $profile = poznoteResolveAutoLoginProfile(getAllUserProfiles(), getAutoLoginAccountIds());
+        }
+    }
+    return $profile;
+}
+
+/**
+ * True for a session opened without a password, directly or from the list of
+ * the login page.
  */
 function isAutoLoginSession(): bool {
     return ($_SESSION['auth_method'] ?? '') === 'auto';
 }
 
 /**
- * Opens the recorded account for a browser that shows up with no session
- * (lib/auto-login.php says which callers). Called last by isAuthenticated(),
- * so an existing session or a remember-me cookie still wins, and every gate
- * built on it follows.
- *
- * The account is opened as it is, without its second factor and without the
- * account choice of a login that can open several: the person can still
- * switch from the workspace menu.
+ * Whether Logout would do nothing: the session was opened with no login
+ * screen, so the next page would open the same account again. When the login
+ * page lists several accounts, Logout is how someone goes back to it.
+ */
+function isLogoutPointless(): bool {
+    if (!isAutoLoginSession()) {
+        return false;
+    }
+    $profile = getDirectAutoLoginProfile();
+    return $profile !== null && (int)$profile['id'] === (int)($_SESSION['login_user_id'] ?? 0);
+}
+
+/**
+ * Opens the single ticked account for a browser that shows up with no
+ * session (lib/auto-login.php says which callers). Called last by
+ * isAuthenticated(), so an existing session or a remember-me cookie still
+ * wins, and every gate built on it follows.
  */
 function signInWithoutCredentials(): bool {
     if (PHP_SAPI === 'cli' || session_status() !== PHP_SESSION_ACTIVE || !isLoginDisabled()) {
@@ -882,11 +935,44 @@ function signInWithoutCredentials(): bool {
         return false;
     }
 
+    $profile = getDirectAutoLoginProfile();
+    if ($profile === null) {
+        return false;
+    }
+
+    return openPasswordlessSession((int)$profile['id']);
+}
+
+/**
+ * Opens a ticked account chosen on the login page. Refused for any account
+ * the administrator did not tick, or that is gone or deactivated.
+ */
+function openAccountWithoutPassword(int $accountId): bool {
+    if ($accountId <= 0 || session_status() !== PHP_SESSION_ACTIVE) {
+        return false;
+    }
+
+    foreach (getPasswordlessLoginProfiles() as $profile) {
+        if ((int)$profile['id'] === $accountId) {
+            return openPasswordlessSession($accountId);
+        }
+    }
+
+    return false;
+}
+
+/**
+ * The session of an account opened without a password. The account is opened
+ * as it is, without its second factor and without the account choice of a
+ * login that can open several: the person can still switch from the
+ * workspace menu. No remember-me cookie: choosing the account again on the
+ * login page costs nothing.
+ */
+function openPasswordlessSession(int $accountId): bool {
     require_once __DIR__ . '/users/db_master.php';
-    $profile = poznoteResolveAutoLoginProfile(getAllUserProfiles(), getAutoLoginAccountId());
-    $user = $profile !== null ? getUserProfileById((int)$profile['id']) : null;
+    $user = getUserProfileById($accountId);
     if (!$user || empty($user['active'])) {
-        error_log('Poznote: opening without login is on, but its account (id ' . getAutoLoginAccountId() . ') is gone or deactivated, the login page stays in use');
+        error_log('Poznote: opening without login is on, but account id ' . $accountId . ' is gone or deactivated, the login page stays in use');
         return false;
     }
 
@@ -1632,7 +1718,7 @@ function issueRememberMeCookie(array $user): void {
 
     // Format: actual_username:user_id:timestamp:hash
     $token = buildRememberMeToken((string)$user['username'], (int)$user['id'], time(), $secretToUse);
-    setRememberMeCookie($token, time() + REMEMBER_ME_DURATION);
+    setRememberMeCookie($token, time() + poznoteRememberMeDurationSeconds());
 }
 
 // --- Second step of a password login (two-factor, see src/lib/totp.php) ---

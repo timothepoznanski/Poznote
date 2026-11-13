@@ -33,7 +33,6 @@
         "profile": "Profil"
       },
       "button": "Anmelden",
-      "remember_me": "Für 30 Tage angemeldet bleiben",
       "no_profiles": "Keine Profile verfügbar. Bitte kontaktieren Sie den Administrator.",
       "oidc_button": "Mit {{provider}} fortfahren",
       "documentation": "Poznote Dokumentation",
@@ -172,7 +171,11 @@
       "no_boards": "Noch keine Kanban-Boards.",
       "hint": "Aktivieren Sie die Kanban-Ansicht für einen Ordner, damit er hier erscheint."
     },
-    "add_note": "Notiz hinzufügen"
+    "add_note": "Notiz hinzufügen",
+    "background": {
+      "button": "Hintergrundbild",
+      "description": "Laden Sie ein Hintergrundbild für dieses Kanban-Board hoch. Es wird hinter den Spalten angezeigt."
+    }
   },
   "folders": {
     "delete": {
@@ -411,17 +414,22 @@
       "show_inline_images": "Auch Bilder anzeigen, die bereits im Notizinhalt sichtbar sind",
       "all_file_types": "Alle Typen",
       "file_type_filter": "Nach Dateityp filtern",
-      "download": "Herunterladen"
+      "download": "Herunterladen",
+      "grid_view": "Rasteransicht",
+      "list_view": "Listenansicht",
+      "pager_status": "Seite {{page}} von {{pages}}, {{total}} Anhänge"
     },
     "context_menu": {
       "open": "Öffnen",
       "download": "Herunterladen",
+      "insert_into_note": "In die Notiz einfügen",
       "transcribe": "Transkribieren",
       "delete": "Löschen",
       "delete_confirm_title": "Anhang löschen",
       "delete_confirm_message": "„{{filename}}“ löschen? Der Anhang wird aus der Notiz entfernt und kann nicht wiederhergestellt werden.",
       "delete_confirm_message_unnamed": "Diesen Anhang löschen? Er wird aus der Notiz entfernt und kann nicht wiederhergestellt werden.",
-      "move": "In eine andere Notiz verschieben"
+      "move": "In eine andere Notiz verschieben",
+      "preview_size": "Vorschaugröße"
     },
     "move": {
       "title": "Anhang verschieben",
@@ -438,7 +446,12 @@
       "message_many": "Die {{count}} Bilder in die Notiz einfügen oder zu den Anhängen hinzufügen?",
       "attach": "Als Anhang hinzufügen",
       "insert": "In die Notiz einfügen"
-    }
+    },
+    "picker": {
+      "no_images": "Diese Notiz hat kein Bild in ihren Anhängen."
+    },
+    "inserted_images_toggle": "Auch in Notizen eingefügte Bilder anzeigen",
+    "inserted_images_toggle_note": "Auch in die Notiz eingefügte Bilder anzeigen"
   },
   "auth": {
     "api": {
@@ -498,6 +511,7 @@
       "code_line_numbers": "Zeilennummern in Codeblöcken in der Markdown-Vorschau anzeigen.",
       "code_block_collapsed_lines": "Wie viele Zeilen eines Codeblocks sichtbar bleiben, wenn er eingeklappt ist, von 0 bis 100. Bei 0 zeigt ein eingeklappter Block nichts von seinem Code. Ein Block mit nicht mehr Zeilen als dieser Wert erhält keinen Einklapppfeil, das Einklappen würde nichts verbergen.",
       "attachment_previews": "Zeigen Sie Vorschauen von Anhängen in Notizen an.",
+      "attachments_show_inserted_images": "In eine Notiz eingefügte Bilder werden als Anhänge gespeichert. Sie werden in den Anhangslisten ausgeblendet, damit sie die anderen Dateien nicht verdecken. Aktivieren Sie diese Option, um sie ebenfalls anzuzeigen.",
       "attachments_at_bottom": "Zeigen Sie den Anhangsbereich unten statt oben in Notizen an.",
       "allow_executable_attachments": "Erlaubt Skripte und ausführbare Dateien (.sh, .ps1, .bat, .exe, .py, ...) als Anhang, für alle Konten dieser Instanz. Poznote führt sie nie aus, es speichert und liefert sie nur aus. Dateitypen, die ein Webserver ausführen könnte, etwa .php, bleiben blockiert.",
       "backlinks_at_bottom": "Zeigen Sie den Backlink-Bereich unten statt oben in Notizen an.",
@@ -544,7 +558,7 @@
       "local_backup": "Speichern Sie vollständige Sicherungsarchive in einem Ordner des Servers, manuell oder nach Zeitplan, und behalten Sie nur die neuesten.",
       "whats_new": "Nach einem Update die Versionshinweise der neuen Version einmal beim Öffnen deiner Notizen anzeigen.",
       "release_notes": "Die Versionshinweise aller Poznote-Versionen auf GitHub öffnen.",
-      "login_disabled": "Überspringt die Anmeldeseite: Jeder Browser, der diese Instanz erreicht, öffnet direkt Ihr Konto, ohne Benutzername, Passwort oder Zwei-Faktor-Code. Nur aktivieren, wenn allein Sie diese Instanz erreichen können oder ein vorgeschalteter Reverse Proxy die Authentifizierung übernimmt. Die API verlangt weiterhin Zugangsdaten.",
+      "login_disabled": "Wählen Sie die Konten, die sich ohne Passwort öffnen. Die Anmeldeseite listet sie unter dem Passwortformular auf, und jeder, der diese Instanz erreicht, kann sie öffnen. Ist das einzige Konto der Instanz gewählt, gibt es gar keine Anmeldeseite. Die API verlangt weiterhin Zugangsdaten.",
       "outbound_hosts": "Benutzer ohne Administratorrechte können Webhooks, Git Sync und ihre eigenen KI-, Transkriptions- oder MCP-Server nur mit öffentlichen Internet-Hosts verbinden. Listen Sie hier die lokalen Hosts oder Netzwerke auf, die sie verwenden dürfen, etwa einen Ollama- oder n8n-Server. Administratoren sind nicht eingeschränkt.",
       "embeds": "Notizen können Inhalte dieser Seiten einbetten, etwa ein YouTube-Video oder ein GeoGebra-Applet. Schalten Sie die Seiten ab, die diese Instanz niemals laden soll. Andere Seiten können nicht eingebettet werden, und hier lassen sich keine hinzufügen.",
       "diary_template": "Wählen Sie eine Notiz, mit deren Inhalt jeder neue Tagebucheintrag des Arbeitsbereichs {{workspace}} beginnt. Die Liste zeigt die Notizen in einem Ordner namens Vorlagen (oder Templates) dieses Arbeitsbereichs. Jeder Arbeitsbereich hat seine eigene Vorlage.",
@@ -556,7 +570,10 @@
       "update_badge_level": "Lege fest, welche Versionen den roten Punkt auf den Einstellungen anzeigen. Was du auch wählst, die neue Version wird auf dieser Seite weiterhin angekündigt, nichts wird verborgen.",
       "update_check_interval": "Wie oft Poznote im Hintergrund prüft, ob eine neuere Version verfügbar ist. Der Punkt kann erst nach einer Prüfung erscheinen, ein längerer Abstand verzögert ihn also. Die Karte Version darüber prüft bei jedem Klick weiterhin sofort.",
       "sessions": "Die Browser und Geräte ansehen, die gerade in Ihrem Konto angemeldet sind, und die abmelden, die Sie nicht mehr nutzen.",
-      "session_lifetime": "Wie lange eine Anmeldung ohne Aktivität gilt. Wird mit POZNOTE_SESSION_LIFETIME_DAYS in der .env-Datei gesetzt, hier also nur angezeigt und auf dieser Seite nicht änderbar. Eine Anmeldung mit „Angemeldet bleiben“ hält länger, eine Anmeldung über SSO nicht."
+      "session_lifetime": "Wie lange eine Anmeldung ohne Aktivität gilt. Wird mit POZNOTE_SESSION_LIFETIME_DAYS in der .env-Datei gesetzt, hier also nur angezeigt und auf dieser Seite nicht änderbar. Eine Anmeldung mit „Angemeldet bleiben“ hält länger, eine Anmeldung über SSO nicht.",
+      "attachments_single_line": "Zeigt die Anhänge der Notiz in einer einzigen Zeile statt auf mehrere Zeilen verteilt. Die Zeile lässt sich mit dem Finger oder der Maus verschieben; ist sie abgeschnitten, endet sie mit „…“.",
+      "attachment_links_as_cards": "Wenn Sie einen Anhang mit „Link zum Anhang“ in eine Notiz einfügen, wird er als Karte (ein Symbol für den Typ, der Name und ein Download-Pfeil) in einer eigenen Zeile angezeigt statt als Link im Text.",
+      "remember_me_days": "Wie lange das Ankreuzen von „Angemeldet bleiben“ auf der Anmeldeseite jemanden angemeldet lässt. Gilt nur für Anmeldungen mit Passwort. Eine SSO-Anmeldung dauert so lange, wie die Karte Sitzungsdauer unter Einstellungen > Über anzeigt; dieser Wert wird in der .env-Datei festgelegt. Ein geändertes Passwort oder das Abmelden eines Geräts unter Verbundene Geräte meldet es sofort ab, unabhängig von der hier eingestellten Dauer."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "Auf Mobilgeräten hat die Leiste über der Tastatur eine +-Schaltfläche, die unabhängig von dieser Einstellung dasselbe Menü öffnet."
@@ -686,7 +703,8 @@
       "custom_logo": "Logo",
       "two_factor_required": "Zwei-Faktor erzwingen",
       "sessions": "Verbundene Geräte",
-      "session_lifetime": "Sitzungsdauer"
+      "session_lifetime": "Sitzungsdauer",
+      "remember_me_days": "Dauer von „Angemeldet bleiben“"
     },
     "default_credentials": {
       "both": "Dieses Konto verwendet noch den mitgelieferten Benutzernamen und das mitgelieferte Passwort. Jeder, der diese Instanz erreichen kann, kann sich anmelden.",
@@ -723,7 +741,8 @@
       "s3_backups": "Sicherungen im S3-Speicher"
     },
     "login_disabled": {
-      "confirm": "Jeder, der diese Poznote-Instanz erreichen kann, öffnet direkt Ihr Konto, ohne Benutzername, Passwort oder Zwei-Faktor-Code. Fahren Sie nur fort, wenn allein Sie sie erreichen können oder ein Reverse Proxy die Authentifizierung übernimmt."
+      "status_one": "1 Konto",
+      "status_other": "{{count}} Konten"
     },
     "scope": {
       "user": "Persönlich",
@@ -933,6 +952,7 @@
       "code_block_line_numbers": "Codeblock-Zeilennummern",
       "code_block_collapsed_lines": "Eingeklappte Codeblöcke",
       "attachment_previews_in_note": "Anhangsvorschauen",
+      "attachments_show_inserted_images": "Eingefügte Bilder in Anhängen",
       "attachments_at_bottom": "Anhänge unten",
       "backlinks_at_bottom": "Backlinks unten",
       "note_virtual_space": "Freiraum unter der Notiz",
@@ -952,7 +972,9 @@
       "markdown_view_cycle": "Ansichtsmenü",
       "tab_follows_note": "Tab folgt der geöffneten Notiz",
       "update_badge_level": "Update-Punkt",
-      "update_check_interval": "Update-Prüfung"
+      "update_check_interval": "Update-Prüfung",
+      "attachments_single_line": "Anhänge in einer Zeile",
+      "attachment_links_as_cards": "Anhang-Links als Karten"
     },
     "badges": {
       "font_size_default": "Standard ({{size}}px)",
@@ -1531,7 +1553,8 @@
         "mobile_editor_bar": "Mobile Editorleiste",
         "sidebar": "Seitenleiste",
         "task_lists": "Aufgabenlisten",
-        "code_blocks": "Codeblöcke"
+        "code_blocks": "Codeblöcke",
+        "kanban": "Kanban"
       },
       "check_all": "Alle auswählen",
       "uncheck_all": "Alle abwählen",
@@ -2101,6 +2124,13 @@
     },
     "code_block_collapsed_lines": {
       "unit": "Zeilen"
+    },
+    "remember_me_days": {
+      "unit": "Tage"
+    },
+    "login_disabled": {
+      "description": "Angekreuzte Konten öffnen sich ohne Passwort, über eine Liste auf der Anmeldeseite. Die anderen behalten ihr Passwort. Ist das einzige Konto dieser Instanz angekreuzt, gibt es keine Anmeldeseite mehr.",
+      "warning": "Jeder, der diese Instanz erreichen kann, kann diese Konten öffnen, ohne Passwort und ohne Zwei-Faktor-Code. Kreuzen Sie Konten nur an, wenn die Instanz aus dem Internet nicht erreichbar ist oder ein vorgeschalteter Reverse-Proxy die Authentifizierung übernimmt. Ein angekreuztes Administratorkonto gibt jedem Administratorrechte."
     }
   },
   "notes_list": {
@@ -2332,6 +2362,7 @@
     "checklist": "Checkliste",
     "done": "Erledigt",
     "image": "Bild",
+    "image_from_attachments": "Bild aus Anhängen",
     "take_photo": "Foto aufnehmen",
     "excalidraw": "Excalidraw",
     "mermaid": "Mermaid",
@@ -2783,10 +2814,9 @@
       "password": "Passwort",
       "profile": "Wählen Sie Ihr Profil"
     },
-    "remember_me": "30 Tage merken",
+    "remember_me": "{{days}} Tage merken",
+    "remember_me_one": "1 Tag merken",
     "button": "Anmelden",
-    "oidc_button": "Weiter mit {{provider}}",
-    "oidc_button_account": "Weiter mit {{account}}",
     "oidc_other_account": "Mit einem anderen Konto anmelden",
     "no_profiles": "Keine Benutzerprofile verfügbar. Bitte kontaktieren Sie den Administrator.",
     "errors": {
@@ -2823,7 +2853,14 @@
       "enroll_intro": "Die Zwei-Faktor-Authentifizierung ist auf dieser Instanz Pflicht. Richten Sie sie ein, um fortzufahren.",
       "enroll_submit": "Aktivieren und anmelden"
     },
-    "powered_by": "Basiert auf {{link}}"
+    "powered_by": "Basiert auf {{link}}",
+    "passwordless": {
+      "intro": "Ohne Passwort öffnen"
+    },
+    "methods": {
+      "password": "Mit Passwort anmelden",
+      "sso": "Mit SSO anmelden"
+    }
   },
   "restore_import": {
     "page": {

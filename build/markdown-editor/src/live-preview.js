@@ -212,13 +212,16 @@ const MEDIA_LINE_REGEX = /^\s*<(iframe|audio|video)\b[^>]*>\s*<\/\1>\s*$/i
 // A task list embedded from the List menu (js/tasklist-embed.js writes the
 // line, and fills the block the preview's parser makes of it)
 const TASKLIST_EMBED_LINE_REGEX = /^\s*<div\s+class="tasklist-embed"[^>]*>.*<\/div>\s*$/i
+// An attachment card ("Attachment links as cards", js/attachments.js): the
+// parser rebuilds it, or leaves the line as text when it is not one
+const ATTACHMENT_CARD_LINE_REGEX = /^\s*<a\s+class="attachment-card[^"]*"\s+href="[^"]*"\s*>[^<]*<\/a>\s*$/i
 
 function renderMediaLine(text) {
   if (typeof window.parseMarkdown !== 'function') return null
   try {
     const template = document.createElement('template')
     template.innerHTML = window.parseMarkdown(text)
-    return template.content.querySelector('iframe, audio, video, .tasklist-embed, .embed-blocked')
+    return template.content.querySelector('iframe, audio, video, .tasklist-embed, .embed-blocked, .attachment-card-line')
   } catch (error) {
     return null
   }
@@ -1479,7 +1482,8 @@ function buildLivePreviewDecorations(view, armedPair, pendingFormat) {
 
   function decorateMedia(line) {
     if (line.text.indexOf('<') === -1) return
-    if (!MEDIA_LINE_REGEX.test(line.text) && !TASKLIST_EMBED_LINE_REGEX.test(line.text)) return
+    if (!MEDIA_LINE_REGEX.test(line.text) && !TASKLIST_EMBED_LINE_REGEX.test(line.text) &&
+      !ATTACHMENT_CARD_LINE_REGEX.test(line.text)) return
     if (isInsideCodeBlock(line.from) || touchesLines(line.from, line.to)) return
     if (!renderMediaLine(line.text)) return
     decorations.push(Decoration.replace({ widget: new MediaWidget(line.text) }).range(line.from, line.to))

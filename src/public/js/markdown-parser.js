@@ -569,6 +569,32 @@ function _mdSanitizeExcalidrawContainerHtml(html, markdownExcalidrawIndex) {
     return '<div' + divAttrs + '>' + childHtml + '</div>';
 }
 
+// An attachment card ("Attachment links as cards", js/attachments.js), the
+// same rules as sanitizeMarkdownAttachmentCard() of markdown_parser.php
+var _MD_ATTACHMENT_CARD_LINE = /^[ \t]*<a\s+class="attachment-card(?:\s+attachment-card-([a-z]+))?"\s+href="([^"\n]*)"\s*>([^<\n]*)<\/a>[ \t]*$/gm;
+var _MD_ATTACHMENT_CARD_KINDS = ['pdf', 'doc', 'sheet', 'slides', 'archive', 'image', 'audio', 'video', 'code', 'text', 'file'];
+
+function _mdDecodeEntities(text) {
+    var template = document.createElement('textarea');
+    template.innerHTML = String(text || '');
+    return template.value;
+}
+
+function _mdSanitizeAttachmentCard(match, kind, href, label) {
+    var url = _mdDecodeEntities(href);
+    if (!/^\/api\/v1\/notes\/\d+\/attachments\/[A-Za-z0-9_-]+$/.test(url)) return null;
+    var safeKind = _MD_ATTACHMENT_CARD_KINDS.indexOf(kind) !== -1 ? kind : 'file';
+    // "Attachment previews" on: the preview of the file in place of the card
+    // (window.poznoteAttachmentCardPreviewHtml(), js/attachments.js), when it
+    // has one; the source keeps the card
+    var preview = typeof window.poznoteAttachmentCardPreviewHtml === 'function'
+        ? window.poznoteAttachmentCardPreviewHtml(url, _mdDecodeEntities(label))
+        : null;
+    if (preview) return '<div class="attachment-card-line">' + preview + '</div>';
+    return '<div class="attachment-card-line"><a class="attachment-card attachment-card-' + safeKind + '" href="' +
+        _mdEscapeHtml(url) + '">' + _mdEscapeHtml(_mdDecodeEntities(label)) + '</a></div>';
+}
+
 // Rebuild an embedded task-list marker from scratch (only the numeric id
 // and the fallback label are kept), so no attacker-controlled markup from
 // the markdown source survives.
@@ -1273,6 +1299,17 @@ function parseMarkdown(text) {
         return blockPlaceholder(placeholder, match);
     });
 
+    // Attachment cards, block HTML of their own (_mdSanitizeAttachmentCard());
+    // a line that is not one stays where it is, and is escaped as text
+    text = text.replace(_MD_ATTACHMENT_CARD_LINE, function (match, kind, href, label) {
+        let card = _mdSanitizeAttachmentCard(match, kind, href, label);
+        if (!card) return match;
+        let placeholder = '\x00PATTCARD' + protectedIndex + '\x00';
+        protectedElements[protectedIndex] = card;
+        protectedIndex++;
+        return blockPlaceholder(placeholder, match);
+    });
+
     // Protect inline span tags with style attributes (for colors, backgrounds, etc.)
     // Match: <span style="...">content</span>
     // Only the opening/closing tags are protected: the inner content is left in the
@@ -1664,7 +1701,7 @@ function parseMarkdown(text) {
     let sourceLineNumbers = [];
     let placeholderShift = 0;
     for (let li = 0; li < lines.length; li++) {
-        let placeholders = lines[li].match(/\x00(?:MATHBLOCK|PEXCALIDRAW|PTASKEMBED)\d+\x00/g);
+        let placeholders = lines[li].match(/\x00(?:MATHBLOCK|PEXCALIDRAW|PTASKEMBED|PATTCARD)\d+\x00/g);
         if (!placeholders) {
             sourceLineNumbers.push(li - placeholderShift);
             continue;
@@ -1781,6 +1818,25 @@ function parseMarkdown(text) {
         if (taskEmbedMatch) {
             flushParagraph();
             result.push(protectedElements[parseInt(taskEmbedMatch[1], 10)] || line);
+            continue;
+        }
+
+        let attachmentCardMatch = line.match(/^\s*\x00PATTCARD(\d+)\x00\s*$/);
+        if (attachmentCardMatch) {
+            flushParagraph();
+            let cardHtml = protectedElements[parseInt(attachmentCardMatch[1], 10)] || line;
+            result.push(cardHtml.replace(/^(<div\b)/, '$1 data-line="' + sourceLineOf(i) + '"'));
+            continue;
+        }
+
+        // A line that is only an embedded player (iframe, video, audio) is a
+        // block of its own, even right under or over a line of text (a dropped
+        // audio file is written with no blank line around it): inside a
+        // paragraph, the <br> after a block element draws an empty line.
+        // Same markup as the player between two blank lines.
+        if (/^\s*\x00P(?:IFRAME|VIDEO|AUDIO)\d+\x00\s*$/.test(line)) {
+            flushParagraph();
+            result.push('<p data-line="' + sourceLineOf(i) + '">' + applyInlineStyles(line.trim()) + '</p>');
             continue;
         }
 

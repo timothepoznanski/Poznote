@@ -162,6 +162,7 @@
       "code_line_numbers": "마크다운 미리보기에서 코드 블록의 줄 번호를 표시합니다.",
       "code_block_collapsed_lines": "코드 블록을 접었을 때 화면에 남는 줄 수입니다(0~100). 0이면 접힌 블록이 코드를 전혀 보여주지 않습니다. 이보다 줄이 많지 않은 블록에는 접기 버튼을 표시하지 않습니다. 접어도 숨길 것이 없기 때문입니다.",
       "attachment_previews": "노트 내부 첨부 파일의 미리보기를 표시합니다.",
+      "attachments_show_inserted_images": "노트에 붙여넣거나 삽입한 이미지는 첨부 파일로 저장됩니다. 다른 파일이 묻히지 않도록 첨부 파일 목록에서는 숨겨집니다. 이 옵션을 켜면 목록에도 표시됩니다.",
       "attachments_at_bottom": "상단 대신 노트 하단에 첨부 파일 섹션을 표시합니다.",
       "allow_executable_attachments": "이 인스턴스의 모든 계정에 대해 스크립트 및 실행 파일(.sh, .ps1, .bat, .exe, .py, ...)이 노트에 연결되도록 허용합니다. Poznote는 절대 실행하지 않으며 저장하고 제공만 합니다. .php 등 웹 서버가 실행할 수 있는 파일 형식은 차단된 상태로 유지됩니다.",
       "backlinks_at_bottom": "노트 상단 대신 하단에 백링크 섹션을 표시합니다.",
@@ -208,7 +209,7 @@
       "local_backup": "전체 백업 아카이브를 서버의 폴더에 수동으로 또는 일정에 따라 저장하고 최신 백업만 보관합니다.",
       "whats_new": "업데이트 후 노트를 열 때 새 버전의 릴리스 노트를 한 번 표시합니다.",
       "release_notes": "GitHub에서 모든 Poznote 릴리스 노트를 엽니다.",
-      "login_disabled": "로그인 화면을 건너뜁니다. 이 인스턴스에 접근하는 모든 브라우저가 사용자 이름, 비밀번호, 2단계 인증 코드 없이 내 계정을 바로 엽니다. 본인만 이 인스턴스에 접근할 수 있거나 앞단의 리버스 프록시가 인증을 처리하는 경우에만 켜세요. API는 계속 자격 증명을 요구합니다.",
+      "login_disabled": "비밀번호 없이 열리는 계정을 선택합니다. 로그인 페이지의 비밀번호 양식 아래에 표시되며, 이 인스턴스에 접근할 수 있는 누구나 열 수 있습니다. 인스턴스의 유일한 계정을 선택하면 로그인 페이지가 아예 표시되지 않습니다. API는 계속 자격 증명을 요구합니다.",
       "outbound_hosts": "관리자가 아닌 사용자는 웹훅, Git Sync, 개인 AI·전사·MCP 서버를 공개 인터넷 호스트에만 연결할 수 있습니다. Ollama나 n8n 서버처럼 이들이 사용할 수 있는 로컬 호스트나 네트워크를 여기에 입력하세요. 관리자는 제한되지 않습니다.",
       "embeds": "노트에 이 사이트들의 콘텐츠를 임베드할 수 있습니다. 예를 들어 YouTube 영상이나 GeoGebra 애플릿입니다. 이 인스턴스에서 불러오지 않을 사이트는 꺼 두세요. 다른 사이트는 임베드할 수 없고, 여기에 사이트를 추가할 수도 없습니다.",
       "diary_template": "{{workspace}} 작업 공간의 새 일기 항목이 시작될 때 사용할 내용을 담은 노트를 선택하세요. 목록에는 이 작업 공간에서 템플릿(또는 Templates)이라는 이름의 폴더에 있는 노트가 표시됩니다. 작업 공간마다 자체 템플릿이 있습니다.",
@@ -220,7 +221,10 @@
       "update_badge_level": "어떤 릴리스에서 설정 항목에 빨간 점을 표시할지 고릅니다. 무엇을 고르든 새 버전은 이 페이지에서 계속 알려 주므로 숨겨지는 것은 없습니다.",
       "update_check_interval": "Poznote가 새 버전이 있는지 백그라운드에서 확인하는 주기입니다. 점은 확인한 뒤에만 나타나므로 주기가 길면 그만큼 늦게 표시됩니다. 위의 「버전」 카드는 누를 때마다 바로 확인합니다.",
       "sessions": "현재 계정에 로그인되어 있는 브라우저와 기기를 확인하고, 더 이상 쓰지 않는 기기를 로그아웃할 수 있습니다.",
-      "session_lifetime": "활동이 없을 때 로그인이 유지되는 기간입니다. .env 파일의 POZNOTE_SESSION_LIFETIME_DAYS로 설정하므로 여기서는 보기만 할 수 있고 이 페이지에서는 변경할 수 없습니다. \"로그인 유지\"로 로그인하면 더 오래 유지되고, SSO 로그인은 그렇지 않습니다."
+      "session_lifetime": "활동이 없을 때 로그인이 유지되는 기간입니다. .env 파일의 POZNOTE_SESSION_LIFETIME_DAYS로 설정하므로 여기서는 보기만 할 수 있고 이 페이지에서는 변경할 수 없습니다. \"로그인 유지\"로 로그인하면 더 오래 유지되고, SSO 로그인은 그렇지 않습니다.",
+      "attachments_single_line": "노트의 첨부 파일을 여러 줄로 나누지 않고 한 줄로 표시합니다. 손가락이나 마우스로 줄을 밀어 볼 수 있으며, 잘린 경우 \"…\"로 끝납니다.",
+      "attachment_links_as_cards": "\"첨부 파일 링크\"로 노트에 첨부 파일을 넣을 때, 본문 속 링크 대신 별도 줄에 카드(유형 아이콘, 이름, 다운로드 화살표)로 표시합니다.",
+      "remember_me_days": "로그인 페이지에서 \"로그인 유지\"를 선택했을 때 로그인 상태가 유지되는 기간입니다. 비밀번호 로그인에만 적용됩니다. SSO 로그인은 설정 > 정보의 \"세션 유지 기간\" 카드에 표시된 기간 동안 유지되며, 이 값은 .env 파일에서 설정합니다. 비밀번호를 변경하거나 \"연결된 기기\"에서 기기를 로그아웃하면, 여기서 설정한 기간과 관계없이 해당 기기는 즉시 로그아웃됩니다."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "모바일에서는 이 설정과 관계없이 키보드 위 도구 모음의 + 버튼으로 같은 메뉴를 열 수 있습니다."
@@ -328,7 +332,8 @@
       "custom_logo": "로고",
       "two_factor_required": "2단계 인증 필수",
       "sessions": "연결된 기기",
-      "session_lifetime": "세션 유지 기간"
+      "session_lifetime": "세션 유지 기간",
+      "remember_me_days": "로그인 유지 기간"
     },
     "default_credentials": {
       "both": "이 계정은 원래 제공된 사용자 이름과 비밀번호를 계속 사용합니다. 이 인스턴스에 접근할 수 있는 사람은 누구나 로그인할 수 있습니다.",
@@ -382,7 +387,8 @@
       "s3_backups": "S3 저장소의 백업"
     },
     "login_disabled": {
-      "confirm": "이 Poznote 인스턴스에 접근할 수 있는 누구나 사용자 이름, 비밀번호, 2단계 인증 코드 없이 내 계정을 바로 열게 됩니다. 본인만 접근할 수 있거나 리버스 프록시가 인증을 처리하는 경우에만 계속하세요."
+      "status_one": "계정 1개",
+      "status_other": "계정 {{count}}개"
     },
     "scope": {
       "user": "개인",
@@ -564,6 +570,7 @@
       "code_block_line_numbers": "코드 블록 줄 번호",
       "code_block_collapsed_lines": "접힌 코드 블록",
       "attachment_previews_in_note": "첨부 파일 미리보기",
+      "attachments_show_inserted_images": "첨부 파일에 삽입된 이미지 표시",
       "attachments_at_bottom": "첨부 파일을 하단에 표시",
       "backlinks_at_bottom": "백링크를 하단에 표시",
       "note_virtual_space": "노트 아래 여백",
@@ -581,7 +588,9 @@
       "markdown_view_cycle": "보기 메뉴",
       "tab_follows_note": "탭이 열린 노트를 따라감",
       "update_badge_level": "업데이트 점",
-      "update_check_interval": "업데이트 확인"
+      "update_check_interval": "업데이트 확인",
+      "attachments_single_line": "첨부 파일을 한 줄로",
+      "attachment_links_as_cards": "첨부 파일 링크를 카드로"
     },
     "badges": {
       "font_size_default": "기본값({{size}}px)",
@@ -838,17 +847,22 @@
       "show_thumbnails": "이 목록에 미리보기 이미지 표시",
       "show_inline_images": "노트 내용에 이미 표시된 이미지도 표시합니다.",
       "all_file_types": "모든 유형",
-      "file_type_filter": "파일 형식으로 필터링"
+      "file_type_filter": "파일 형식으로 필터링",
+      "grid_view": "격자 보기",
+      "list_view": "목록 보기",
+      "pager_status": "{{pages}}페이지 중 {{page}}페이지, 첨부 파일 {{total}}개"
     },
     "context_menu": {
       "open": "열기",
       "download": "다운로드",
+      "insert_into_note": "노트에 삽입",
       "transcribe": "음성 텍스트 변환",
       "delete": "삭제",
       "delete_confirm_title": "첨부 파일 삭제",
       "delete_confirm_message": "'{{filename}}'를 삭제하시겠습니까? 노트에서 제거되어 복구할 수 없습니다.",
       "delete_confirm_message_unnamed": "이 첨부 파일을 삭제하시겠습니까? 노트에서 제거되어 복구할 수 없습니다.",
-      "move": "다른 노트로 이동"
+      "move": "다른 노트로 이동",
+      "preview_size": "미리보기 크기"
     },
     "move": {
       "title": "첨부 파일 이동",
@@ -865,7 +879,12 @@
       "message_many": "이미지 {{count}}개를 노트에 삽입할까요, 아니면 첨부 파일에 추가할까요?",
       "attach": "첨부 파일로 추가",
       "insert": "노트에 삽입"
-    }
+    },
+    "picker": {
+      "no_images": "이 노트의 첨부 파일에는 이미지가 없습니다."
+    },
+    "inserted_images_toggle": "노트에 삽입한 이미지도 표시",
+    "inserted_images_toggle_note": "이 노트에 삽입한 이미지도 표시"
   },
   "modals": {
     "paste_markdown": {
@@ -999,7 +1018,8 @@
         "mobile_editor_bar": "모바일 편집기 표시줄",
         "sidebar": "사이드바",
         "task_lists": "할 일 목록",
-        "code_blocks": "코드 블록"
+        "code_blocks": "코드 블록",
+        "kanban": "칸반"
       },
       "badge_all_visible": "모두 표시됨",
       "badge_hidden_count_admin": "{{count}}개 숨김(관리자가 숨긴 항목 {{admin}}개)",
@@ -1569,6 +1589,13 @@
     },
     "code_block_collapsed_lines": {
       "unit": "줄"
+    },
+    "remember_me_days": {
+      "unit": "일"
+    },
+    "login_disabled": {
+      "description": "선택한 계정은 로그인 페이지의 목록에서 비밀번호 없이 열립니다. 다른 계정은 비밀번호를 그대로 사용합니다. 이 인스턴스의 유일한 계정을 선택하면 로그인 페이지가 표시되지 않습니다.",
+      "warning": "이 인스턴스에 접근할 수 있는 누구나 비밀번호와 2단계 인증 코드 없이 이 계정들을 열 수 있습니다. 인스턴스가 인터넷에서 접근할 수 없거나, 앞단의 리버스 프록시가 인증을 처리하는 경우에만 계정을 선택하세요. 관리자 계정을 선택하면 누구에게나 관리자 권한이 주어집니다."
     }
   },
   "notes_list": {
@@ -1801,6 +1828,7 @@
     "checklist": "체크리스트",
     "done": "완료",
     "image": "이미지",
+    "image_from_attachments": "첨부 파일에서 이미지",
     "take_photo": "사진 촬영",
     "excalidraw": "Excalidraw",
     "mermaid": "Mermaid",
@@ -2373,10 +2401,9 @@
       "password": "비밀번호",
       "profile": "프로필을 선택하세요"
     },
-    "remember_me": "30일 동안 로그인 유지",
+    "remember_me": "{{days}}일 동안 로그인 유지",
+    "remember_me_one": "1일 동안 로그인 유지",
     "button": "로그인",
-    "oidc_button": "{{provider}}로 계속하기",
-    "oidc_button_account": "{{account}}로 계속하기",
     "oidc_other_account": "다른 계정으로 로그인",
     "no_profiles": "사용 가능한 사용자 프로필이 없습니다. 관리자에게 문의하세요.",
     "errors": {
@@ -2413,7 +2440,14 @@
       "enroll_intro": "이 인스턴스에서는 2단계 인증이 필수입니다. 계속하려면 설정하세요.",
       "enroll_submit": "켜고 로그인"
     },
-    "powered_by": "{{link}} 기반"
+    "powered_by": "{{link}} 기반",
+    "passwordless": {
+      "intro": "비밀번호 없이 열기"
+    },
+    "methods": {
+      "password": "비밀번호로 로그인",
+      "sso": "SSO로 로그인"
+    }
   },
   "restore_import": {
     "page": {
@@ -2990,6 +3024,10 @@
     "empty": {
       "message": "칸반 보기를 사용하려면 이 폴더에 하위 폴더를 만듭니다. 각 하위 폴더는 열이 됩니다.",
       "title": "아직 하위 폴더가 없습니다."
+    },
+    "background": {
+      "button": "배경 이미지",
+      "description": "이 칸반 보드의 배경 이미지를 업로드합니다. 열 뒤에 표시됩니다."
     }
   },
   "sidebar": {

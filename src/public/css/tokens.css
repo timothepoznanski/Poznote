@@ -107,6 +107,13 @@
        same 21px: the 15px the tree always had plus the 6px subfolder nudge). */
     --pz-tree-indent: 21px;
 
+    /* Width of an attachment preview tile (css/notes/noteentry.css, and the
+       one-line row in css/notes/attachments-row.css). index.php overwrites it
+       on :root with the account's choice (attachment_preview_size, set from
+       the attachment right-click menu, lib/attachment-preview-size.php, whose
+       default is this same 180px). */
+    --pz-attachment-preview-size: 180px;
+
     /* Brand blue: links, active states, primary buttons, focus rings. */
     --pz-accent: #007db8;
     --pz-accent-hover: #005a8a;

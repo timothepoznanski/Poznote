@@ -590,7 +590,7 @@ function updateAttachmentCountInMenu(noteId) {
                 for (var j = 0; j < data.attachments.length; j++) {
                     var attachment = data.attachments[j];
                     if (attachment.id && attachment.original_filename) {
-                        var isActuallyInline = isEmbeddedImageAttachment(attachment, effectiveNoteContent);
+                        var isActuallyInline = isHiddenInsertedImage(attachment, effectiveNoteContent);
                         if (!isActuallyInline) visibleLinksCount++;
                     }
                 }
@@ -700,7 +700,7 @@ function updateAttachmentCountInMenu(noteId) {
                         for (var k = 0; k < data.attachments.length; k++) {
                             var att = data.attachments[k];
                             if (att.id && att.original_filename) {
-                                var isInline = isEmbeddedImageAttachment(att, effectiveNoteContent);
+                                var isInline = isHiddenInsertedImage(att, effectiveNoteContent);
 
                                 var safeFilename = att.original_filename.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
                                 var dlTitle = tr('attachments.actions.download', { filename: safeFilename }, 'Download {{filename}}');
@@ -819,6 +819,438 @@ function isEmbeddedImageAttachment(attachment, content) {
     return htmlImagePattern.test(noteContent) || markdownImagePattern.test(noteContent);
 }
 
+// An image the note shows in its content is an attachment too, left out of the
+// attachment lists unless the "Inserted images in attachments" setting asks
+// for them: a note full of pasted screenshots would bury its other files.
+function isHiddenInsertedImage(attachment, content) {
+    if (window.POZNOTE_CONFIG && window.POZNOTE_CONFIG.showInsertedImageAttachments === true) return false;
+    return isEmbeddedImageAttachment(attachment, content);
+}
+
+// Whether an image attachment of this note can be put into its content: a rich
+// text or Markdown note the viewer may edit
+// With an attachment, also false when the content already shows that image:
+// with "Inserted images in attachments" on, the lists hold those images too,
+// and the right-click menu must not offer to insert a second copy.
+function canInsertAttachmentImageIntoNote(noteId, attachment) {
+    var noteEntry = document.getElementById('entry' + noteId);
+    if (!noteEntry) return false;
+    if (attachment && isEmbeddedImageAttachment(attachment, currentNoteContent(noteEntry))) return false;
+    if (document.body && document.body.classList.contains('shared-workspace-readonly')) return false;
+    if (typeof window.isNoteEditingLocked === 'function' && window.isNoteEditingLocked(noteId)) return false;
+    var card = noteEntry.closest('.notecard');
+    if (card && card.getAttribute('data-note-locked') === '1') return false;
+    var type = noteEntry.getAttribute('data-note-type');
+    if (type === 'markdown') return !!noteEntry.querySelector('.markdown-editor');
+    return type === 'note' && noteEntry.getAttribute('contenteditable') === 'true';
+}
+
+// The note's content as it stands on screen: the Markdown source, or the
+// rich text HTML
+function currentNoteContent(noteEntry) {
+    var editor = noteEntry.querySelector('.markdown-editor');
+    var cmApi = _getCmApi();
+    if (editor && _isCmEditor(editor) && cmApi && typeof cmApi.getValue === 'function') return cmApi.getValue(editor) || '';
+    return noteEntry.innerHTML || '';
+}
+
+/**
+ * Put a block on a line of its own in a note, at the caret (context: where it
+ * was before a dialog took the focus, { range } or { cmOffsets }), or at the
+ * end of the note when the caret is elsewhere. markdown is the source line of
+ * a Markdown note; html the block of a rich text note, followed by an empty
+ * line to type on. With inlineHtml, html is inline markup instead (a link),
+ * given a line of its own after the caret's line: Chrome's insertHTML pours a
+ * block into the line it lands on. Returns whether it went in.
+ */
+function insertBlockIntoNote(noteEntry, noteId, markdown, html, context, inlineHtml) {
+    context = context || {};
+    if (noteEntry.getAttribute('data-note-type') === 'markdown') {
+        var editor = noteEntry.querySelector('.markdown-editor');
+        var cmApi = _getCmApi();
+        if (!editor || !_isCmEditor(editor) || typeof cmApi.replaceRange !== 'function' || typeof cmApi.getValue !== 'function') return false;
+
+        var text = cmApi.getValue(editor);
+        var offsets = context.cmOffsets ||
+            (typeof cmApi.getSelectionOffsets === 'function' ? cmApi.getSelectionOffsets(editor) : null) ||
+            { start: text.length, end: text.length };
+        var from = Math.max(0, Math.min(offsets.start, text.length));
+        var to = Math.max(from, Math.min(offsets.end, text.length));
+        // A line of its own: in the middle of a sentence the block would run
+        // into the text around it
+        if (from > 0 && text.charAt(from - 1) !== '\n') markdown = '\n' + markdown;
+        if (to < text.length && text.charAt(to) !== '\n') markdown += '\n';
+        cmApi.replaceRange(editor, from, to, markdown);
+        if (typeof cmApi.setSelection === 'function') cmApi.setSelection(editor, from + markdown.length, from + markdown.length);
+
+        // Inserted from the preview, the hidden editor changed under it
+        var preview = noteEntry.querySelector('.markdown-preview');
+        if (preview && preview.offsetParent !== null && typeof window.renderMarkdownPreview === 'function') {
+            window.renderMarkdownPreview(preview, cmApi.getValue(editor), noteId, { delay: 50 });
+        }
+        return true;
+    }
+
+    var range = (context.range && noteEntry.contains(context.range.startContainer)) ? context.range : caretRangeInNote(noteEntry);
+    try { noteEntry.focus({ preventScroll: true }); } catch (e) { noteEntry.focus(); }
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    if (inlineHtml) return insertInlineOnOwnLine(noteEntry, range, html);
+    if (document.execCommand('insertHTML', false, html + '<div><br></div>')) return true;
+    noteEntry.insertAdjacentHTML('beforeend', html);
+    return true;
+}
+
+// Inline markup on a line of its own, after the caret's line, with editing
+// commands only so that one undo takes it back: a new line at the end of the
+// caret's line (unless that line is empty), the markup, then a line to go on
+// typing in, so that the next keystroke does not lengthen a link.
+function insertInlineOnOwnLine(noteEntry, range, html) {
+    var line = range.startContainer;
+    while (line && line.parentNode && line.parentNode !== noteEntry) line = line.parentNode;
+    var sel = window.getSelection();
+    if (line && line.parentNode === noteEntry) {
+        var end = document.createRange();
+        end.selectNodeContents(line);
+        end.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(end);
+        if ((line.textContent || '').trim() !== '' || (line.querySelector && line.querySelector('img, iframe, video, audio, a'))) {
+            document.execCommand('insertParagraph', false);
+        }
+    } else if ((noteEntry.textContent || '').trim() !== '') {
+        document.execCommand('insertParagraph', false);
+    }
+    if (!document.execCommand('insertHTML', false, html)) {
+        noteEntry.insertAdjacentHTML('beforeend', '<div>' + html + '</div>');
+        return true;
+    }
+    document.execCommand('insertParagraph', false);
+    return true;
+}
+
+// The kind of file an attachment card shows, from its extension: it picks
+// the icon and its colour (css/components/attachment-card.css)
+var ATTACHMENT_CARD_KINDS = {
+    pdf: ['pdf'],
+    doc: ['doc', 'docx', 'odt', 'rtf', 'pages'],
+    sheet: ['xls', 'xlsx', 'xlsm', 'ods', 'csv', 'tsv', 'numbers'],
+    slides: ['ppt', 'pptx', 'odp', 'key'],
+    archive: ['zip', 'rar', '7z', 'tar', 'gz', 'tgz', 'bz2', 'xz', 'zst'],
+    image: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'heic', 'heif', 'avif', 'tif', 'tiff', 'ico'],
+    audio: ['mp3', 'wav', 'm4a', 'ogg', 'oga', 'flac', 'aac', 'opus', 'wma'],
+    video: ['mp4', 'webm', 'mov', 'mkv', 'avi', 'm4v', 'ogv'],
+    code: ['js', 'ts', 'py', 'php', 'html', 'htm', 'css', 'json', 'xml', 'yml', 'yaml', 'toml', 'sh', 'sql', 'java', 'c', 'h', 'cpp', 'go', 'rs', 'rb', 'swift', 'kt'],
+    text: ['txt', 'md', 'log', 'ini', 'cfg', 'conf']
+};
+
+function attachmentCardKind(filename) {
+    var match = /\.([A-Za-z0-9]+)$/.exec(String(filename || ''));
+    var ext = match ? match[1].toLowerCase() : '';
+    for (var kind in ATTACHMENT_CARD_KINDS) {
+        if (ATTACHMENT_CARD_KINDS[kind].indexOf(ext) !== -1) return kind;
+    }
+    return 'file';
+}
+
+/**
+ * Insert an attachment as a card ("Attachment links as cards" setting, used
+ * by "Link to attachment"): a link on a line of its own, drawn by
+ * css/components/attachment-card.css. It is the same markup in both kinds of
+ * note, a Markdown note keeping it as an HTML line its parsers turn back into
+ * the card (markdown_parser.php, js/markdown-parser.js).
+ */
+function insertAttachmentCardIntoNote(noteId, attachmentId, filename, context) {
+    if (!noteId || !attachmentId || !canInsertAttachmentImageIntoNote(noteId)) return false;
+    var noteEntry = document.getElementById('entry' + noteId);
+    var safeId = String(attachmentId).replace(/[^A-Za-z0-9_-]/g, '');
+    var name = String(filename || safeId).replace(/[\r\n\t]+/g, ' ').trim() || safeId;
+    var href = '/api/v1/notes/' + encodeURIComponent(noteId) + '/attachments/' + safeId;
+    var label = name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    var kindClass = 'attachment-card attachment-card-' + attachmentCardKind(name);
+    // The Markdown line is the exact form its parsers read back; the rich text
+    // card is not editable, the name being the file's: the caret steps over
+    // it as one block, and Backspace removes it whole
+    var markdown = '<a class="' + kindClass + '" href="' + href + '">' + label + '</a>';
+    var html = '<a class="' + kindClass + '" contenteditable="false" href="' + href + '">' + label + '</a>';
+
+    window.noteid = noteId;
+    if (!insertBlockIntoNote(noteEntry, noteId, markdown, html, context, true)) return false;
+
+    if (typeof window.markNoteAsModified === 'function') window.markNoteAsModified();
+    if (window.POZNOTE_CONFIG && window.POZNOTE_CONFIG.gitSyncAutoPush && typeof window.setNeedsAutoPush === 'function') {
+        window.setNeedsAutoPush(true);
+    }
+    setTimeout(function () {
+        if (typeof window.saveNoteImmediately === 'function') window.saveNoteImmediately();
+        updateAttachmentCountInMenu(noteId);
+        refreshAttachmentPreviewsForNote(noteId);
+    }, 300);
+    return true;
+}
+
+/**
+ * Show an image the note already holds as an attachment in its content, at the
+ * caret, or at the end of the note when the caret is elsewhere. Nothing is
+ * uploaded: the image is the attachment itself, at the address a pasted image
+ * gets. context, optional, is where the caret was before a dialog took the
+ * focus: { range } for a rich text note, { cmOffsets: {start, end} } for a
+ * Markdown note. Returns whether the image went in.
+ */
+function insertAttachmentImageIntoNote(noteId, attachmentId, filename, context) {
+    if (!noteId || !attachmentId || !canInsertAttachmentImageIntoNote(noteId)) return false;
+    context = context || {};
+
+    var noteEntry = document.getElementById('entry' + noteId);
+    var src = '/api/v1/notes/' + noteId + '/attachments/' + attachmentId;
+    var name = String(filename || 'image').replace(/[\r\n\t]+/g, ' ').trim() || 'image';
+    var bordered = !!(window.POZNOTE_CONFIG && window.POZNOTE_CONFIG.defaultImageBorderNoPadding);
+    var inserted = false;
+
+    // -1 until the note takes the focus, and a right-click on the attachments
+    // row never gives it: the save would go nowhere
+    window.noteid = noteId;
+
+    var markdown = '![' + name.replace(/[\\[\]]/g, '\\$&') + '](' + src + ')' + (bordered ? '{.img-with-border-no-padding}' : '');
+    var alt = name.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    var html = '<img src="' + src + '" alt="' + alt + '" loading="lazy" decoding="async"' + (bordered ? ' class="img-with-border-no-padding"' : '') + ' />';
+    // The same block a pasted image gets (insertImagePlaceholderAtSelection)
+    inserted = insertBlockIntoNote(noteEntry, noteId, markdown, '<div>' + html + '</div>', context);
+    if (!inserted) return false;
+
+    if (typeof window.markNoteAsModified === 'function') window.markNoteAsModified();
+    if (typeof reinitializeImageClickHandlers === 'function') {
+        setTimeout(function () { reinitializeImageClickHandlers(); }, 200);
+    }
+    if (window.POZNOTE_CONFIG && window.POZNOTE_CONFIG.gitSyncAutoPush && typeof window.setNeedsAutoPush === 'function') {
+        window.setNeedsAutoPush(true);
+    }
+    setTimeout(function () {
+        if (typeof window.saveNoteImmediately === 'function') window.saveNoteImmediately();
+        // The image is in the content now: the attachments row and the
+        // preview cards stop listing it (unless the setting asks for it)
+        updateAttachmentCountInMenu(noteId);
+        refreshAttachmentPreviewsForNote(noteId);
+    }, 300);
+    return inserted;
+}
+
+window.getAttachmentPreviewKind = getAttachmentPreviewKind;
+window.canInsertAttachmentImageIntoNote = canInsertAttachmentImageIntoNote;
+window.insertAttachmentImageIntoNote = insertAttachmentImageIntoNote;
+window.insertAttachmentCardIntoNote = insertAttachmentCardIntoNote;
+
+/**
+ * "Attachment previews" on: an attachment card shows the preview of its file
+ * instead (an image, a PDF, a video, a player), the tile of the previews
+ * above the note. A file with no preview (a document, an archive) keeps its
+ * card. Nothing changes in the note: the card stays what it holds.
+ *   - Markdown note: its parser asks for the preview's markup
+ *     (_mdSanitizeAttachmentCard() of js/markdown-parser.js), so the preview
+ *     and the Live preview / Rich text views draw it from the source.
+ *   - Rich text note: the preview is put next to the card when the note is
+ *     shown, and the card hidden by CSS; stripSearchHighlights() (js/notes.js)
+ *     and the server's sanitizer take the preview out before any save.
+ * Returns null when there is no preview to show.
+ */
+function attachmentCardPreviewHtml(href, name) {
+    if (!(window.POZNOTE_CONFIG && window.POZNOTE_CONFIG.inlineAttachmentPreviews === true)) return null;
+    var match = /^\/api\/v1\/notes\/(\d+)\/attachments\/([A-Za-z0-9_-]+)$/.exec(String(href || ''));
+    if (!match) return null;
+    var attachment = { id: match[2], original_filename: String(name || '') };
+    if (getAttachmentPreviewKind(attachment) === 'file') return null;
+    var size = knownAttachmentSize(match[1], match[2]);
+    if (size) attachment.file_size = size;
+    else setTimeout(function () { fillAttachmentCardPreviewSizes(match[1]); }, 0);
+    return buildAttachmentPreviewCard(match[1], attachment)
+        .replace('<figure class="note-attachment-preview ', '<figure class="note-attachment-preview attachment-card-preview ');
+}
+
+/*
+ * The size under the name of a card's preview: the card holds only the
+ * address and the name, so the size comes from the note's attachment list,
+ * remembered when it passes by (renderAttachmentPreviewsNow()) or asked once
+ * for a note whose cards name an attachment not seen yet; the previews already
+ * drawn get it then.
+ */
+var attachmentSizesByNote = {};
+var attachmentSizeRequests = {};
+
+function rememberAttachmentSizes(noteId, attachments) {
+    var sizes = attachmentSizesByNote[noteId] || (attachmentSizesByNote[noteId] = {});
+    (attachments || []).forEach(function (attachment) {
+        if (attachment && attachment.id && attachment.file_size) sizes[attachment.id] = attachment.file_size;
+    });
+}
+
+function knownAttachmentSize(noteId, attachmentId) {
+    var sizes = attachmentSizesByNote[noteId];
+    return sizes && sizes[attachmentId] ? sizes[attachmentId] : 0;
+}
+
+function paintAttachmentCardPreviewSizes(noteId) {
+    var figures = document.querySelectorAll('figure.attachment-card-preview[data-attachment-id]');
+    Array.prototype.forEach.call(figures, function (figure) {
+        var caption = figure.querySelector('.note-attachment-preview-caption');
+        if (!caption || caption.querySelector('.note-attachment-preview-size')) return;
+        var link = caption.querySelector('a[href]');
+        if (!link || link.getAttribute('href').indexOf('/api/v1/notes/' + noteId + '/') !== 0) return;
+        var size = knownAttachmentSize(noteId, figure.getAttribute('data-attachment-id'));
+        if (!size) return;
+        var span = document.createElement('span');
+        span.className = 'note-attachment-preview-size';
+        span.textContent = formatFileSize(size);
+        caption.appendChild(span);
+    });
+}
+
+function fillAttachmentCardPreviewSizes(noteId) {
+    var missing = Array.prototype.some.call(
+        document.querySelectorAll('figure.attachment-card-preview[data-attachment-id]'),
+        function (figure) {
+            var link = figure.querySelector('.note-attachment-preview-caption a[href]');
+            return link && link.getAttribute('href').indexOf('/api/v1/notes/' + noteId + '/') === 0
+                && !knownAttachmentSize(noteId, figure.getAttribute('data-attachment-id'))
+                && !attachmentSizeRequests[noteId + ':' + figure.getAttribute('data-attachment-id')];
+        });
+    if (!missing) {
+        paintAttachmentCardPreviewSizes(noteId);
+        return;
+    }
+    if (attachmentSizeRequests[noteId]) return;
+    attachmentSizeRequests[noteId] = true;
+    fetch('/api/v1/notes/' + encodeURIComponent(noteId) + '/attachments', {
+        headers: { 'Accept': 'application/json' },
+        credentials: 'same-origin'
+    })
+        .then(function (response) { return response.ok ? response.json() : null; })
+        .then(function (data) {
+            if (data && data.success) rememberAttachmentSizes(noteId, data.attachments);
+        })
+        .catch(function (e) { console.debug('attachments: card preview sizes failed:', e); })
+        .then(function () {
+            // Never asked twice for the same attachment, found or not
+            Array.prototype.forEach.call(document.querySelectorAll('figure.attachment-card-preview[data-attachment-id]'), function (figure) {
+                attachmentSizeRequests[noteId + ':' + figure.getAttribute('data-attachment-id')] = true;
+            });
+            attachmentSizeRequests[noteId] = false;
+            paintAttachmentCardPreviewSizes(noteId);
+        });
+}
+window.poznoteAttachmentCardPreviewHtml = attachmentCardPreviewHtml;
+
+(function () {
+    var showPreviews = !!(window.POZNOTE_CONFIG && window.POZNOTE_CONFIG.inlineAttachmentPreviews === true);
+
+    // Rich text notes. Every card is one block the caret never enters: a card
+    // written before the cards carried contenteditable="false" gets it here,
+    // otherwise a click on its line puts the caret in its name. Then, with
+    // the previews on, the preview goes right after each card that has one.
+    function decorate(root) {
+        var cards = (root || document).querySelectorAll('.noteentry[data-note-type="note"] a.attachment-card[href]');
+        Array.prototype.forEach.call(cards, function (card) {
+            if (card.getAttribute('contenteditable') !== 'false') card.setAttribute('contenteditable', 'false');
+            if (!showPreviews) return;
+            var next = card.nextElementSibling;
+            if (next && next.classList.contains('attachment-card-preview')) return;
+            var html = attachmentCardPreviewHtml(card.getAttribute('href'), card.textContent);
+            if (!html) return;
+            card.insertAdjacentHTML('afterend', html);
+        });
+    }
+
+    var queued = false;
+    function queue() {
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(function () {
+            queued = false;
+            decorate(document);
+        });
+    }
+    function start() {
+        decorate(document);
+        if (typeof MutationObserver === 'function') {
+            new MutationObserver(function (records) {
+                for (var i = 0; i < records.length; i++) {
+                    if (records[i].addedNodes.length) { queue(); return; }
+                }
+            }).observe(document.body, { childList: true, subtree: true });
+        }
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start);
+    } else {
+        start();
+    }
+})();
+
+/**
+ * Rich text note: the line of a card holds the card alone. Its caret is
+ * hidden (css/components/attachment-card.css), so typing or Enter there
+ * would write blind next to the card: the text goes to a line of its own
+ * instead, after the card (or before it when the caret is before it), an
+ * empty line already there being reused rather than doubled.
+ */
+(function () {
+    function cardLineAt(node, noteEntry) {
+        var line = node && node.nodeType === 1 ? node : node && node.parentNode;
+        while (line && line !== noteEntry && line.parentNode !== noteEntry) line = line.parentNode;
+        if (!line || line === noteEntry || !/^(DIV|P)$/.test(line.nodeName)) return null;
+        var card = null;
+        for (var child = line.firstChild; child; child = child.nextSibling) {
+            if (child.nodeType === 3) {
+                if (child.nodeValue.replace(/[\s\u200B\uFEFF]/g, '') !== '') return null;
+            } else if (child.nodeType === 1) {
+                if (child.matches('a.attachment-card[href]') && !card) card = child;
+                else if (!child.matches('br, .attachment-card-preview')) return null;
+            }
+        }
+        return card ? { line: line, card: card } : null;
+    }
+
+    function isEmptyLine(el) {
+        return !!el && /^(DIV|P)$/.test(el.nodeName) && el.textContent.replace(/[\s\u200B\uFEFF]/g, '') === '' &&
+            !el.querySelector('img, iframe, video, audio, a, table, hr');
+    }
+
+    document.addEventListener('beforeinput', function (event) {
+        var type = event.inputType;
+        if (type !== 'insertText' && type !== 'insertParagraph' && type !== 'insertLineBreak') return;
+        var noteEntry = event.target && event.target.closest && event.target.closest('.noteentry[data-note-type="note"][contenteditable="true"]');
+        if (!noteEntry) return;
+        var sel = window.getSelection();
+        if (!sel || !sel.rangeCount || !sel.isCollapsed) return;
+        var range = sel.getRangeAt(0);
+        var found = cardLineAt(range.startContainer, noteEntry);
+        if (!found) return;
+
+        // Before the card when the caret is at the start of the line
+        var before = range.startContainer === found.line
+            ? range.startOffset <= Array.prototype.indexOf.call(found.line.childNodes, found.card)
+            : !!(found.card.compareDocumentPosition(range.startContainer) & Node.DOCUMENT_POSITION_PRECEDING);
+        var neighbour = before ? found.line.previousElementSibling : found.line.nextElementSibling;
+        var target = isEmptyLine(neighbour) && !(before && type !== 'insertText') ? neighbour : null;
+        if (!target) {
+            target = document.createElement('div');
+            target.appendChild(document.createElement('br'));
+            found.line.parentNode.insertBefore(target, before ? found.line : found.line.nextSibling);
+        }
+        event.preventDefault();
+        var caret = document.createRange();
+        caret.setStart(target, 0);
+        caret.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(caret);
+        if (type === 'insertText' && event.data) {
+            document.execCommand('insertText', false, event.data);
+        } else {
+            noteEntry.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    }, true);
+})();
+
 function isAttachmentReferencedInContent(attachment, content) {
     if (!attachment || !attachment.id || !content) return false;
 
@@ -875,7 +1307,10 @@ function buildAttachmentPreviewCard(noteId, attachment) {
             '<img src="' + safeFileUrl + '" alt="' + safeFilename + '" loading="lazy" decoding="async">' +
             '</a>';
     } else if (kind === 'pdf') {
-        mediaHtml = '<iframe class="note-attachment-preview-media note-attachment-preview-frame" src="' + safeFileUrl + '" title="' + safeFilename + '" loading="lazy"></iframe>';
+        // The first page, drawn as an image by js/pdf-preview.js; the file icon until then
+        mediaHtml = '<a class="note-attachment-preview-media note-attachment-preview-pdf-page" href="' + safeFileUrl + '" target="_blank" rel="noopener noreferrer" data-pdf-src="' + safeFileUrl + '" title="' + safeFilename + '">' +
+            '<i class="lucide lucide-file-text" aria-hidden="true"></i>' +
+            '</a>';
     } else if (kind === 'video') {
         mediaHtml = '<div class="note-attachment-preview-media"><video controls preload="metadata" playsinline src="' + safeFileUrl + '"></video></div>';
     } else if (kind === 'audio') {
@@ -944,11 +1379,15 @@ function renderAttachmentPreviewsNow(noteId, attachments, noteContent) {
     var noteEntry = document.getElementById('entry' + noteId);
     if (!noteEntry) return;
 
+    rememberAttachmentSizes(noteId, attachments);
     var content = noteContent || noteEntry.innerHTML || '';
     var cards = [];
     (attachments || []).forEach(function (attachment) {
         if (!attachment || !attachment.id) return;
-        if (isAttachmentReferencedInContent(attachment, content)) return;
+        // What the content shows gets no tile, save the images it shows
+        // when the setting lists them (poznoteRenderAttachmentPreviews())
+        if (isAttachmentReferencedInContent(attachment, content)
+            && (isHiddenInsertedImage(attachment, content) || !isEmbeddedImageAttachment(attachment, content))) return;
         cards.push(buildAttachmentPreviewCard(noteId, attachment));
     });
 
@@ -1124,12 +1563,14 @@ function handleImageFilesAndInsert(files, dropTarget, dropPoint) {
 // Files dropped on a note that go to its attachments (discussion 1725), one
 // upload after the other: the server rewrites the note's whole list of
 // attachments on each one. Nothing is written into the note itself.
-function handleDroppedFilesAsAttachments(files, noteEntry) {
+// onDone, optional, runs once every upload is over.
+function handleDroppedFilesAsAttachments(files, noteEntry, onDone) {
     var noteId = noteEntry && noteEntry.id ? noteEntry.id.replace('entry', '') : '';
-    if (!noteId || !files) return;
-
-    var queue = Array.prototype.slice.call(files);
-    if (queue.length === 0) return;
+    var queue = noteId && files ? Array.prototype.slice.call(files) : [];
+    if (queue.length === 0) {
+        if (typeof onDone === 'function') onDone();
+        return;
+    }
 
     var maxSize = 200 * 1024 * 1024; // 200MB, as the server
     var attachedNames = [];
@@ -1198,9 +1639,120 @@ function handleDroppedFilesAsAttachments(files, noteEntry) {
             var failureText = failures.length === 1 ? failures[0] : '\n' + failures.join('\n');
             showNotificationPopup(tr('attachments.errors.upload_failed', { error: failureText }, 'Upload failed: {{error}}'), 'error');
         }
+
+        if (typeof onDone === 'function') onDone();
     }
 
     uploadNext();
+}
+
+// The caret when it is in the note, otherwise the end of the note: a drop
+// leaves the selection wherever it was, possibly outside the note
+function caretRangeInNote(noteEntry) {
+    var sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+        var current = sel.getRangeAt(0);
+        if (noteEntry.contains(current.startContainer)) return current.cloneRange();
+    }
+    var range = document.createRange();
+    range.selectNodeContents(noteEntry);
+    range.collapse(false);
+    return range;
+}
+
+// After the line the file was dropped on, as in a Markdown note: the player
+// is a block, and put at the exact drop point it would cut the line (and its
+// paragraph) in two
+function rangeAfterDropLine(noteEntry, range) {
+    // Already between the note's lines (a drop below the note)
+    if (range.startContainer === noteEntry) return range.cloneRange();
+    var node = range.startContainer;
+    while (node && node.parentNode && node.parentNode !== noteEntry) node = node.parentNode;
+    if (!node || node.parentNode !== noteEntry) return null;
+    var after = document.createRange();
+    after.setStartAfter(node);
+    after.collapse(true);
+    return after;
+}
+
+// The files the audio insertion accepts (isAudioFile() of js/slash-command.js)
+function isDroppedAudioFile(file) {
+    if (!file) return false;
+    var type = String(file.type || '').toLowerCase();
+    if (type.indexOf('audio/') === 0) return true;
+    return /\.(mp3|wav|m4a|ogg|flac)$/i.test(String(file.name || ''));
+}
+
+// Audio files dropped on a note: each one is uploaded as an attachment and its
+// player inserted where the file was dropped, the same path as Insert > Audio
+// in the slash menu, so no question is asked. One after the other, the server
+// rewriting the note's whole list of attachments on each upload, and each
+// player after the previous one. waitFor, optional, lets the drop's other
+// files finish uploading first, for the same reason.
+function handleDroppedAudio(files, noteEntry, dropPoint, waitFor) {
+    if (!files || files.length === 0 || !noteEntry) return;
+    if (typeof window.insertAudioFileWithContext !== 'function') {
+        handleDroppedFilesAsAttachments(files, noteEntry);
+        return;
+    }
+
+    var noteId = noteEntry.id ? noteEntry.id.replace('entry', '') : '';
+    var queue = Array.prototype.slice.call(files);
+    var editor = noteEntry.querySelector('.markdown-editor');
+    var isMarkdown = noteEntry.getAttribute('data-note-type') === 'markdown';
+    // Pinned now, while the point still lies over the note
+    var pinned = pinDropPoint(noteEntry, dropPoint) || {};
+    var first = true;
+
+    function insertNext() {
+        if (queue.length === 0) {
+            // A drop on the preview wrote into the hidden editor: the preview
+            // does not follow it on its own
+            var preview = isMarkdown ? noteEntry.querySelector('.markdown-preview') : null;
+            var cmApi = _getCmApi();
+            if (preview && preview.offsetParent !== null && editor && cmApi && typeof cmApi.getValue === 'function'
+                && typeof window.renderMarkdownPreview === 'function') {
+                window.renderMarkdownPreview(preview, cmApi.getValue(editor), noteId, { delay: 50 });
+            }
+            if (noteId) {
+                updateAttachmentCountInMenu(noteId);
+                if (typeof currentNoteIdForAttachments !== 'undefined' && currentNoteIdForAttachments == noteId) {
+                    loadAttachments(noteId);
+                }
+            }
+            return;
+        }
+
+        var options = {
+            file: queue.shift(),
+            noteEntry: noteEntry,
+            editableElement: isMarkdown ? editor : noteEntry,
+            isMarkdown: isMarkdown,
+            onInserted: insertNext,
+            tight: true,
+            onUploadError: insertNext
+        };
+        // The first player goes where the file was dropped, the next ones
+        // after it, where the insertion leaves the caret
+        if (isMarkdown) {
+            if (first && editor && pinned.cmPos !== undefined) {
+                options.codeMirrorSelection = { editor: editor, start: pinned.cmPos, end: pinned.cmPos };
+            }
+        } else {
+            options.savedRange = (first && pinned.range && rangeAfterDropLine(noteEntry, pinned.range)) || caretRangeInNote(noteEntry);
+        }
+        first = false;
+        // -1 until the note takes the focus, and a drop on the preview of a
+        // Markdown note never gives it: the save would go nowhere
+        if (noteId) window.noteid = noteId;
+        window.insertAudioFileWithContext(options);
+    }
+
+    if (typeof waitFor === 'function') {
+        waitFor(insertNext);
+    } else {
+        insertNext();
+    }
 }
 
 // Images dropped on a note: the user picks between the note's content and its
@@ -1250,12 +1802,26 @@ function askImageDropDestination(count) {
 
 // The drop position as an editor position (CodeMirror) or a DOM range,
 // worked out while the point still lies over the note
+// A drop on the room below the note ({ atEnd: true }) is pinned to the end of
+// the note, there is no line under the pointer.
 function pinDropPoint(noteEntry, dropPoint) {
     if (!dropPoint) return dropPoint;
 
     var pinned = { x: dropPoint.x, y: dropPoint.y };
     var editor = noteEntry ? noteEntry.querySelector('.markdown-editor') : null;
     var cmApi = _getCmApi();
+    if (dropPoint.atEnd) {
+        pinned.atEnd = true;
+        if (editor && _isCmEditor(editor) && cmApi && typeof cmApi.getValue === 'function') {
+            pinned.cmPos = cmApi.getValue(editor).length;
+        } else if (noteEntry) {
+            var end = document.createRange();
+            end.selectNodeContents(noteEntry);
+            end.collapse(false);
+            pinned.range = end;
+        }
+        return pinned;
+    }
     if (editor && _isCmEditor(editor) && cmApi && typeof cmApi.getPosAtCoords === 'function') {
         var pos = cmApi.getPosAtCoords(editor, dropPoint.x, dropPoint.y);
         if (pos !== null && pos !== undefined) pinned.cmPos = pos;
@@ -1331,6 +1897,13 @@ function handleMarkdownImageUpload(file, dropTarget, noteEntry, dropPoint) {
         if (insertPos === null || insertPos === undefined) {
             var offsets = cmApi.getSelectionOffsets(editor);
             insertPos = offsets ? offsets.end : 0;
+        }
+        // Dropped below the note: the image starts a line of its own rather
+        // than gluing onto the last one
+        if (dropPoint && dropPoint.atEnd && insertPos > 0 && typeof cmApi.getValue === 'function'
+            && cmApi.getValue(editor).charAt(insertPos - 1) !== '\n') {
+            cmApi.replaceRange(editor, insertPos, insertPos, '\n');
+            insertPos += 1;
         }
         var loadingText = '![Uploading ' + safeName + '...]()';
         var uniqueToken = '![Uploading_' + safeName + '_' + Date.now() + '...]()';
@@ -1870,18 +2443,30 @@ function insertHTMLAtSelection(html) {
     }
 }
 
-// Attachment picker modal for slash command menu
+// Attachment picker modal for slash command menu. Two modes: 'link' (Link to
+// attachment) inserts a link to any attachment the note does not show yet,
+// 'image' (Image from attachments) lists the note's images, shown or not, and
+// inserts the chosen one as an image.
 (function () {
     var _savedRange = null;
     var _savedEditableElement = null;
     var _isMarkdown = false;
+    var _savedCmOffsets = null;
+    var _mode = 'link';
 
-    window.openAttachmentPickerModal = function () {
+    function pickerText(key, fallback) {
+        return window.t ? window.t(key, null, fallback) : fallback;
+    }
+
+    window.openAttachmentPickerModal = function (mode) {
         var noteEntry = document.querySelector('.noteentry');
         if (!noteEntry) return;
 
         var noteId = noteEntry.getAttribute('data-note-id');
         if (!noteId) return;
+
+        _mode = mode === 'image' ? 'image' : 'link';
+        if (_mode === 'image' && !canInsertAttachmentImageIntoNote(noteId)) return;
 
         // Save current selection before the modal steals focus
         _savedEditableElement = null;
@@ -1901,8 +2486,24 @@ function insertHTMLAtSelection(html) {
         _isMarkdown = !!(noteEntry.closest && noteEntry.closest('.innernote[data-markdown-note="true"]')) ||
                       !!(noteEntry.getAttribute('data-note-type') === 'markdown');
 
+        _savedCmOffsets = null;
+        var cmEditor = _isMarkdown ? noteEntry.querySelector('.markdown-editor') : null;
+        var cmApi = _getCmApi();
+        if (cmEditor && _isCmEditor(cmEditor) && typeof cmApi.getSelectionOffsets === 'function') {
+            _savedCmOffsets = cmApi.getSelectionOffsets(cmEditor);
+        }
+
         var modal = document.getElementById('attachmentPickerModal');
         if (!modal) return;
+
+        var titleEl = document.getElementById('attachmentPickerTitle');
+        var titleIcon = document.getElementById('attachmentPickerIcon');
+        if (titleEl) {
+            titleEl.textContent = _mode === 'image'
+                ? pickerText('slash_menu.image_from_attachments', 'Image from attachments')
+                : pickerText('slash_menu.link_to_attachment', 'Link to attachment');
+        }
+        if (titleIcon) titleIcon.className = 'lucide ' + (_mode === 'image' ? 'lucide-image' : 'lucide-paperclip');
 
         var list = document.getElementById('attachmentPickerList');
         if (list) {
@@ -1930,17 +2531,30 @@ function insertHTMLAtSelection(html) {
                 var noteContent = data.entry || '';
                 var html = '';
                 data.attachments.forEach(function (att) {
-                    if (isAttachmentReferencedInContent(att, noteContent) && isEmbeddedImageAttachment(att, noteContent)) return;
+                    if (_mode === 'image') {
+                        if (getAttachmentPreviewKind(att) !== 'image') return;
+                    } else if (isAttachmentReferencedInContent(att, noteContent) && isEmbeddedImageAttachment(att, noteContent)) {
+                        return;
+                    }
                     var filename = att.original_filename || att.filename || att.id;
                     var safe = filename.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                    var safeId = String(att.id).replace(/[^A-Za-z0-9_-]/g, '');
+                    // Pasted images are mostly all named image.png: the
+                    // thumbnail is what tells them apart
+                    var lead = _mode === 'image'
+                        ? '<img src="/api/v1/notes/' + encodeURIComponent(noteId) + '/attachments/' + safeId + '" alt="" loading="lazy" decoding="async" ' +
+                          'style="width:40px;height:40px;object-fit:cover;border-radius:4px;flex:none">'
+                        : '<i class="lucide lucide-paperclip" style="margin-right:6px;opacity:0.6"></i>';
                     html += '<div class="note-reference-item" style="cursor:pointer;padding:8px 12px;" ' +
-                        'data-attachment-id="' + att.id + '" data-filename="' + safe + '" data-note-id="' + noteId + '">' +
-                        '<i class="lucide lucide-paperclip" style="margin-right:6px;opacity:0.6"></i>' + safe +
+                        'data-attachment-id="' + safeId + '" data-filename="' + safe + '" data-note-id="' + noteId + '">' +
+                        lead + '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + safe + '</span>' +
                         '</div>';
                 });
                 if (!html) {
                     if (list) list.innerHTML = '<div style="padding:12px;text-align:center;color:var(--text-muted,#999)">' +
-                        (window.t ? window.t('attachments.empty', null, 'No attachments.') : 'No attachments.') +
+                        (_mode === 'image'
+                            ? pickerText('attachments.picker.no_images', 'This note has no image in its attachments.')
+                            : pickerText('attachments.empty', 'No attachments.')) +
                         '</div>';
                     return;
                 }
@@ -1952,7 +2566,20 @@ function insertHTMLAtSelection(html) {
                             var fname = item.getAttribute('data-filename');
                             var nId = item.getAttribute('data-note-id');
                             window.closeAttachmentPickerModal();
-                            insertAttachmentLink(nId, attachmentId, fname);
+                            if (_mode === 'image') {
+                                insertAttachmentImageIntoNote(nId, attachmentId, fname, {
+                                    range: _savedRange,
+                                    cmOffsets: _savedCmOffsets
+                                });
+                            } else if (window.POZNOTE_CONFIG && window.POZNOTE_CONFIG.attachmentLinksAsCards === true &&
+                                insertAttachmentCardIntoNote(nId, attachmentId, fname, {
+                                    range: _savedRange,
+                                    cmOffsets: _savedCmOffsets
+                                })) {
+                                // Shown as a card ("Attachment links as cards")
+                            } else {
+                                insertAttachmentLink(nId, attachmentId, fname);
+                            }
                         });
                     });
                 }

@@ -22,6 +22,9 @@ class SettingsController {
         'git_sync_enabled',
         'allow_executable_attachments',
         'login_disabled',
+        // Accounts opened without a password, a JSON array of user ids
+        // (lib/auto-login.php); writing it also sets login_disabled
+        'login_disabled_user_ids',
         'two_factor_required',
         'tenant_isolation',
         'tenant_isolation_features',
@@ -33,6 +36,9 @@ class SettingsController {
         // Days between two background update checks (1 to 365, default 1;
         // js/utils-updates.js)
         'update_check_interval_days',
+        // Days a "Remember me" cookie keeps signing someone in (1 to 400,
+        // default 30; lib/remember-me-duration.php)
+        'remember_me_days',
         'embed_providers_disabled',
         'import_max_individual_files',
         'import_max_zip_files',
@@ -251,6 +257,13 @@ class SettingsController {
             return $normalized;
         }
 
+        if ($key === 'remember_me_days') {
+            // Brought inside the bounds rather than refused, like the Settings
+            // field does, and the saved number goes back to the page.
+            require_once dirname(__DIR__, 3) . '/lib/remember-me-duration.php';
+            return (string) poznoteRememberMeDays($value);
+        }
+
         if ($key === 'git_sync_enabled' || $key === 'tenant_isolation') {
             return filter_var($value, FILTER_VALIDATE_BOOL) ? '1' : '0';
         }
@@ -264,6 +277,24 @@ class SettingsController {
                 throw new InvalidArgumentException('invalid entry: ' . mb_substr(implode(', ', $parsed['invalid']), 0, 200), 400);
             }
             return implode("\n", $parsed['entries']);
+        }
+
+        if ($key === 'login_disabled_user_ids') {
+            // JSON array of the accounts opened without a password. Only the
+            // shape is checked here: this runs before the administrator
+            // check, so looking the ids up at this point would tell any
+            // signed-in account which user ids exist (400 or 403). The ids
+            // are checked against the accounts in update(), behind it.
+            require_once dirname(__DIR__, 3) . '/lib/auto-login.php';
+            $raw = is_string($value) ? trim($value) : $value;
+            $decoded = ($raw === '' || $raw === null) ? [] : json_decode((string) $raw, true);
+            // A list of whole numbers and nothing else: an object, or an
+            // entry that is not an id, is refused rather than read loosely.
+            $ids = is_array($decoded) && array_is_list($decoded) ? poznoteNormalizeAutoLoginAccountIds($decoded) : null;
+            if ($ids === null || count($ids) !== count($decoded)) {
+                throw new InvalidArgumentException('value must be a JSON array of user ids', 400);
+            }
+            return json_encode($ids);
         }
 
         if ($key === 'embed_providers_disabled') {
@@ -388,7 +419,7 @@ class SettingsController {
             return filter_var($value, FILTER_VALIDATE_BOOL) ? '1' : '0';
         }
 
-        if ($key === 'attachment_previews_in_note') {
+        if ($key === 'attachment_previews_in_note' || $key === 'attachments_show_inserted_images' || $key === 'attachments_single_line' || $key === 'attachment_links_as_cards') {
             return filter_var($value, FILTER_VALIDATE_BOOL) ? '1' : '0';
         }
 
@@ -523,6 +554,23 @@ class SettingsController {
             $intVal = (int) $value;
             if ($intVal < POZNOTE_FOLDER_TREE_DIM_MIN || $intVal > POZNOTE_FOLDER_TREE_DIM_MAX) {
                 throw new InvalidArgumentException('value must be between ' . POZNOTE_FOLDER_TREE_DIM_MIN . ' and ' . POZNOTE_FOLDER_TREE_DIM_MAX, 400);
+            }
+            return (string) $intVal;
+        }
+
+        // Attachments per page of attachments_list.php (0 = all on one page)
+        if ($key === 'attachments_list_per_page') {
+            if (!ctype_digit((string) $value) || !in_array((int) $value, [25, 50, 100, 250, 0], true)) {
+                throw new InvalidArgumentException('value must be one of 25, 50, 100, 250, 0', 400);
+            }
+            return (string) (int) $value;
+        }
+
+        // Width of an attachment preview tile, in px (lib/attachment-preview-size.php)
+        if ($key === 'attachment_preview_size') {
+            $intVal = (int) $value;
+            if (!is_numeric($value) || $intVal < POZNOTE_ATTACHMENT_PREVIEW_SIZE_MIN || $intVal > POZNOTE_ATTACHMENT_PREVIEW_SIZE_MAX) {
+                throw new InvalidArgumentException('value must be between ' . POZNOTE_ATTACHMENT_PREVIEW_SIZE_MIN . ' and ' . POZNOTE_ATTACHMENT_PREVIEW_SIZE_MAX, 400);
             }
             return (string) $intVal;
         }
@@ -736,7 +784,7 @@ class SettingsController {
 
         // Width of the speed dial and of the dashboard (js/page-width.js):
         // a percentage, empty for the page's own layout
-        if ($key === 'speed_dial_width' || $key === 'dashboard_width') {
+        if ($key === 'speed_dial_width' || $key === 'dashboard_width' || $key === 'attachments_list_width') {
             require_once __DIR__ . '/../../../lib/page-width.php';
             $width = poznotePageWidth($value);
             if ($width === null && trim((string) $value) !== '') {
@@ -1014,15 +1062,43 @@ class SettingsController {
             if ($this->isGlobalSetting($key)) {
                 $this->requireGlobalSettingsWriteAdmin();
                 require_once dirname(__DIR__, 3) . '/users/db_master.php';
-                if ($key === 'login_disabled') {
-                    // Opening without a login opens ONE account: the
-                    // administrator turning it on, recorded here and never
-                    // taken from the request.
-                    $loginDisabledAccountId = $value === '1' ? (int)(getAuthenticatedUserId() ?? 0) : 0;
-                    if ($value === '1' && $loginDisabledAccountId <= 0) {
-                        throw new RuntimeException('no signed-in account to open without login', 400);
+                if ($key === 'login_disabled_user_ids') {
+                    // Only active accounts can be ticked: an unknown id is
+                    // refused rather than kept for an account that might be
+                    // created later. Checked here, behind the administrator
+                    // check, see normalizeSettingValue().
+                    $activeAccountIds = array_map('intval', array_column(getAllUserProfiles(), 'id'));
+                    foreach (json_decode($value, true) as $tickedAccountId) {
+                        if (!in_array((int) $tickedAccountId, $activeAccountIds, true)) {
+                            throw new InvalidArgumentException('unknown or inactive account: ' . (int) $tickedAccountId, 400);
+                        }
                     }
-                    setGlobalSetting('login_disabled_user_id', $loginDisabledAccountId > 0 ? (string)$loginDisabledAccountId : '');
+                    // The list is the setting: ticking no account turns the
+                    // option off. The single account of the first version
+                    // is dropped, the list now says it.
+                    setGlobalSetting('login_disabled', $value === '[]' ? '0' : '1');
+                    setGlobalSetting('login_disabled_user_id', '');
+                }
+                if ($key === 'login_disabled') {
+                    // The switch of the first version, kept for API callers.
+                    // Turned on with no account ticked yet, it ticks the
+                    // administrator turning it on, never an account taken
+                    // from the request; turned off, it unticks everyone.
+                    require_once dirname(__DIR__, 3) . '/lib/auto-login.php';
+                    $tickedIds = poznoteAutoLoginAccountIds(
+                        '1',
+                        (string) getGlobalSetting('login_disabled_user_ids', ''),
+                        (string) getGlobalSetting('login_disabled_user_id', '')
+                    );
+                    if ($value === '1' && $tickedIds === []) {
+                        $currentAccountId = (int)(getAuthenticatedUserId() ?? 0);
+                        if ($currentAccountId <= 0) {
+                            throw new RuntimeException('no signed-in account to open without login', 400);
+                        }
+                        $tickedIds = [$currentAccountId];
+                    }
+                    setGlobalSetting('login_disabled_user_ids', json_encode($value === '1' ? $tickedIds : []));
+                    setGlobalSetting('login_disabled_user_id', '');
                 }
                 if ($key === 'two_factor_required' && $value === '1') {
                     $this->requireOwnTwoFactorBeforeRequiringIt();

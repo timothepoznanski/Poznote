@@ -535,7 +535,7 @@ Mật khẩu được quản lý thông qua giao diện web Poznote, không ph�
 
 - Người dùng có thể tự đổi mật khẩu tại **Settings > Change Password**.
 - Quản trị viên có thể đặt mật khẩu tùy chỉnh cho bất kỳ người dùng nào hoặc đặt lại về mặc định tại **Settings > Admin Tools > User Management**.
-- Tùy chọn **Remember me** giữ phiên đăng nhập trong 30 ngày.
+- Tùy chọn **Remember me** giữ phiên đăng nhập trong 30 ngày theo mặc định. Quản trị viên có thể đổi khoảng thời gian này tại **Settings > Admin Tools > Users & access**, từ 1 đến 400 ngày. Tùy chọn này chỉ áp dụng cho đăng nhập bằng mật khẩu, vì đăng nhập SSO không bao giờ nhận cookie đó.
 - Một phiên đăng nhập kéo dài 7 ngày khi không có hoạt động và vẫn duy trì sau khi đóng trình duyệt. Đây cũng là cơ chế giữ phiên cho đăng nhập SSO (vốn không bao giờ nhận cookie remember-me), nhờ vậy tài khoản bị vô hiệu hóa ở nhà cung cấp danh tính sẽ mất quyền truy cập khi phiên hết hạn. Đặt `POZNOTE_SESSION_LIFETIME_DAYS` trong `.env` nếu muốn đổi sang số ngày nguyên khác, từ 1 đến 400.
 - Đổi mật khẩu sẽ hủy hiệu lực các cookie remember-me hiện có của người dùng đó.
 - **Settings > My Account > Connected devices** liệt kê các trình duyệt đang đăng nhập vào tài khoản của bạn kèm thời điểm hoạt động gần nhất, và cho phép đăng xuất những thiết bị bạn không còn sử dụng.
@@ -569,7 +569,7 @@ Poznote hỗ trợ OpenID Connect (authorization code + PKCE) cho tích hợp đ
 
 #### Cách hoạt động
 
-1. Trang đăng nhập hiển thị nút `Continue with [Provider Name]` khi OIDC được bật.
+1. Trang đăng nhập hiển thị nút `[Provider Name]` khi OIDC được bật.
 2. Người dùng xác thực bằng luồng authorization code của OIDC có bảo vệ bởi PKCE.
 3. Quyền truy cập có thể được giới hạn bằng các nhóm được phép (allowed groups) và, nếu cần, danh sách người dùng được phép kiểu cũ.
 4. Sau khi xác thực, Poznote liên kết danh tính theo `sub` (`oidc_subject`), rồi mới theo email đã xác minh (email do quản trị viên đặt hoặc đồng bộ từ nhà cung cấp, không phân biệt hoa thường). Hồ sơ sẵn có không bao giờ được liên kết theo tên đăng nhập: để liên kết một hồ sơ ở lần đăng nhập SSO đầu tiên, hãy gán cho nó đúng email mà nhà cung cấp gửi về hoặc dán OIDC subject của nó vào **Settings > Admin Tools > User Management**. Lần đăng nhập đầu tiên bị từ chối sẽ ghi lại giá trị subject vào log để tiện sao chép.

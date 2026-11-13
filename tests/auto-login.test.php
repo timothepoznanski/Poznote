@@ -1,30 +1,55 @@
 <?php
 lib('auto-login');
 
-// "Open without login" signs a browser in without asking for anything
-// (discussion #1608). Two decisions carry all the risk and are pinned here:
-// the account that gets opened is the recorded one and never a guess, and
-// only a browser is let in that way, API clients keep their credentials.
+// "Open without login" opens accounts without a password (discussion #1608,
+// reworked for several accounts on 2026-11-13). The decisions that carry the
+// risk are pinned here: which accounts are ticked (and the single account of
+// the first version is never lost on the way), when one is opened with no
+// login screen at all, and that only a browser is let in that way.
 
 $profiles = [
+    ['id' => 2, 'username' => 'Bob', 'is_admin' => 1],
     ['id' => 7, 'username' => 'alice', 'is_admin' => 0],
     ['id' => 5, 'username' => 'zed', 'is_admin' => 1],
-    ['id' => 2, 'username' => 'Bob', 'is_admin' => 1],
 ];
 
-test('the recorded account is the one opened', function () use ($profiles) {
-    assertSame('zed', poznoteResolveAutoLoginProfile($profiles, 5)['username']);
-    assertSame('alice', poznoteResolveAutoLoginProfile($profiles, 7)['username'], 'whatever its role');
+test('the ticked accounts are read from the list', function () {
+    assertSame([7, 2], poznoteAutoLoginAccountIds('1', '[7,2]', ''));
+    assertSame([7, 2], poznoteAutoLoginAccountIds('1', '["7", 2, 7, 0, -3, "x", 1.5]', ''), 'whole positive numbers once, nothing guessed');
+    assertSame([], poznoteAutoLoginAccountIds('1', '[]', '5'), 'a saved empty list wins over the first version');
+    assertSame([], poznoteAutoLoginAccountIds('1', 'not json', ''));
+    assertSame([], poznoteAutoLoginAccountIds('1', '{"a":1}', ''), 'an object is not a list of accounts');
+    assertSame([], poznoteAutoLoginAccountIds('1', '7', ''), 'nor is a bare number');
 });
 
-test('a recorded account that is gone or deactivated opens nothing', function () use ($profiles) {
-    assertSame(null, poznoteResolveAutoLoginProfile($profiles, 99), 'never falls back to an administrator');
-    assertSame(null, poznoteResolveAutoLoginProfile([], 5));
+test('nothing is ticked while the option is off', function () {
+    assertSame([], poznoteAutoLoginAccountIds('0', '[7,2]', ''));
+    assertSame([], poznoteAutoLoginAccountIds('', '', '5'));
 });
 
-test('nothing is opened while the option is off', function () use ($profiles) {
-    assertSame(null, poznoteResolveAutoLoginProfile($profiles, 0));
-    assertSame(null, poznoteResolveAutoLoginProfile($profiles, -1));
+test('an instance that never saved the list keeps the account of the first version', function () {
+    assertSame([5], poznoteAutoLoginAccountIds('1', '', '5'));
+    assertSame([], poznoteAutoLoginAccountIds('1', '', ''));
+    assertSame([], poznoteAutoLoginAccountIds('1', '', '0'));
+});
+
+test('the login page offers the ticked accounts that still exist, by username', function () use ($profiles) {
+    $offered = array_column(poznotePasswordlessProfiles($profiles, [5, 7, 99]), 'username');
+    assertSame(['alice', 'zed'], $offered, 'in the order of the profiles, a deleted account left out');
+    assertSame([], poznotePasswordlessProfiles($profiles, []));
+});
+
+test('the only account of the instance, ticked, opens with no login screen', function () {
+    $single = [['id' => 5, 'username' => 'zed', 'is_admin' => 1]];
+    assertSame('zed', poznoteResolveAutoLoginProfile($single, [5])['username']);
+    assertSame(null, poznoteResolveAutoLoginProfile($single, []), 'not ticked');
+    assertSame(null, poznoteResolveAutoLoginProfile($single, [9]), 'another account ticked');
+});
+
+test('as soon as a second account exists, the login page is shown', function () use ($profiles) {
+    assertSame(null, poznoteResolveAutoLoginProfile($profiles, [5]), 'even with a single account ticked');
+    assertSame(null, poznoteResolveAutoLoginProfile($profiles, [2, 5, 7]), 'even with every account ticked');
+    assertSame(null, poznoteResolveAutoLoginProfile([], [5]));
 });
 
 test('a page and its script calls are signed in', function () {

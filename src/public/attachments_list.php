@@ -1,8 +1,18 @@
 <?php
 require_once __DIR__ . '/../page_bootstrap.php';
+require_once __DIR__ . '/../lib/page-width.php';
 
 $pageWorkspace = trim(getWorkspaceFilter());
 $currentLang = getUserLanguage();
+// Attachments per page (attachments_list_per_page, js/attachments-list.js),
+// the sizes of the user management page; 0 shows them all on one page
+$attachmentsPageSizeOptions = [25, 50, 100, 250, 0];
+$attachmentsPerPage = getSetting('attachments_list_per_page');
+$attachmentsPerPage = (ctype_digit((string)$attachmentsPerPage) && in_array((int)$attachmentsPerPage, $attachmentsPageSizeOptions, true))
+    ? (int)$attachmentsPerPage
+    : 50;
+// Width of the list, from the slider of the toolbar (js/page-width.js)
+$pageWidthStyle = poznotePageWidthStyle('attachments');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars($currentLang, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
@@ -19,7 +29,7 @@ $currentLang = getUserLanguage();
 	<?php poznoteRenderBrandIcons(); ?>
 	<?php poznoteRenderUiCustomizationBootstrap(); ?>
 </head>
-<body class="shared-page has-icon-sidebar" data-workspace="<?php echo htmlspecialchars($pageWorkspace, ENT_QUOTES, 'UTF-8'); ?>" data-txt-untitled="<?php echo t_h('common.untitled', [], 'Untitled'); ?>" data-txt-no-results="<?php echo t_h('attachments.list.no_filter_results', [], 'No results.'); ?>" data-txt-all-file-types="<?php echo t_h('attachments.list.all_file_types', [], 'All types'); ?>">
+<body class="shared-page has-icon-sidebar"<?php if ($pageWidthStyle !== ''): ?> style="<?php echo $pageWidthStyle; ?>"<?php endif; ?> data-per-page="<?php echo (int)$attachmentsPerPage; ?>" data-show-inserted-images="<?php echo in_array((string) getSetting('attachments_show_inserted_images', '0'), ['1', 'true'], true) ? '1' : '0'; ?>" data-workspace="<?php echo htmlspecialchars($pageWorkspace, ENT_QUOTES, 'UTF-8'); ?>" data-txt-untitled="<?php echo t_h('common.untitled', [], 'Untitled'); ?>" data-txt-no-results="<?php echo t_h('attachments.list.no_filter_results', [], 'No results.'); ?>" data-txt-all-file-types="<?php echo t_h('attachments.list.all_file_types', [], 'All types'); ?>">
 	<?php include __DIR__ . '/../icon_sidebar.php'; ?>
 	<div class="shared-container">
 		<h1 class="poznote-page-title"><span class="poznote-page-title-name"><i class="lucide lucide-paperclip"></i> <?php echo t_h('notes_list.system_folders.attachments', [], 'Attachments'); ?></span> <?php echo poznoteRenderPageTitleWorkspace($pageWorkspace); ?></h1>
@@ -35,10 +45,34 @@ $currentLang = getUserLanguage();
 					<i class="lucide lucide-x"></i>
 				</button>
 			</div>
+			<?php // The view, as on the dashboard (js/attachments-list.js): one button stepping through the grid
+			      // sizes then the list, showing the current one (grid icon + size letter, or the list icon) ?>
+			<button type="button" id="attachmentsViewToggle" class="pz-toolbar-btn attachments-view-toggle"
+				data-label-grid="<?php echo t_h('dashboard.view.layout_grid', [], 'Grid'); ?>"
+				data-label-list="<?php echo t_h('dashboard.view.layout_list', [], 'List'); ?>"
+				data-label-small="<?php echo t_h('dashboard.view.size_small', [], 'Small'); ?>"
+				data-label-medium="<?php echo t_h('dashboard.view.size_medium', [], 'Medium'); ?>"
+				data-label-large="<?php echo t_h('dashboard.view.size_large', [], 'Large'); ?>"
+				data-label-wide="<?php echo t_h('dashboard.view.size_wide', [], 'Wide'); ?>"
+				title="<?php echo t_h('dashboard.view.layout_list', [], 'List'); ?>" aria-label="<?php echo t_h('dashboard.view.layout_list', [], 'List'); ?>"><i class="lucide lucide-layout-list" aria-hidden="true"></i><span class="attachments-view-letter" aria-hidden="true"></span></button>
+			<?php // Width of the list: a slider in a popover (js/page-width.js), an account setting ?>
+			<?php if (isActiveAccountOwnedByAuthenticatedUser()): ?>
+			<div class="attachments-width-wrap">
+				<button type="button" id="attachmentsWidthBtn" class="pz-toolbar-btn" data-page-width-toggle aria-haspopup="true" aria-expanded="false" aria-controls="attachmentsWidthPopover" title="<?php echo t_h('page_menu.page_width', [], 'Page width'); ?>" aria-label="<?php echo t_h('page_menu.page_width', [], 'Page width'); ?>"><i class="lucide lucide-move-horizontal" aria-hidden="true"></i></button>
+				<div id="attachmentsWidthPopover" class="attachments-width-popover" hidden>
+					<?php poznoteRenderPageWidthSlider('attachments', 'attachmentsWidthSlider'); ?>
+				</div>
+			</div>
+			<?php endif; ?>
 			<select id="fileTypeFilter" class="file-type-filter initially-hidden" aria-label="<?php echo t_h('attachments.list.file_type_filter', [], 'Filter by file type'); ?>" title="<?php echo t_h('attachments.list.file_type_filter', [], 'Filter by file type'); ?>"></select>
 			<label class="toggle-checkbox thumbnails-toggle">
 				<input type="checkbox" id="showThumbnailsToggle" checked>
 				<span class="toggle-label"><?php echo t_h('attachments.list.show_thumbnails', [], 'Show thumbnails in this list'); ?></span>
+			</label>
+			<?php // The account setting of Settings > Display, also shown here (js/inserted-images-toggle.js) ?>
+			<label class="toggle-checkbox inserted-images-toggle">
+				<input type="checkbox" id="showInsertedImagesToggle">
+				<span class="toggle-label"><?php echo t_h('attachments.inserted_images_toggle', [], 'Also show images inserted in the notes'); ?></span>
 			</label>
 			<div id="filterStats" class="filter-stats initially-hidden"></div>
 		</div>
@@ -49,6 +83,20 @@ $currentLang = getUserLanguage();
 				<?php echo t_h('common.loading', [], 'Loading...'); ?>
 			</div>
 			<div id="attachmentsContainer" class="attachments-list-container"></div>
+			<?php // Filled by js/attachments-list.js; the look and the wording of the user management pager ?>
+			<div id="attachmentsPager" class="attachments-pager" hidden data-status="<?php echo t_h('attachments.list.pager_status', [], 'Page {{page}} of {{pages}}, {{total}} attachments'); ?>">
+				<button type="button" class="btn btn-secondary" data-pager="prev" hidden><?php echo t_h('multiuser.admin.pager.previous', [], 'Previous'); ?></button>
+				<span class="attachments-pager-status"></span>
+				<button type="button" class="btn btn-secondary" data-pager="next" hidden><?php echo t_h('multiuser.admin.pager.next', [], 'Next'); ?></button>
+				<label class="attachments-pager-size">
+					<span><?php echo t_h('multiuser.admin.pager.per_page', [], 'Per page'); ?></span>
+					<select>
+						<?php foreach ($attachmentsPageSizeOptions as $sizeOption): ?>
+							<option value="<?php echo $sizeOption; ?>"<?php echo $sizeOption === $attachmentsPerPage ? ' selected' : ''; ?>><?php echo $sizeOption === 0 ? t_h('multiuser.admin.pager.all', [], 'All') : $sizeOption; ?></option>
+						<?php endforeach; ?>
+					</select>
+				</label>
+			</div>
 			<div id="emptyMessage" class="empty-message initially-hidden">
 				<p><?php echo t_h('attachments.list.no_attachments', [], 'No notes with attachments yet.'); ?></p>
 			</div>
@@ -58,6 +106,8 @@ $currentLang = getUserLanguage();
 	<script src="<?php echo poznoteAsset('js/navigation.js'); ?>"></script>
 	<script src="<?php echo poznoteAsset('js/icon-sidebar-toggle.js'); ?>"></script>
 	<script src="<?php echo poznoteAsset('js/attachments-list.js'); ?>"></script>
+	<script src="<?php echo poznoteAsset('js/inserted-images-toggle.js'); ?>"></script>
+	<script src="<?php echo poznoteAsset('js/page-width.js'); ?>"></script>
 	<script src="<?php echo poznoteAsset('js/search-toggle.js'); ?>"></script>
 </body>
 </html>

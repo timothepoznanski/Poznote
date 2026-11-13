@@ -94,3 +94,152 @@
     outline-offset: 2px;
     border-radius: var(--pz-radius-sm);
 }
+
+/* "Attachments on one line" setting (body.attachments-single-line): the
+   links stay on one line that slides sideways, with a finger, a trackpad or
+   a mouse drag (js/attachments-row-scroll.js), and shows no scrollbar. A side
+   that is cut fades out and ends with "…"; the script sets is-cut-start /
+   is-cut-end on the list and gives the row the list's box (--att-list-*)
+   so the "…" sits on the line of links whatever the row's padding. */
+body.attachments-single-line .note-attachments-row {
+    position: relative;
+    align-items: center;
+}
+
+body.attachments-single-line .note-attachments-row > .icon-attachment-btn,
+body.attachments-single-line .note-attachments-row > .lucide-paperclip.icon_attachment {
+    align-self: center;
+    margin-top: 0;
+}
+
+body.attachments-single-line .note-attachments-list {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+}
+
+body.attachments-single-line .note-attachments-list::-webkit-scrollbar {
+    display: none;
+}
+
+body.attachments-single-line .note-attachments-list > .attachment-link {
+    flex: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+body.attachments-single-line .note-attachments-list.is-dragging,
+body.attachments-single-line .note-attachments-list.is-dragging > .attachment-link {
+    cursor: grabbing;
+}
+
+body.attachments-single-line .note-attachments-list.is-cut-end {
+    -webkit-mask-image: linear-gradient(to right, currentColor calc(100% - 44px), transparent calc(100% - 14px));
+    mask-image: linear-gradient(to right, currentColor calc(100% - 44px), transparent calc(100% - 14px));
+}
+
+body.attachments-single-line .note-attachments-list.is-cut-start {
+    -webkit-mask-image: linear-gradient(to right, transparent 14px, currentColor 44px);
+    mask-image: linear-gradient(to right, transparent 14px, currentColor 44px);
+}
+
+body.attachments-single-line .note-attachments-list.is-cut-start.is-cut-end {
+    -webkit-mask-image: linear-gradient(to right, transparent 14px, currentColor 44px, currentColor calc(100% - 44px), transparent calc(100% - 14px));
+    mask-image: linear-gradient(to right, transparent 14px, currentColor 44px, currentColor calc(100% - 44px), transparent calc(100% - 14px));
+}
+
+body.attachments-single-line .note-attachments-row.is-cut-start::before,
+body.attachments-single-line .note-attachments-row.is-cut-end::after {
+    content: "…";
+    position: absolute;
+    top: var(--att-list-top, 0);
+    height: var(--att-list-height, 100%);
+    display: flex;
+    align-items: center;
+    font-size: 15px;
+    line-height: 1;
+    color: var(--pz-text-muted);
+    pointer-events: none;
+}
+
+body.attachments-single-line .note-attachments-row.is-cut-start::before {
+    left: var(--att-list-start, 0);
+}
+
+body.attachments-single-line .note-attachments-row.is-cut-end::after {
+    right: var(--att-list-end, 0);
+}
+
+/* The same setting for the preview tiles ("Attachment previews"), which take
+   the row's place: one line of tiles of the grid's own width, sliding
+   sideways. The tiles are their own scroller with no frame around it, and a
+   "…" drawn inside it would fade out with the tiles: js/attachments-row-scroll.js
+   draws it in two marks next to it (.att-cut-mark). */
+body.attachments-single-line .note-attachment-previews {
+    position: relative;
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: var(--pz-attachment-preview-size);
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+}
+
+body.attachments-single-line .note-attachment-previews::-webkit-scrollbar {
+    display: none;
+}
+
+body.attachments-single-line .note-attachment-previews img,
+body.attachments-single-line .note-attachment-previews a {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+body.attachments-single-line .note-attachment-previews.is-dragging,
+body.attachments-single-line .note-attachment-previews.is-dragging * {
+    cursor: grabbing;
+}
+
+body.attachments-single-line .note-attachment-previews.is-cut-end {
+    -webkit-mask-image: linear-gradient(to right, currentColor calc(100% - 44px), transparent calc(100% - 14px));
+    mask-image: linear-gradient(to right, currentColor calc(100% - 44px), transparent calc(100% - 14px));
+}
+
+body.attachments-single-line .note-attachment-previews.is-cut-start {
+    -webkit-mask-image: linear-gradient(to right, transparent 14px, currentColor 44px);
+    mask-image: linear-gradient(to right, transparent 14px, currentColor 44px);
+}
+
+body.attachments-single-line .note-attachment-previews.is-cut-start.is-cut-end {
+    -webkit-mask-image: linear-gradient(to right, transparent 14px, currentColor 44px, currentColor calc(100% - 44px), transparent calc(100% - 14px));
+    mask-image: linear-gradient(to right, transparent 14px, currentColor 44px, currentColor calc(100% - 44px), transparent calc(100% - 14px));
+}
+
+/* The "…" of the tiles: two marks the script puts right after the tiles and
+   places over their edges (js/attachments-row-scroll.js), outside the fade */
+.att-cut-mark {
+    position: absolute;
+    width: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    line-height: 1;
+    color: var(--pz-text-muted);
+    pointer-events: none;
+}
+
+.att-cut-mark[hidden] {
+    display: none;
+}
+
+@media screen and (max-width: 768px) {
+    body.attachments-single-line .note-attachment-previews {
+        grid-auto-columns: min(calc(var(--pz-attachment-preview-size) * 0.92), 100%);
+    }
+}

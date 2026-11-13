@@ -290,9 +290,12 @@ textarea:focus {
    class, not an <hN> (css/components/toggle-block.css), and this rule would
    flatten it back to the body size. So is the number of lines of a folded
    code block, which sits next to the chevron rather than inside the <pre>
-   and reads at its own small size (css/components/code-block-fold.css). */
+   and reads at its own small size (css/components/code-block-fold.css). So
+   is the preview an attachment card shows in its place (js/attachments.js):
+   a tile like those above the note, whose name and size keep the tile's
+   small type. */
 .noteentry,
-.noteentry *:not(.lucide):not([class*="lucide-"]):not(i):not(a):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(h1 *):not(h2 *):not(h3 *):not(h4 *):not(h5 *):not(h6 *):not(.toggle-header):not(.toggle-header *):not(.embed-blocked):not(.embed-blocked *):not(.cm-live-toggle-header):not(.code-block-collapsed-summary):not(pre):not(pre *):not(code):not(code *):not(.code-block):not(.code-block *):not(.hljs):not(.hljs *) {
+.noteentry *:not(.lucide):not([class*="lucide-"]):not(i):not(a):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(h1 *):not(h2 *):not(h3 *):not(h4 *):not(h5 *):not(h6 *):not(.toggle-header):not(.toggle-header *):not(.embed-blocked):not(.embed-blocked *):not(.cm-live-toggle-header):not(.code-block-collapsed-summary):not(.attachment-card-preview):not(.attachment-card-preview *):not(pre):not(pre *):not(code):not(code *):not(.code-block):not(.code-block *):not(.hljs):not(.hljs *) {
     font-size: var(--note-font-size, 15px) !important;
 }
 
@@ -498,7 +501,10 @@ textarea:focus {
 
 .note-attachment-previews {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    /* Columns of exactly the chosen width (attachment_preview_size), not
+       stretched to fill the line: the slider of the attachment menu would
+       otherwise only show a change when the number of columns changes */
+    grid-template-columns: repeat(auto-fill, min(var(--pz-attachment-preview-size), 100%));
     gap: 10px;
     width: 100%;
     margin: 8px 0 16px;
@@ -523,16 +529,46 @@ textarea:focus {
     background: var(--pz-surface);
 }
 
-.note-attachment-preview-frame {
-    display: block;
-    height: auto;
-    border: 0;
-    background: var(--pz-bg);
-    pointer-events: none;
+/* A PDF: its first page, drawn as an image by js/pdf-preview.js, the width
+   of the tile and seen from its top, like a sheet of paper; the file icon
+   until it is drawn, and for a PDF it cannot read. The browser's PDF viewer
+   is not used here: it drew a scrollbar and a dark ground around the page. */
+.note-attachment-preview-pdf-page {
+    align-items: flex-start;
 }
 
-.note-attachment-preview-audio-frame {
+.note-attachment-preview-pdf-page:not([data-pdf-state="ready"]) {
+    align-items: center;
+    color: var(--pz-text-subtle);
+}
+
+.note-attachment-preview-pdf-page > i {
+    width: 32px;
+    height: 32px;
+}
+
+/* Weighed to beat the image rules of a note and of a Markdown preview,
+   which hold the preview of an attachment card */
+figure.note-attachment-preview .note-attachment-preview-pdf-page > img.note-attachment-preview-pdf-image {
     display: block;
+    width: 100%;
+    max-width: none;
+    height: auto;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    content-visibility: visible;
+}
+
+/* The audio frame: weighed to beat the iframe rules of a note and of a
+   Markdown preview (`.noteentry iframe`, `.cm-live-media iframe`) */
+figure.note-attachment-preview > iframe.note-attachment-preview-audio-frame {
+    display: block;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    border-radius: 0;
     height: 56px;
     aspect-ratio: auto;
     border: 0;
@@ -636,7 +672,8 @@ textarea:focus {
 
 @media screen and (max-width: 768px) {
     .note-attachment-previews {
-        grid-template-columns: repeat(auto-fill, minmax(138px, 1fr));
+        /* A touch narrower on a phone */
+        grid-template-columns: repeat(auto-fill, min(calc(var(--pz-attachment-preview-size) * 0.92), 100%));
         gap: 8px;
         margin: 8px 0 14px;
     }

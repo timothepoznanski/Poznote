@@ -279,6 +279,7 @@ $settings = [
     'note_font_size' => '15',
     'sidebar_font_size' => '13',
     'sidebar_tree_indent' => '',
+    'attachment_preview_size' => '',
     'center_note_content' => '0',
     'show_note_created' => false,
     'show_note_icons' => '1',
@@ -298,7 +299,10 @@ $settings = [
     'markdown_colored' => '0',
     'markdown_colored_custom' => '',
     'attachment_previews_in_note' => '0',
+    'attachments_show_inserted_images' => '0',
     'attachments_at_bottom' => '0',
+    'attachments_single_line' => '0',
+    'attachment_links_as_cards' => '0',
     'backlinks_at_bottom' => '0',
     'note_virtual_space' => '1',
     'default_image_border_no_padding' => '0',
@@ -316,7 +320,7 @@ $settings = [
 ];
 
 try {
-    $stmt = $con->query("SELECT key, value FROM settings WHERE key IN ('note_font_size', 'sidebar_font_size', 'sidebar_tree_indent', 'center_note_content', 'show_note_created', 'show_note_icons', 'hide_folder_actions', 'note_list_sort', 'notes_without_folders_after_folders', 'folder_icon_opens_kanban', 'folder_count_parentheses', 'code_block_word_wrap', 'code_block_line_numbers', 'code_block_collapsed_lines', 'markdown_split_card_view', 'markdown_split_preview_left', 'markdown_heading_underline', 'markdown_editor_word_wrap', 'markdown_live_editing', 'markdown_colored', 'markdown_colored_custom', 'attachment_previews_in_note', 'attachments_at_bottom', 'backlinks_at_bottom', 'note_virtual_space', 'default_image_border_no_padding', 'spellcheck_html_notes', 'highlight_current_folder_tree', 'folder_tree_dim_level', 'markdown_default_view_mode', 'markdown_new_note_view_mode', 'markdown_live_show_syntax', 'markdown_view_cycle', 'sidebar_offline_marks', 'favorites_sort', 'favorites_icon_color', 'tab_follows_note')");
+    $stmt = $con->query("SELECT key, value FROM settings WHERE key IN ('note_font_size', 'sidebar_font_size', 'sidebar_tree_indent', 'attachment_preview_size', 'center_note_content', 'show_note_created', 'show_note_icons', 'hide_folder_actions', 'note_list_sort', 'notes_without_folders_after_folders', 'folder_icon_opens_kanban', 'folder_count_parentheses', 'code_block_word_wrap', 'code_block_line_numbers', 'code_block_collapsed_lines', 'markdown_split_card_view', 'markdown_split_preview_left', 'markdown_heading_underline', 'markdown_editor_word_wrap', 'markdown_live_editing', 'markdown_colored', 'markdown_colored_custom', 'attachment_previews_in_note', 'attachments_show_inserted_images', 'attachments_at_bottom', 'attachments_single_line', 'attachment_links_as_cards', 'backlinks_at_bottom', 'note_virtual_space', 'default_image_border_no_padding', 'spellcheck_html_notes', 'highlight_current_folder_tree', 'folder_tree_dim_level', 'markdown_default_view_mode', 'markdown_new_note_view_mode', 'markdown_live_show_syntax', 'markdown_view_cycle', 'sidebar_offline_marks', 'favorites_sort', 'favorites_icon_color', 'tab_follows_note')");
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $settings[$row['key']] = $row['value'];
         if ($row['key'] === 'markdown_new_note_view_mode') {
@@ -334,6 +338,9 @@ $sidebar_font_size = ($settings['sidebar_font_size'] !== '' && $settings['sideba
 // Step of one level of the notes tree, in px (lib/tree-indent.php,
 // css/folders/content.css)
 $sidebar_tree_indent = poznoteTreeIndent($settings['sidebar_tree_indent']);
+// Width of an attachment preview tile, in px (lib/attachment-preview-size.php),
+// set from the attachment right-click menu (js/note-attachment-menu.js)
+$attachment_preview_size = poznoteAttachmentPreviewSize($settings['attachment_preview_size']);
 
 // Note max width as a CSS length. center_note_content stores a percentage of
 // the note column ('60%'), '0' for full width, or legacy values: '1'/'true'
@@ -485,7 +492,7 @@ if ($center_note_content_enabled && $width_value !== '1' && $width_value !== 'tr
     <!-- Dark-mode stylesheets are served concatenated (same order as the css/dark-mode/ sources) -->
     <link type="text/css" rel="stylesheet" href="dark_mode_css.php?v=<?php echo $v; ?>"/>
     <link type="text/css" rel="stylesheet" href="js/katex/katex.min.css?v=<?php echo $v; ?>"/>
-    <style>:root { --note-font-size: <?php echo htmlspecialchars($note_font_size, ENT_QUOTES); ?>px; --sidebar-font-size: <?php echo htmlspecialchars($sidebar_font_size, ENT_QUOTES); ?>px; --pz-tree-indent: <?php echo (int)$sidebar_tree_indent; ?>px; --note-max-width: <?php echo htmlspecialchars($note_max_width, ENT_QUOTES); ?>; }</style>
+    <style>:root { --note-font-size: <?php echo htmlspecialchars($note_font_size, ENT_QUOTES); ?>px; --sidebar-font-size: <?php echo htmlspecialchars($sidebar_font_size, ENT_QUOTES); ?>px; --pz-tree-indent: <?php echo (int)$sidebar_tree_indent; ?>px; --pz-attachment-preview-size: <?php echo (int)$attachment_preview_size; ?>px; --note-max-width: <?php echo htmlspecialchars($note_max_width, ENT_QUOTES); ?>; }</style>
     <?php poznoteRenderUiCustomizationBootstrap(); ?>
     <?php poznoteRenderToolbarIconColorsBootstrap(); ?>
     <!-- Editor/toolbar modules served as one concatenated deferred bundle
@@ -568,6 +575,11 @@ if (!poznoteSettingEnabled($settings['markdown_heading_underline'], true)) {
 if (!poznoteSettingEnabled($settings['markdown_editor_word_wrap'], true)) {
     $extra_body_classes .= ' markdown-editor-no-wrap';
 }
+// The note's attachments on one line that slides sideways (css/notes/attachments-row.css,
+// js/attachments-row-scroll.js)
+if (poznoteSettingEnabled($settings['attachments_single_line'], false)) {
+    $extra_body_classes .= ' attachments-single-line';
+}
 // Empty room under the last line of a note (discussion 1564), css/notes/noteentry.css
 if (poznoteSettingEnabled($settings['note_virtual_space'], true)) {
     $extra_body_classes .= ' note-virtual-space';
@@ -622,6 +634,11 @@ if (poznoteMarkdownColoredEnabled($settings['markdown_colored'])) {
 }
 $attachment_previews_in_note_setting = poznoteSettingEnabled($settings['attachment_previews_in_note'], false);
 $attachments_at_bottom_setting = poznoteSettingEnabled($settings['attachments_at_bottom'], false);
+// Images inserted in the note are attachments too, hidden by default from the
+// attachment lists so that they do not bury the other files
+$attachments_show_inserted_images_setting = poznoteSettingEnabled($settings['attachments_show_inserted_images'], false);
+// "Link to attachment" inserts a card instead of a plain link (js/attachments.js)
+$attachment_links_as_cards_setting = poznoteSettingEnabled($settings['attachment_links_as_cards'], false);
 $backlinks_at_bottom_setting = poznoteSettingEnabled($settings['backlinks_at_bottom'], false);
 // The one sort order of the tree (#1442), stepped through by the button at the
 // top of the notes list. src/lib/note-sort.php holds the modes and the
@@ -730,6 +747,14 @@ $whats_new_preview_since = $whats_new_preview ? trim((string)@file_get_contents(
             'dateTimeFormat' => getUserDateTimeFormat(),
             'inlineAttachmentPreviews' => $attachment_previews_in_note_setting,
             'attachmentsAtBottom' => $attachments_at_bottom_setting,
+            'showInsertedImageAttachments' => $attachments_show_inserted_images_setting,
+            'attachmentLinksAsCards' => $attachment_links_as_cards_setting,
+            'attachmentPreviewSize' => [
+                'value' => (int)$attachment_preview_size,
+                'min' => POZNOTE_ATTACHMENT_PREVIEW_SIZE_MIN,
+                'max' => POZNOTE_ATTACHMENT_PREVIEW_SIZE_MAX,
+                'default' => POZNOTE_ATTACHMENT_PREVIEW_SIZE_DEFAULT,
+            ],
             'backlinksAtBottom' => $backlinks_at_bottom_setting,
             'defaultImageBorderNoPadding' => poznoteSettingEnabled($settings['default_image_border_no_padding'], false),
             'archiveWorkspace' => POZNOTE_ARCHIVE_WORKSPACE,

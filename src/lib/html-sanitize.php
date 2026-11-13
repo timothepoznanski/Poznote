@@ -256,7 +256,8 @@ function sanitizeHtml($html) {
     
     // Allowed attributes per tag
     $allowedAttrs = [
-        'a' => ['href', 'title', 'target', 'rel', 'download'],
+        // contenteditable: "false" only, an attachment card (css/components/attachment-card.css)
+        'a' => ['href', 'title', 'target', 'rel', 'download', 'contenteditable'],
         'img' => ['src', 'alt', 'title', 'width', 'height', 'data-is-excalidraw', 'data-excalidraw-note-id'],
         'td' => ['colspan', 'rowspan', 'data-formula'], // data-formula: computed cells (js/table-formulas.js)
         'th' => ['colspan', 'rowspan', 'scope'],
@@ -340,6 +341,15 @@ function sanitizeHtml($html) {
     // The controls drawn around a code block are runtime UI too
     // (lib/code-block-controls.php)
     poznoteRemoveCodeBlockControls($xpath);
+
+    // The preview shown in place of an attachment card is runtime UI too
+    // (js/attachments.js): the card link is what the note holds
+    $runtimeCardPreviews = $xpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " attachment-card-preview ")]');
+    foreach ($runtimeCardPreviews as $preview) {
+        if ($preview->parentNode) {
+            $preview->parentNode->removeChild($preview);
+        }
+    }
 
     // Embedded task-list widgets are runtime UI rebuilt by tasklist-embed.js
     // from the persisted marker; only the marker div and its fallback link
@@ -460,6 +470,12 @@ function sanitizeHtml($html) {
                         $attributesToRemove[] = $attrName;
                     }
                 }
+            }
+
+            // A link only ever stops being editable (an attachment card is one
+            // block the caret steps over); it never becomes an editing host
+            if ($attrName === 'contenteditable' && $tagName === 'a' && strtolower(trim($attrValue)) !== 'false') {
+                $attributesToRemove[] = $attrName;
             }
 
             // A list marker type is one of the five HTML values

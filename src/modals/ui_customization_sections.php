@@ -128,7 +128,10 @@ if (!function_exists('poznoteUiCustomizationSectionHeader')) {
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:code-line-numbers-card" checked><span><?php echo t_h('display.cards.code_block_line_numbers', [], 'Code block line numbers'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:code-collapsed-lines-card" checked><span><?php echo t_h('display.cards.code_block_collapsed_lines', [], 'Folded code blocks'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:attachment-previews-card" checked><span><?php echo t_h('display.cards.attachment_previews_in_note', [], 'Attachment previews'); ?></span></label>
+        <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:attachments-inserted-images-card" checked><span><?php echo t_h('display.cards.attachments_show_inserted_images', [], 'Inserted images in attachments'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:attachments-at-bottom-card" checked><span><?php echo t_h('display.cards.attachments_at_bottom', [], 'Attachments at bottom'); ?></span></label>
+        <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:attachments-single-line-card" checked><span><?php echo t_h('display.cards.attachments_single_line', [], 'Attachments on one line'); ?></span></label>
+        <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:attachment-links-as-cards-card" checked><span><?php echo t_h('display.cards.attachment_links_as_cards', [], 'Attachment links as cards'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:backlinks-at-bottom-card" checked><span><?php echo t_h('display.cards.backlinks_at_bottom', [], 'Backlinks at bottom'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:note-virtual-space-card" checked><span><?php echo t_h('display.cards.note_virtual_space', [], 'Space below the note'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:default-image-border-card" checked><span><?php echo t_h('display.cards.default_image_border_no_padding', [], 'Default image border (no padding)'); ?></span></label>
@@ -150,6 +153,7 @@ if (!function_exists('poznoteUiCustomizationSectionHeader')) {
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:statistics-token-card" checked><span><?php echo t_h('settings.cards.statistics_api', [], 'Statistics API'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:executable-attachments-card" checked><span><?php echo t_h('settings.cards.allow_executable_attachments', [], 'Script and executable attachments'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:two-factor-required-card" checked><span><?php echo t_h('settings.cards.two_factor_required', [], 'Require two-factor'); ?></span></label>
+        <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:remember-me-days-card" checked><span><?php echo t_h('settings.cards.remember_me_days', [], 'Remember me duration'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:login-disabled-card" checked><span><?php echo t_h('settings.cards.login_disabled', [], 'Open without login'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:tenant-isolation-card" checked><span><?php echo t_h('settings.cards.tenant_isolation', [], 'Tenant isolation'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:embeds-card" checked><span><?php echo t_h('settings.cards.embeds', [], 'Embeds'); ?></span></label>
@@ -224,7 +228,7 @@ if (!function_exists('poznoteUiCustomizationSectionHeader')) {
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:iconSidebarGitPullBtn" checked><span>Pull</span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:iconSidebarThemeToggleBtn" checked><span><?php echo t_h('modals.ui_customization.theme_toggle', [], 'Theme toggle'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:iconSidebarAboutBtn" checked><span><?php echo t_h('settings.categories.documentation', [], 'About'); ?></span></label>
-    <?php if (!(function_exists('isAutoLoginSession') && isAutoLoginSession())): // no Logout button without a login screen ?>
+    <?php if (!(function_exists('isLogoutPointless') && isLogoutPointless())): // no Logout button without a login screen ?>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:iconSidebarLogoutBtn" checked><span><?php echo t_h('workspace_menu.logout', [], 'Logout'); ?></span></label>
     <?php endif; ?>
 </div>
@@ -316,6 +320,7 @@ if (!function_exists('poznoteUiCustomizationSectionHeader')) {
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="slash:link-to-attachment" checked><span><?php echo t_h('slash_menu.link_to_attachment', [], 'Link to attachment'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="slash:link" checked><span><?php echo t_h('slash_menu.link', [], 'Link'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="slash:image" checked><span><?php echo t_h('slash_menu.image', [], 'Image'); ?></span></label>
+    <label class="ui-custom-item"><input type="checkbox" data-ui-key="slash:image-from-attachments" checked><span><?php echo t_h('slash_menu.image_from_attachments', [], 'Image from attachments'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="slash:take-photo" checked><span><?php echo t_h('slash_menu.take_photo', [], 'Take a photo'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="slash:audio-file" checked><span><?php echo t_h('slash_menu.audio', [], 'Audio'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="slash:cancel" checked><span><?php echo t_h('slash_menu.cancel', [], 'Cancel'); ?></span></label>
@@ -533,6 +538,18 @@ if (!function_exists('poznoteUiCustomizationSectionHeader')) {
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="folder:rename-folder" checked><span><?php echo t_h('notes_list.folder_actions.rename_folder', [], 'Rename'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="folder:archive-folder" checked><span><?php echo t_h('archive.folder_menu_item', [], 'Archive folder'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="folder:delete-folder" checked><span><?php echo t_h('notes_list.folder_actions.delete_folder', [], 'Delete'); ?></span></label>
+</div>
+</div>
+
+<!-- Kanban Section: the buttons of the board's header (kanban_content.php), in their order -->
+<div class="ui-custom-section" data-ui-pages="notes">
+<?php echo poznoteUiCustomizationSectionHeader(t_h('modals.ui_customization.sections.kanban', [], 'Kanban')); ?>
+<div class="ui-custom-items">
+<?php echo poznoteUiCustomizationListToggleAll(); ?>
+        <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:kanbanSortBtn" checked><span><?php echo t_h('kanban.sort.label', [], 'Sort by'); ?></span></label>
+        <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:kanbanSizeBtn" checked><span><?php echo t_h('kanban.card_size', [], 'Card size'); ?></span></label>
+        <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:kanbanBackgroundBtn" checked><span><?php echo t_h('kanban.background.button', [], 'Background image'); ?></span></label>
+        <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:kanbanAddColumnBtn" checked><span><?php echo t_h('kanban.add_column', [], 'Add column'); ?></span></label>
 </div>
 </div>
 
