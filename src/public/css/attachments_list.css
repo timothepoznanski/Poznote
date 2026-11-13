@@ -459,11 +459,24 @@ html[data-theme='dark'] .attachment-image-preview img {
     font-weight: var(--pz-weight-normal);
 }
 
-/* Grid view (the list / grid button, js/attachments-list.js): one tile per
-   attachment, the thumbnail of an image (when "Show thumbnails" is on) or the
-   icon of its kind of file, its name, and the note it belongs to */
+/* Grid view (the list / grid button, js/attachments-list.js): grouped by note
+   as in the list, the note's name then one tile per attachment, the thumbnail
+   of an image (when "Show thumbnails" is on) or the icon of its kind of file,
+   and its name */
 .attachments-list-container.is-grid {
     max-width: var(--attachments-list-width, 1100px);
+}
+
+.attachments-list-container.is-grid .attachment-row {
+    border-bottom: none;
+}
+
+.attachments-list-container.is-grid .attachment-note-name {
+    margin-bottom: 20px;
+}
+
+.attachments-list-container.is-grid .attachment-note-name:hover {
+    text-decoration: none;
 }
 
 /* The four sizes of the view button (js/attachments-list.js), as on the
@@ -474,7 +487,6 @@ html[data-theme='dark'] .attachment-image-preview img {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(var(--attachments-tile), 100%), 1fr));
     gap: 12px;
-    padding: 16px 0;
 }
 
 .attachments-grid-small { --attachments-tile: 110px; }
@@ -524,7 +536,7 @@ html[data-theme='dark'] .attachment-image-preview img {
 
 
 .attachments-grid-name {
-    padding: 8px 10px 2px;
+    padding: 8px 10px;
     font-size: 13px;
     color: var(--pz-text);
     text-decoration: none;
@@ -534,21 +546,6 @@ html[data-theme='dark'] .attachment-image-preview img {
 }
 
 .attachments-grid-name:hover {
-    color: var(--pz-accent-text);
-    text-decoration: underline;
-}
-
-.attachments-grid-note {
-    padding: 0 10px 8px;
-    font-size: 12px;
-    color: var(--pz-text-muted);
-    text-decoration: none;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.attachments-grid-note:hover {
     color: var(--pz-accent-text);
     text-decoration: underline;
 }
