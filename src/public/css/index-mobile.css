@@ -796,10 +796,12 @@ a.links_arbo_left::-webkit-scrollbar,
    - Make the table fill the available width and let cell contents wrap
    Markdown tables have a box of their own that scrolls (css/markdown.css, #1701).
 */
+/* Not the frames of an attachment preview (the preview of an attachment card
+   sits in the note): their size is the tile's (css/notes/noteentry.css) */
 .noteentry table:not(.markdown-table-scroll > table),
 .markdown-preview table:not(.markdown-table-scroll > table),
-.noteentry iframe:not([data-is-audio]):not(.note-audio-embed),
-.markdown-preview iframe:not([data-is-audio]):not(.note-audio-embed) {
+.noteentry iframe:not([data-is-audio]):not(.note-audio-embed):not(.note-attachment-preview-media),
+.markdown-preview iframe:not([data-is-audio]):not(.note-audio-embed):not(.note-attachment-preview-media) {
     width: 100% !important;
     max-width: 100%;
 }
@@ -809,8 +811,8 @@ a.links_arbo_left::-webkit-scrollbar,
     table-layout: fixed;
 }
 
-.noteentry iframe:not([data-is-audio]):not(.note-audio-embed),
-.markdown-preview iframe:not([data-is-audio]):not(.note-audio-embed) {
+.noteentry iframe:not([data-is-audio]):not(.note-audio-embed):not(.note-attachment-preview-media),
+.markdown-preview iframe:not([data-is-audio]):not(.note-audio-embed):not(.note-attachment-preview-media) {
     height: auto !important;
     aspect-ratio: 16 / 9;
     border: none;

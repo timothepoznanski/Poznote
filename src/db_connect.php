@@ -648,6 +648,8 @@ try {
         $con->exec("INSERT OR IGNORE INTO settings (key, value) VALUES ('attachment_previews_in_note', '0')");
         $con->exec("INSERT OR IGNORE INTO settings (key, value) VALUES ('attachments_show_inserted_images', '0')");
         $con->exec("INSERT OR IGNORE INTO settings (key, value) VALUES ('attachments_at_bottom', '0')");
+        $con->exec("INSERT OR IGNORE INTO settings (key, value) VALUES ('attachments_single_line', '0')");
+        $con->exec("INSERT OR IGNORE INTO settings (key, value) VALUES ('attachment_links_as_cards', '0')");
         $con->exec("INSERT OR IGNORE INTO settings (key, value) VALUES ('backlinks_at_bottom', '0')");
 
         // The welcome note is created during the first database bootstrap. Sync

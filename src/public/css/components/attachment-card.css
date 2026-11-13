@@ -1,0 +1,159 @@
+/**
+ * Attachment card: an attachment shown in a note as a card rather than a link
+ * ("Attachment links as cards", inserted by "Link to attachment",
+ * js/attachments.js). It stays a plain link in the stored content,
+ *   <a class="attachment-card attachment-card-pdf" href="/api/v1/notes/N/attachments/ID">name</a>
+ * on a line of its own: in a rich text note, and as an HTML line in a Markdown
+ * note, which its parsers render inside a <div class="attachment-card-line">
+ * (markdown_parser.php, js/markdown-parser.js). It needs no script to show and
+ * degrades to a link wherever this sheet is missing (exports). The rules do
+ * not depend on the wrapper: in a rich text note the line is whatever <div>
+ * the editor made. The icon of its kind of file and the download arrow are
+ * drawn here, as masks.
+ */
+
+.attachment-card {
+    --attachment-card-icon-file: url("data:image/svg+xml,%3C!--%20%40license%20lucide-static%20v0.575.0%20-%20ISC%20--%3E%20%3Csvg%20class%3D%27lucide%20lucide-file%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2724%27%20height%3D%2724%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27currentColor%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%20%3E%20%3Cpath%20d%3D%27M6%2022a2%202%200%200%201-2-2V4a2%202%200%200%201%202-2h8a2.4%202.4%200%200%201%201.704.706l3.588%203.588A2.4%202.4%200%200%201%2020%208v12a2%202%200%200%201-2%202z%27%20%2F%3E%20%3Cpath%20d%3D%27M14%202v5a1%201%200%200%200%201%201h5%27%20%2F%3E%20%3C%2Fsvg%3E");
+    --attachment-card-icon-file-text: url("data:image/svg+xml,%3C!--%20%40license%20lucide-static%20v0.575.0%20-%20ISC%20--%3E%20%3Csvg%20class%3D%27lucide%20lucide-file-text%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2724%27%20height%3D%2724%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27currentColor%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%20%3E%20%3Cpath%20d%3D%27M6%2022a2%202%200%200%201-2-2V4a2%202%200%200%201%202-2h8a2.4%202.4%200%200%201%201.704.706l3.588%203.588A2.4%202.4%200%200%201%2020%208v12a2%202%200%200%201-2%202z%27%20%2F%3E%20%3Cpath%20d%3D%27M14%202v5a1%201%200%200%200%201%201h5%27%20%2F%3E%20%3Cpath%20d%3D%27M10%209H8%27%20%2F%3E%20%3Cpath%20d%3D%27M16%2013H8%27%20%2F%3E%20%3Cpath%20d%3D%27M16%2017H8%27%20%2F%3E%20%3C%2Fsvg%3E");
+    --attachment-card-icon-table: url("data:image/svg+xml,%3C!--%20%40license%20lucide-static%20v0.575.0%20-%20ISC%20--%3E%20%3Csvg%20class%3D%27lucide%20lucide-table%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2724%27%20height%3D%2724%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27currentColor%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%20%3E%20%3Cpath%20d%3D%27M12%203v18%27%20%2F%3E%20%3Crect%20width%3D%2718%27%20height%3D%2718%27%20x%3D%273%27%20y%3D%273%27%20rx%3D%272%27%20%2F%3E%20%3Cpath%20d%3D%27M3%209h18%27%20%2F%3E%20%3Cpath%20d%3D%27M3%2015h18%27%20%2F%3E%20%3C%2Fsvg%3E");
+    --attachment-card-icon-projector: url("data:image/svg+xml,%3C%21--%20%40license%20lucide-static%20v0.575.0%20-%20ISC%20--%3E%20%3Csvg%20class%3D%27lucide%20lucide-projector%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2724%27%20height%3D%2724%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27currentColor%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%20%3E%20%3Cpath%20d%3D%27M5%207%203%205%27%20%2F%3E%20%3Cpath%20d%3D%27M9%206V3%27%20%2F%3E%20%3Cpath%20d%3D%27m13%207%202-2%27%20%2F%3E%20%3Ccircle%20cx%3D%279%27%20cy%3D%2713%27%20r%3D%273%27%20%2F%3E%20%3Cpath%20d%3D%27M11.83%2012H20a2%202%200%200%201%202%202v4a2%202%200%200%201-2%202H4a2%202%200%200%201-2-2v-4a2%202%200%200%201%202-2h2.17%27%20%2F%3E%20%3Cpath%20d%3D%27M16%2016h2%27%20%2F%3E%20%3C%2Fsvg%3E");
+    --attachment-card-icon-archive: url("data:image/svg+xml,%3C!--%20%40license%20lucide-static%20v0.575.0%20-%20ISC%20--%3E%20%3Csvg%20class%3D%27lucide%20lucide-archive%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2724%27%20height%3D%2724%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27currentColor%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%20%3E%20%3Crect%20width%3D%2720%27%20height%3D%275%27%20x%3D%272%27%20y%3D%273%27%20rx%3D%271%27%20%2F%3E%20%3Cpath%20d%3D%27M4%208v11a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V8%27%20%2F%3E%20%3Cpath%20d%3D%27M10%2012h4%27%20%2F%3E%20%3C%2Fsvg%3E");
+    --attachment-card-icon-file-image: url("data:image/svg+xml,%3C!--%20%40license%20lucide-static%20v0.575.0%20-%20ISC%20--%3E%0A%3Csvg%0A%20%20class%3D%22lucide%20lucide-file-image%22%0A%20%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%0A%20%20width%3D%2224%22%0A%20%20height%3D%2224%22%0A%20%20viewBox%3D%220%200%2024%2024%22%0A%20%20fill%3D%22none%22%0A%20%20stroke%3D%22currentColor%22%0A%20%20stroke-width%3D%222%22%0A%20%20stroke-linecap%3D%22round%22%0A%20%20stroke-linejoin%3D%22round%22%0A%3E%0A%20%20%3Cpath%20d%3D%22M6%2022a2%202%200%200%201-2-2V4a2%202%200%200%201%202-2h8a2.4%202.4%200%200%201%201.704.706l3.588%203.588A2.4%202.4%200%200%201%2020%208v12a2%202%200%200%201-2%202z%22%20%2F%3E%0A%20%20%3Cpath%20d%3D%22M14%202v5a1%201%200%200%200%201%201h5%22%20%2F%3E%0A%20%20%3Ccircle%20cx%3D%2210%22%20cy%3D%2212%22%20r%3D%222%22%20%2F%3E%0A%20%20%3Cpath%20d%3D%22m20%2017-1.296-1.296a2.41%202.41%200%200%200-3.408%200L9%2022%22%20%2F%3E%0A%3C%2Fsvg%3E%0A");
+    --attachment-card-icon-music: url("data:image/svg+xml,%3C!--%20%40license%20lucide-static%20v0.575.0%20-%20ISC%20--%3E%20%3Csvg%20class%3D%27lucide%20lucide-music%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2724%27%20height%3D%2724%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27currentColor%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%20%3E%20%3Cpath%20d%3D%27M9%2018V5l12-2v13%27%20%2F%3E%20%3Ccircle%20cx%3D%276%27%20cy%3D%2718%27%20r%3D%273%27%20%2F%3E%20%3Ccircle%20cx%3D%2718%27%20cy%3D%2716%27%20r%3D%273%27%20%2F%3E%20%3C%2Fsvg%3E");
+    --attachment-card-icon-file-video: url("data:image/svg+xml,%3C!--%20%40license%20lucide-static%20v0.575.0%20-%20ISC%20--%3E%0A%3Csvg%0A%20%20class%3D%22lucide%20lucide-file-video%22%0A%20%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%0A%20%20width%3D%2224%22%0A%20%20height%3D%2224%22%0A%20%20viewBox%3D%220%200%2024%2024%22%0A%20%20fill%3D%22none%22%0A%20%20stroke%3D%22currentColor%22%0A%20%20stroke-width%3D%222%22%0A%20%20stroke-linecap%3D%22round%22%0A%20%20stroke-linejoin%3D%22round%22%0A%3E%0A%20%20%3Cpath%20d%3D%22M6%2022a2%202%200%200%201-2-2V4a2%202%200%200%201%202-2h8a2.4%202.4%200%200%201%201.704.706l3.588%203.588A2.4%202.4%200%200%201%2020%208v12a2%202%200%200%201-2%202z%22%20%2F%3E%0A%20%20%3Cpath%20d%3D%22M14%202v5a1%201%200%200%200%201%201h5%22%20%2F%3E%0A%20%20%3Cpath%20d%3D%22M15.033%2013.44a.647.647%200%200%201%200%201.12l-4.065%202.352a.645.645%200%200%201-.968-.56v-4.704a.645.645%200%200%201%20.967-.56z%22%20%2F%3E%0A%3C%2Fsvg%3E%0A");
+    --attachment-card-icon-file-code: url("data:image/svg+xml,%3C!--%20%40license%20lucide-static%20v0.575.0%20-%20ISC%20--%3E%20%3Csvg%20class%3D%27lucide%20lucide-file-code%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2724%27%20height%3D%2724%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27currentColor%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%20%3E%20%3Cpath%20d%3D%27M6%2022a2%202%200%200%201-2-2V4a2%202%200%200%201%202-2h8a2.4%202.4%200%200%201%201.704.706l3.588%203.588A2.4%202.4%200%200%201%2020%208v12a2%202%200%200%201-2%202z%27%20%2F%3E%20%3Cpath%20d%3D%27M14%202v5a1%201%200%200%200%201%201h5%27%20%2F%3E%20%3Cpath%20d%3D%27M10%2012.5%208%2015l2%202.5%27%20%2F%3E%20%3Cpath%20d%3D%27m14%2012.5%202%202.5-2%202.5%27%20%2F%3E%20%3C%2Fsvg%3E");
+    --attachment-card-icon-download: url("data:image/svg+xml,%3C!--%20%40license%20lucide-static%20v0.575.0%20-%20ISC%20--%3E%20%3Csvg%20class%3D%27lucide%20lucide-download%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2724%27%20height%3D%2724%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27currentColor%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%20%3E%20%3Cpath%20d%3D%27M12%2015V3%27%20%2F%3E%20%3Cpath%20d%3D%27M21%2015v4a2%202%200%200%201-2%202H5a2%202%200%200%201-2-2v-4%27%20%2F%3E%20%3Cpath%20d%3D%27m7%2010%205%205%205-5%27%20%2F%3E%20%3C%2Fsvg%3E");
+}
+
+body .attachment-card-line {
+    margin: 4px 0;
+}
+
+html body a.attachment-card[href] {
+    /* Poznote blue for every kind (asked by the dev): the icon tells the kind */
+    --attachment-card-color: var(--pz-accent-text);
+    --attachment-card-icon: var(--attachment-card-icon-file);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-sizing: border-box;
+    max-width: min(100%, 420px);
+    padding: 8px 12px;
+    border: 1px solid var(--pz-border);
+    border-radius: var(--pz-radius-lg);
+    background: var(--pz-surface);
+    color: var(--pz-accent-text);
+    font-size: 14px;
+    line-height: 1.3;
+    text-decoration: none;
+    vertical-align: middle;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+
+html body a.attachment-card[href]:hover,
+html body a.attachment-card[href]:focus-visible {
+    border-color: var(--pz-border-strong);
+    background: var(--pz-surface-hover);
+    color: var(--pz-accent-text-hover);
+    text-decoration: none;
+}
+
+/* The icon of the kind of file */
+html body a.attachment-card[href]::before {
+    content: "";
+    flex: none;
+    width: 22px;
+    height: 22px;
+    background-color: var(--attachment-card-color);
+    -webkit-mask: var(--attachment-card-icon) center / contain no-repeat;
+    mask: var(--attachment-card-icon) center / contain no-repeat;
+}
+
+/* The download arrow */
+html body a.attachment-card[href]::after {
+    content: "";
+    flex: none;
+    width: 16px;
+    height: 16px;
+    margin-left: 4px;
+    background-color: var(--pz-text-muted);
+    -webkit-mask: var(--attachment-card-icon-download) center / contain no-repeat;
+    mask: var(--attachment-card-icon-download) center / contain no-repeat;
+}
+
+/* A click on the arrow downloads the file, anywhere else on the card opens
+   it (js/attachment-card-download.js, which marks <body> while the pointer
+   is over the arrow): the arrow lights up on its own, not with the card */
+body.pz-attachment-card-download-hover a.attachment-card[href]:hover::after {
+    background-color: var(--pz-accent-text);
+}
+
+html body a.attachment-card[href].attachment-card-pdf {
+    --attachment-card-icon: var(--attachment-card-icon-file-text);
+}
+
+html body a.attachment-card[href].attachment-card-doc {
+    --attachment-card-icon: var(--attachment-card-icon-file-text);
+}
+
+html body a.attachment-card[href].attachment-card-sheet {
+    --attachment-card-icon: var(--attachment-card-icon-table);
+}
+
+html body a.attachment-card[href].attachment-card-slides {
+    --attachment-card-icon: var(--attachment-card-icon-projector);
+}
+
+html body a.attachment-card[href].attachment-card-archive {
+    --attachment-card-icon: var(--attachment-card-icon-archive);
+}
+
+html body a.attachment-card[href].attachment-card-image {
+    --attachment-card-icon: var(--attachment-card-icon-file-image);
+}
+
+html body a.attachment-card[href].attachment-card-audio {
+    --attachment-card-icon: var(--attachment-card-icon-music);
+}
+
+html body a.attachment-card[href].attachment-card-video {
+    --attachment-card-icon: var(--attachment-card-icon-file-video);
+}
+
+html body a.attachment-card[href].attachment-card-code {
+    --attachment-card-icon: var(--attachment-card-icon-file-code);
+}
+
+html body a.attachment-card[href].attachment-card-text {
+    --attachment-card-icon: var(--attachment-card-icon-file-text);
+}
+
+html body a.attachment-card[href].attachment-card-file {
+    --attachment-card-icon: var(--attachment-card-icon-file);
+}
+
+/* Rich text note: no caret on the line of a card. Chrome draws a caret put
+   beside it against its edge, which reads as a caret in the name; typing or
+   Enter on that line goes to a line of its own (js/attachments.js). */
+.noteentry[contenteditable="true"] :is(div, p):has(> a.attachment-card[href]) {
+    caret-color: transparent;
+}
+
+/* "Attachment previews" on: the preview tile of the file in place of the card
+   (js/attachments.js). In a rich text note the card stays in the content,
+   hidden, with the preview right after it; in a Markdown note the parser
+   draws the preview alone. The tile takes the width chosen for the previews
+   above the note (--pz-attachment-preview-size). */
+html body a.attachment-card[href]:has(+ .attachment-card-preview) {
+    display: none;
+}
+
+.attachment-card-preview {
+    display: block;
+    box-sizing: border-box;
+    width: min(var(--pz-attachment-preview-size, 180px), 100%);
+    margin: 4px 0;
+}

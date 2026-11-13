@@ -388,7 +388,7 @@ class SettingsController {
             return filter_var($value, FILTER_VALIDATE_BOOL) ? '1' : '0';
         }
 
-        if ($key === 'attachment_previews_in_note' || $key === 'attachments_show_inserted_images') {
+        if ($key === 'attachment_previews_in_note' || $key === 'attachments_show_inserted_images' || $key === 'attachments_single_line' || $key === 'attachment_links_as_cards') {
             return filter_var($value, FILTER_VALIDATE_BOOL) ? '1' : '0';
         }
 
@@ -523,6 +523,23 @@ class SettingsController {
             $intVal = (int) $value;
             if ($intVal < POZNOTE_FOLDER_TREE_DIM_MIN || $intVal > POZNOTE_FOLDER_TREE_DIM_MAX) {
                 throw new InvalidArgumentException('value must be between ' . POZNOTE_FOLDER_TREE_DIM_MIN . ' and ' . POZNOTE_FOLDER_TREE_DIM_MAX, 400);
+            }
+            return (string) $intVal;
+        }
+
+        // Attachments per page of attachments_list.php (0 = all on one page)
+        if ($key === 'attachments_list_per_page') {
+            if (!ctype_digit((string) $value) || !in_array((int) $value, [25, 50, 100, 250, 0], true)) {
+                throw new InvalidArgumentException('value must be one of 25, 50, 100, 250, 0', 400);
+            }
+            return (string) (int) $value;
+        }
+
+        // Width of an attachment preview tile, in px (lib/attachment-preview-size.php)
+        if ($key === 'attachment_preview_size') {
+            $intVal = (int) $value;
+            if (!is_numeric($value) || $intVal < POZNOTE_ATTACHMENT_PREVIEW_SIZE_MIN || $intVal > POZNOTE_ATTACHMENT_PREVIEW_SIZE_MAX) {
+                throw new InvalidArgumentException('value must be between ' . POZNOTE_ATTACHMENT_PREVIEW_SIZE_MIN . ' and ' . POZNOTE_ATTACHMENT_PREVIEW_SIZE_MAX, 400);
             }
             return (string) $intVal;
         }
@@ -736,7 +753,7 @@ class SettingsController {
 
         // Width of the speed dial and of the dashboard (js/page-width.js):
         // a percentage, empty for the page's own layout
-        if ($key === 'speed_dial_width' || $key === 'dashboard_width') {
+        if ($key === 'speed_dial_width' || $key === 'dashboard_width' || $key === 'attachments_list_width') {
             require_once __DIR__ . '/../../../lib/page-width.php';
             $width = poznotePageWidth($value);
             if ($width === null && trim((string) $value) !== '') {

@@ -128,6 +128,8 @@
             'attachment_previews_in_note',
             'attachments_show_inserted_images',
             'attachments_at_bottom',
+            'attachments_single_line',
+            'attachment_links_as_cards',
             'backlinks_at_bottom',
             'note_virtual_space',
             'default_image_border_no_padding',
@@ -3143,6 +3145,8 @@
         setupToggleCard('code-line-numbers-card', 'code-line-numbers-status', 'code_block_line_numbers', false, false);
         setupToggleCard('attachment-previews-card', 'attachment-previews-status', 'attachment_previews_in_note', false, false);
         setupToggleCard('attachments-at-bottom-card', 'attachments-at-bottom-status', 'attachments_at_bottom', false, false);
+        setupToggleCard('attachments-single-line-card', 'attachments-single-line-status', 'attachments_single_line', false, false);
+        setupToggleCard('attachment-links-as-cards-card', 'attachment-links-as-cards-status', 'attachment_links_as_cards', false, false);
         setupToggleCard('attachments-inserted-images-card', 'attachments-inserted-images-status', 'attachments_show_inserted_images', false, false);
         setupToggleCard('backlinks-at-bottom-card', 'backlinks-at-bottom-status', 'backlinks_at_bottom', false, false);
         setupToggleCard('note-virtual-space-card', 'note-virtual-space-status', 'note_virtual_space', false, true);

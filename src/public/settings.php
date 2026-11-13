@@ -135,6 +135,8 @@ $settingsPageUserKeys = [
     'attachment_previews_in_note',
     'attachments_show_inserted_images',
     'attachments_at_bottom',
+    'attachments_single_line',
+    'attachment_links_as_cards',
     'backlinks_at_bottom',
     'note_virtual_space',
     'default_image_border_no_padding',
@@ -1427,6 +1429,26 @@ $localRestoreCardVisible = !empty(LocalBackupService::restorePageBackups());
                     <div class="home-card-content">
                         <span class="home-card-title"><?php echo t_h('display.cards.attachments_at_bottom', [], 'Attachments at bottom'); ?></span>
                         <span id="attachments-at-bottom-status" class="setting-status disabled"><?php echo t_h('common.disabled'); ?></span>
+                    </div>
+                </div>
+
+                <!-- The note's attachments on one line that slides sideways -->
+                <div class="home-card" id="attachments-single-line-card">
+                    <span class="setting-help" data-tooltip="<?php echo t_h('settings.card_help.attachments_single_line', [], 'Show the note\'s attachments on a single line instead of wrapping them onto several lines. Slide the line with a finger or the mouse; when it is cut, it ends with "…".'); ?>"><i class="lucide lucide-help-circle"></i></span>
+                    <div class="home-card-icon"><i class="lucide lucide-move-horizontal"></i></div>
+                    <div class="home-card-content">
+                        <span class="home-card-title"><?php echo t_h('display.cards.attachments_single_line', [], 'Attachments on one line'); ?></span>
+                        <span id="attachments-single-line-status" class="setting-status disabled"><?php echo t_h('common.disabled'); ?></span>
+                    </div>
+                </div>
+
+                <!-- "Link to attachment" inserts a card instead of a plain link -->
+                <div class="home-card" id="attachment-links-as-cards-card">
+                    <span class="setting-help" data-tooltip="<?php echo t_h('settings.card_help.attachment_links_as_cards', [], 'When you insert an attachment into a note with "Link to attachment", show it as a card (an icon for its type, its name and a download arrow) on a line of its own, instead of a link in the text.'); ?>"><i class="lucide lucide-help-circle"></i></span>
+                    <div class="home-card-icon"><i class="lucide lucide-file-text"></i></div>
+                    <div class="home-card-content">
+                        <span class="home-card-title"><?php echo t_h('display.cards.attachment_links_as_cards', [], 'Attachment links as cards'); ?></span>
+                        <span id="attachment-links-as-cards-status" class="setting-status disabled"><?php echo t_h('common.disabled'); ?></span>
                     </div>
                 </div>
 

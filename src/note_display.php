@@ -757,7 +757,7 @@
                         $linked_note_id_attr = ' data-linked-note-id="'.(int)$row['linked_note_id'].'"';
                     }
                     if ($attachment_previews_in_note_setting && !$attachments_at_bottom_setting) {
-                        echo poznoteRenderAttachmentPreviews($row['id'], $row['attachments'] ?? '', $workspace_filter, $entryfinal ?? '');
+                        echo poznoteRenderAttachmentPreviews($row['id'], $row['attachments'] ?? '', $workspace_filter, $entryfinal ?? '', !empty($attachments_show_inserted_images_setting));
                     }
                     $spellcheck_enabled = poznoteSettingEnabled($settings['spellcheck_html_notes'], false);
                     $spellcheck_attr = ($note_type === 'note' && $spellcheck_enabled) ? 'true' : 'false';
@@ -771,7 +771,7 @@
                     echo '<div class="'.$entry_class.'" autocomplete="off" autocapitalize="off" spellcheck="'.$spellcheck_attr.'"'.$lang_attr.' id="entry'.$row['id'].'" data-note-id="'.$row['id'].'" data-note-heading="'.htmlspecialchars($row['heading'] ?? '', ENT_QUOTES).'"'.$placeholder_attr.' contenteditable="'.$entry_editable.'" data-note-type="'.$note_type_attr.'"'.$data_attr.$excalidraw_attr.$linked_note_id_attr.'>'.$display_content.'</div>';
                     if ($attachments_at_bottom_setting) {
                         if ($attachment_previews_in_note_setting) {
-                            echo poznoteRenderAttachmentPreviews($row['id'], $row['attachments'] ?? '', $workspace_filter, $entryfinal ?? '');
+                            echo poznoteRenderAttachmentPreviews($row['id'], $row['attachments'] ?? '', $workspace_filter, $entryfinal ?? '', !empty($attachments_show_inserted_images_setting));
                         } else {
                             echo $attachment_links_html;
                         }

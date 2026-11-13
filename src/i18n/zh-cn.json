@@ -414,7 +414,10 @@
       "show_inline_images": "同时显示笔记内容中已可见的图片",
       "all_file_types": "所有类型",
       "file_type_filter": "按文件类型筛选",
-      "download": "下载"
+      "download": "下载",
+      "grid_view": "网格视图",
+      "list_view": "列表视图",
+      "pager_status": "第 {{page}} 页，共 {{pages}} 页，{{total}} 个附件"
     },
     "context_menu": {
       "open": "打开",
@@ -425,7 +428,8 @@
       "delete_confirm_title": "删除附件",
       "delete_confirm_message": "删除“{{filename}}”？它将从笔记中移除且无法恢复。",
       "delete_confirm_message_unnamed": "删除此附件？它将从笔记中移除且无法恢复。",
-      "move": "移动到其他笔记"
+      "move": "移动到其他笔记",
+      "preview_size": "预览大小"
     },
     "move": {
       "title": "移动附件",
@@ -566,7 +570,9 @@
       "update_badge_level": "选择哪些版本会在设置项上显示红点。无论如何选择，新版本仍会在本页公布，不会隐藏任何内容。",
       "update_check_interval": "Poznote 在后台检查是否有更新版本的频率。小红点只会在检查之后出现，间隔越长出现得越晚。上面的「版本」卡片仍然会在点击时立即检查。",
       "sessions": "查看当前登录到您账户的浏览器和设备，并退出不再使用的设备。",
-      "session_lifetime": "没有任何操作时登录状态能保持多久。通过 .env 文件中的 POZNOTE_SESSION_LIFETIME_DAYS 设置，所以这里只显示，不能在本页面修改。使用“保持登录”登录会保持更久，通过 SSO 登录则不会。"
+      "session_lifetime": "没有任何操作时登录状态能保持多久。通过 .env 文件中的 POZNOTE_SESSION_LIFETIME_DAYS 设置，所以这里只显示，不能在本页面修改。使用“保持登录”登录会保持更久，通过 SSO 登录则不会。",
+      "attachments_single_line": "将笔记的附件显示在一行中，而不是换成多行。可用手指或鼠标滑动该行；被截断时以“…”结尾。",
+      "attachment_links_as_cards": "通过“链接到附件”在笔记中插入附件时，将其显示为单独一行的卡片（类型图标、名称和下载箭头），而不是正文中的链接。"
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "在移动设备上，键盘上方的工具栏有一个 + 按钮，无论此设置为何，它都会打开同一个菜单。"
@@ -963,7 +969,9 @@
       "markdown_view_cycle": "视图菜单",
       "tab_follows_note": "标签页跟随打开的笔记",
       "update_badge_level": "更新小红点",
-      "update_check_interval": "更新检查"
+      "update_check_interval": "更新检查",
+      "attachments_single_line": "附件单行显示",
+      "attachment_links_as_cards": "附件链接显示为卡片"
     },
     "badges": {
       "font_size_default": "默认 ({{size}}px)",

@@ -4,6 +4,24 @@
 // belongs to a multi-selection (js/tree-selection.js) drags the whole
 // selection, see "Multi-selection drags" at the end of this file.
 
+// The note a file dragged at this element would be dropped on. The room
+// below a note (.note-bottom-space) is a div next to the editor, not in it,
+// yet it reads as the end of the note: a drop there goes to that note, and
+// whatever is inserted goes at its end (atEnd).
+function noteDropTargetAt(el) {
+    if (!el || !el.closest) return null;
+    var note = el.closest('.noteentry');
+    if (note) return { note: note, atEnd: false };
+    var space = el.closest('.note-bottom-space');
+    var host = space ? space.parentElement : null;
+    note = host ? host.querySelector('.noteentry') : null;
+    return note ? { note: note, atEnd: true } : null;
+}
+
+function noteDropTargetAtPoint(e) {
+    return noteDropTargetAt(document.elementFromPoint(e.clientX, e.clientY));
+}
+
 // Setup drag-and-drop handlers for file uploads
 function setupDragDropEvents() {
     // Track drags that originate inside the page. Chrome exposes a dragged
@@ -35,8 +53,8 @@ function setupDragDropEvents() {
     document.body.addEventListener('dragenter', function (e) {
         if (window.internalDragActive) return;
         try {
-            var el = document.elementFromPoint(e.clientX, e.clientY);
-            var potential = el && el.closest ? el.closest('.noteentry') : null;
+            var target = noteDropTargetAtPoint(e);
+            var potential = target ? target.note : null;
             if (potential) {
                 e.preventDefault();
                 // Add visual feedback to show the drop target
@@ -50,9 +68,7 @@ function setupDragDropEvents() {
     document.body.addEventListener('dragover', function (e) {
         if (window.internalDragActive) return;
         try {
-            var el = document.elementFromPoint(e.clientX, e.clientY);
-            var potential = el && el.closest ? el.closest('.noteentry') : null;
-            if (potential) {
+            if (noteDropTargetAtPoint(e)) {
                 e.preventDefault();
                 if (e.dataTransfer) {
                     e.dataTransfer.dropEffect = 'copy';
@@ -65,9 +81,7 @@ function setupDragDropEvents() {
 
     document.body.addEventListener('dragleave', function (e) {
         try {
-            var el = document.elementFromPoint(e.clientX, e.clientY);
-            var potential = el && el.closest ? el.closest('.noteentry') : null;
-            if (!potential) {
+            if (!noteDropTargetAtPoint(e)) {
                 // Remove visual feedback
                 document.querySelectorAll('.noteentry.drag-over').forEach(function (note) {
                     note.classList.remove('drag-over');
@@ -81,14 +95,9 @@ function setupDragDropEvents() {
     document.body.addEventListener('drop', function (e) {
         if (window.internalDragActive) return;
         try {
-            var el = document.elementFromPoint(e.clientX, e.clientY);
-            var note = el && el.closest ? el.closest('.noteentry') : null;
-
-            if (!note && e.target && e.target.closest) {
-                note = e.target.closest('.noteentry');
-            }
-
-            if (!note) return;
+            var target = noteDropTargetAtPoint(e) || noteDropTargetAt(e.target);
+            if (!target) return;
+            var note = target.note;
 
             e.preventDefault();
             e.stopPropagation();
@@ -109,7 +118,7 @@ function setupDragDropEvents() {
                 var images = files.filter(function (file) { return file.type && file.type.startsWith('image/'); });
                 var audios = files.filter(function (file) { return images.indexOf(file) === -1 && isDroppedAudioFile(file); });
                 var others = files.filter(function (file) { return images.indexOf(file) === -1 && audios.indexOf(file) === -1; });
-                var dropPoint = { x: e.clientX, y: e.clientY };
+                var dropPoint = target.atEnd ? { atEnd: true } : { x: e.clientX, y: e.clientY };
                 if (audios.length > 0) {
                     // The audio uploads wait for the other files' ones
                     handleDroppedAudio(audios, note, dropPoint, others.length > 0

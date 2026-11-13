@@ -415,7 +415,10 @@
       "show_inline_images": "Auch Bilder anzeigen, die bereits im Notizinhalt sichtbar sind",
       "all_file_types": "Alle Typen",
       "file_type_filter": "Nach Dateityp filtern",
-      "download": "Herunterladen"
+      "download": "Herunterladen",
+      "grid_view": "Rasteransicht",
+      "list_view": "Listenansicht",
+      "pager_status": "Seite {{page}} von {{pages}}, {{total}} Anhänge"
     },
     "context_menu": {
       "open": "Öffnen",
@@ -426,7 +429,8 @@
       "delete_confirm_title": "Anhang löschen",
       "delete_confirm_message": "„{{filename}}“ löschen? Der Anhang wird aus der Notiz entfernt und kann nicht wiederhergestellt werden.",
       "delete_confirm_message_unnamed": "Diesen Anhang löschen? Er wird aus der Notiz entfernt und kann nicht wiederhergestellt werden.",
-      "move": "In eine andere Notiz verschieben"
+      "move": "In eine andere Notiz verschieben",
+      "preview_size": "Vorschaugröße"
     },
     "move": {
       "title": "Anhang verschieben",
@@ -567,7 +571,9 @@
       "update_badge_level": "Lege fest, welche Versionen den roten Punkt auf den Einstellungen anzeigen. Was du auch wählst, die neue Version wird auf dieser Seite weiterhin angekündigt, nichts wird verborgen.",
       "update_check_interval": "Wie oft Poznote im Hintergrund prüft, ob eine neuere Version verfügbar ist. Der Punkt kann erst nach einer Prüfung erscheinen, ein längerer Abstand verzögert ihn also. Die Karte Version darüber prüft bei jedem Klick weiterhin sofort.",
       "sessions": "Die Browser und Geräte ansehen, die gerade in Ihrem Konto angemeldet sind, und die abmelden, die Sie nicht mehr nutzen.",
-      "session_lifetime": "Wie lange eine Anmeldung ohne Aktivität gilt. Wird mit POZNOTE_SESSION_LIFETIME_DAYS in der .env-Datei gesetzt, hier also nur angezeigt und auf dieser Seite nicht änderbar. Eine Anmeldung mit „Angemeldet bleiben“ hält länger, eine Anmeldung über SSO nicht."
+      "session_lifetime": "Wie lange eine Anmeldung ohne Aktivität gilt. Wird mit POZNOTE_SESSION_LIFETIME_DAYS in der .env-Datei gesetzt, hier also nur angezeigt und auf dieser Seite nicht änderbar. Eine Anmeldung mit „Angemeldet bleiben“ hält länger, eine Anmeldung über SSO nicht.",
+      "attachments_single_line": "Zeigt die Anhänge der Notiz in einer einzigen Zeile statt auf mehrere Zeilen verteilt. Die Zeile lässt sich mit dem Finger oder der Maus verschieben; ist sie abgeschnitten, endet sie mit „…“.",
+      "attachment_links_as_cards": "Wenn Sie einen Anhang mit „Link zum Anhang“ in eine Notiz einfügen, wird er als Karte (ein Symbol für den Typ, der Name und ein Download-Pfeil) in einer eigenen Zeile angezeigt statt als Link im Text."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "Auf Mobilgeräten hat die Leiste über der Tastatur eine +-Schaltfläche, die unabhängig von dieser Einstellung dasselbe Menü öffnet."
@@ -964,7 +970,9 @@
       "markdown_view_cycle": "Ansichtsmenü",
       "tab_follows_note": "Tab folgt der geöffneten Notiz",
       "update_badge_level": "Update-Punkt",
-      "update_check_interval": "Update-Prüfung"
+      "update_check_interval": "Update-Prüfung",
+      "attachments_single_line": "Anhänge in einer Zeile",
+      "attachment_links_as_cards": "Anhang-Links als Karten"
     },
     "badges": {
       "font_size_default": "Standard ({{size}}px)",

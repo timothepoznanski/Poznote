@@ -221,7 +221,9 @@
       "update_badge_level": "Tria quines versions posen el punt vermell a les entrades de Configuració. Triïs el que triïs, la nova versió continua anunciant-se en aquesta pàgina, no s'amaga res.",
       "update_check_interval": "Amb quina freqüència Poznote comprova en segon pla si hi ha una versió més recent. El punt només pot aparèixer després d'una comprovació, així que un interval més llarg el retarda. La targeta Versió de dalt continua comprovant-ho de seguida quan hi fas clic.",
       "sessions": "Mireu els navegadors i dispositius que ara mateix tenen la sessió iniciada al vostre compte, i tanqueu la sessió dels que ja no feu servir.",
-      "session_lifetime": "Quant dura un inici de sessió sense activitat. Es configura amb POZNOTE_SESSION_LIFETIME_DAYS al fitxer .env, de manera que aquí només es mostra i no es pot canviar des d’aquesta pàgina. Iniciar la sessió amb «Recorda’m» dura més; iniciar-la amb SSO, no."
+      "session_lifetime": "Quant dura un inici de sessió sense activitat. Es configura amb POZNOTE_SESSION_LIFETIME_DAYS al fitxer .env, de manera que aquí només es mostra i no es pot canviar des d’aquesta pàgina. Iniciar la sessió amb «Recorda’m» dura més; iniciar-la amb SSO, no.",
+      "attachments_single_line": "Mostra els adjunts de la nota en una sola línia en lloc de repartir-los en diverses. Llisca la línia amb el dit o el ratolí; quan està tallada, acaba amb «…».",
+      "attachment_links_as_cards": "Quan inseriu un adjunt en una nota amb «Enllaç a fitxer adjunt», es mostra com una targeta (una icona segons el tipus, el nom i una fletxa de baixada) en una línia pròpia, en lloc d'un enllaç dins del text."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "En un mòbil, la barra d'eines de damunt del teclat té un botó + que obre el mateix menú, independentment d'aquest paràmetre."
@@ -583,7 +585,9 @@
       "markdown_view_cycle": "Menú de visualització",
       "tab_follows_note": "La pestanya segueix la nota oberta",
       "update_badge_level": "Punt d'actualització",
-      "update_check_interval": "Comprovació d'actualitzacions"
+      "update_check_interval": "Comprovació d'actualitzacions",
+      "attachments_single_line": "Adjunts en una línia",
+      "attachment_links_as_cards": "Enllaços d'adjunts com a targetes"
     },
     "badges": {
       "font_size_default": "per defecte ({{size}} px)",
@@ -840,7 +844,10 @@
       "show_thumbnails": "Mostra les miniatures en aquesta llista",
       "show_inline_images": "Mostra també les imatges que ja són visibles al contingut de la nota",
       "all_file_types": "Tots els tipus",
-      "file_type_filter": "Filtra per tipus de fitxer"
+      "file_type_filter": "Filtra per tipus de fitxer",
+      "grid_view": "Vista de quadrícula",
+      "list_view": "Vista de llista",
+      "pager_status": "Pàgina {{page}} de {{pages}}, {{total}} adjunts"
     },
     "context_menu": {
       "open": "Obre",
@@ -851,7 +858,8 @@
       "delete_confirm_title": "Supressió del fitxer adjunt",
       "delete_confirm_message": "Voleu suprimir «{{filename}}»? S'eliminarà de la nota i no es podrà recuperar.",
       "delete_confirm_message_unnamed": "Voleu suprimir aquest fitxer adjunt? S'eliminarà de la nota i no es podrà recuperar.",
-      "move": "Mou a una altra nota"
+      "move": "Mou a una altra nota",
+      "preview_size": "Mida de les previsualitzacions"
     },
     "move": {
       "title": "Trasllat del fitxer adjunt",

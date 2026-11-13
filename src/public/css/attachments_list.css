@@ -400,7 +400,8 @@ html[data-theme='dark'] .attachment-image-preview img {
 }
 
 .attachments-list-container {
-    max-width: 900px;
+    /* The slider of the toolbar (js/page-width.js, lib/page-width.php) */
+    max-width: var(--attachments-list-width, 900px);
     margin: 0 auto;
 }
 
@@ -456,4 +457,229 @@ html[data-theme='dark'] .attachment-image-preview img {
 
 .toggle-label {
     font-weight: var(--pz-weight-normal);
+}
+
+/* Grid view (the list / grid button, js/attachments-list.js): one tile per
+   attachment, the thumbnail of an image (when "Show thumbnails" is on) or the
+   icon of its kind of file, its name, and the note it belongs to */
+.attachments-list-container.is-grid {
+    max-width: var(--attachments-list-width, 1100px);
+}
+
+/* The four sizes of the view button (js/attachments-list.js), as on the
+   dashboard: the width of a tile; wide is the large width at a flatter
+   picture */
+.attachments-grid {
+    --attachments-tile: 160px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--attachments-tile), 100%), 1fr));
+    gap: 12px;
+    padding: 16px 0;
+}
+
+.attachments-grid-small { --attachments-tile: 110px; }
+.attachments-grid-medium { --attachments-tile: 160px; }
+.attachments-grid-large { --attachments-tile: 240px; }
+.attachments-grid-wide { --attachments-tile: 320px; }
+
+.attachments-grid-small .attachments-grid-icon { font-size: 28px; }
+.attachments-grid-large .attachments-grid-icon { font-size: 52px; }
+
+.attachments-grid-wide .attachments-grid-media {
+    aspect-ratio: 16 / 9;
+}
+
+.attachments-grid-item {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--pz-border);
+    border-radius: var(--pz-radius-lg);
+    background: var(--pz-bg);
+}
+
+.attachments-grid-media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--pz-surface);
+    border-bottom: 1px solid var(--pz-border);
+}
+
+.attachments-grid-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.attachments-grid-icon {
+    font-size: 40px;
+    /* Poznote blue, like the attachment cards of a note */
+    color: var(--pz-accent-text);
+}
+
+
+.attachments-grid-name {
+    padding: 8px 10px 2px;
+    font-size: 13px;
+    color: var(--pz-text);
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.attachments-grid-name:hover {
+    color: var(--pz-accent-text);
+    text-decoration: underline;
+}
+
+.attachments-grid-note {
+    padding: 0 10px 8px;
+    font-size: 12px;
+    color: var(--pz-text-muted);
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.attachments-grid-note:hover {
+    color: var(--pz-accent-text);
+    text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+    .attachments-grid {
+        /* Two medium tiles side by side on a phone */
+        gap: 8px;
+    }
+
+    .attachments-grid-medium {
+        --attachments-tile: 120px;
+    }
+}
+
+/* Pager under the list (js/attachments-list.js), the look of the user
+   management pager */
+.attachments-pager {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    max-width: 1100px;
+    margin: 16px auto 24px;
+    font-size: 0.85rem;
+    color: var(--pz-text-muted);
+}
+
+.attachments-pager[hidden],
+.attachments-pager [hidden] {
+    display: none;
+}
+
+.attachments-pager-size {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.attachments-pager-size select {
+    font: inherit;
+    color: var(--pz-text);
+    background: var(--pz-surface);
+    border: 1px solid var(--pz-border);
+    border-radius: var(--pz-radius);
+    padding: 3px 6px;
+    cursor: pointer;
+}
+
+.attachments-pager-size select option {
+    color: var(--pz-text);
+    background: var(--pz-surface);
+}
+
+/* The view button: the grid icon and the size letter, as on the dashboard */
+.attachments-view-toggle {
+    gap: 4px;
+    width: auto;
+    min-width: var(--pz-toolbar-btn-width, 36px);
+    padding: 0 9px;
+}
+
+.attachments-view-toggle.is-list {
+    padding: 0;
+}
+
+.attachments-view-letter {
+    font-size: 12px;
+    font-weight: var(--pz-weight-bold);
+    line-height: 1;
+}
+
+.attachments-view-toggle.is-list .attachments-view-letter {
+    display: none;
+}
+
+/* Page width popover (js/page-width.js), the one of the dashboard: fixed, it
+   is placed under its button on open */
+.attachments-width-wrap {
+    display: inline-flex;
+    flex-shrink: 0;
+}
+
+.attachments-width-popover {
+    position: fixed;
+    z-index: 1200;
+    box-sizing: border-box;
+    width: 260px;
+    padding: 10px 12px 12px;
+    background: var(--pz-bg);
+    border: 1.5px solid var(--pz-border);
+    border-radius: var(--pz-radius-lg);
+    box-shadow: 0 6px 20px rgba(var(--pz-shadow-rgb), 0.12);
+    color: var(--pz-text);
+    font-size: 13px;
+}
+
+.attachments-width-popover[hidden] {
+    display: none;
+}
+
+html[data-theme='dark'] .attachments-width-popover {
+    background: var(--pz-surface);
+    box-shadow: 0 6px 20px rgba(var(--pz-shadow-rgb), 0.5);
+}
+
+.attachments-width-popover .page-more-menu-slider {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.attachments-width-popover .page-more-menu-slider-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 22px;
+}
+
+.attachments-width-popover .page-more-menu-slider-value {
+    margin-left: auto;
+    font-size: 0.85em;
+    font-weight: var(--pz-weight-semibold);
+    font-variant-numeric: tabular-nums;
+    color: var(--pz-text-secondary);
+}
+
+.attachments-width-popover .page-more-menu-slider-input {
+    width: 100%;
+    margin: 0;
+    accent-color: var(--pz-accent);
+    cursor: pointer;
 }

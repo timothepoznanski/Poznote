@@ -1063,6 +1063,13 @@ function stripSearchHighlights(element) {
         resizeGrips[g].remove();
     }
 
+    // The preview shown in place of an attachment card ("Attachment
+    // previews", js/attachments.js): the card is what the note holds
+    var cardPreviews = clonedElement.querySelectorAll('.attachment-card-preview');
+    for (var cp = 0; cp < cardPreviews.length; cp++) {
+        cardPreviews[cp].remove();
+    }
+
     var blockedFrames = clonedElement.querySelectorAll('iframe[data-embed-blocked], iframe[data-embed-settled]');
     for (var f = 0; f < blockedFrames.length; f++) {
         blockedFrames[f].removeAttribute('data-embed-blocked');

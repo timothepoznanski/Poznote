@@ -42,6 +42,7 @@ function poznoteCssGroups(): array
             'css/components/code-block-fold.css',
             'css/components/embed-blocked.css',
             'css/components/audio-player.css',
+            'css/components/attachment-card.css',
             'css/components/resize-handle.css',
             'css/components/toggle-block.css',
             'css/components/toolbar-button.css',

@@ -415,7 +415,10 @@
       "show_inline_images": "Mostrar também as imagens já visíveis no conteúdo da nota",
       "all_file_types": "Todos os tipos",
       "file_type_filter": "Filtrar por tipo de arquivo",
-      "download": "Baixar"
+      "download": "Baixar",
+      "grid_view": "Vista em grelha",
+      "list_view": "Vista em lista",
+      "pager_status": "Página {{page}} de {{pages}}, {{total}} anexos"
     },
     "context_menu": {
       "open": "Abrir",
@@ -426,7 +429,8 @@
       "delete_confirm_title": "Excluir anexo",
       "delete_confirm_message": "Excluir \"{{filename}}\"? Ele será removido da nota e não poderá ser recuperado.",
       "delete_confirm_message_unnamed": "Excluir este anexo? Ele será removido da nota e não poderá ser recuperado.",
-      "move": "Mover para outra nota"
+      "move": "Mover para outra nota",
+      "preview_size": "Tamanho das pré-visualizações"
     },
     "move": {
       "title": "Mover anexo",
@@ -567,7 +571,9 @@
       "update_badge_level": "Escolha que versões colocam o ponto vermelho nas entradas das Definições. Seja qual for a escolha, a nova versão continua a ser anunciada nesta página, nada fica escondido.",
       "update_check_interval": "Com que frequência o Poznote verifica em segundo plano se existe uma versão mais recente. O ponto só pode aparecer depois de uma verificação, por isso um intervalo maior atrasa-o. O cartão Versão acima continua a verificar logo que clica nele.",
       "sessions": "Veja os navegadores e dispositivos conectados à sua conta agora e encerre a sessão dos que você não usa mais.",
-      "session_lifetime": "Quanto tempo um login dura sem atividade. Definido com POZNOTE_SESSION_LIFETIME_DAYS no arquivo .env, por isso aparece aqui mas não pode ser alterado nesta página. Entrar com \"Lembrar-me\" dura mais; entrar por SSO, não."
+      "session_lifetime": "Quanto tempo um login dura sem atividade. Definido com POZNOTE_SESSION_LIFETIME_DAYS no arquivo .env, por isso aparece aqui mas não pode ser alterado nesta página. Entrar com \"Lembrar-me\" dura mais; entrar por SSO, não.",
+      "attachments_single_line": "Mostra os anexos da nota numa única linha em vez de os repartir por várias. Deslize a linha com o dedo ou o rato; quando está cortada, termina com «…».",
+      "attachment_links_as_cards": "Ao inserir um anexo numa nota com «Link para anexo», mostra-o como um cartão (um ícone conforme o tipo, o nome e uma seta de transferência) numa linha própria, em vez de uma ligação no texto."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "No telemóvel, a barra de ferramentas acima do teclado tem um botão + que abre o mesmo menu, seja qual for esta definição."
@@ -964,7 +970,9 @@
       "markdown_view_cycle": "Menu de visualizações",
       "tab_follows_note": "O separador segue a nota aberta",
       "update_badge_level": "Ponto de atualização",
-      "update_check_interval": "Verificação de atualizações"
+      "update_check_interval": "Verificação de atualizações",
+      "attachments_single_line": "Anexos numa linha",
+      "attachment_links_as_cards": "Links de anexos como cartões"
     },
     "badges": {
       "font_size_default": "padrão ({{size}}px)",

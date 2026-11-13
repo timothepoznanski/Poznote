@@ -369,3 +369,71 @@ iframe.note-audio-embed,
     background: transparent;
 }
 
+
+/* "Preview size" slider of the attachment menu, on a preview card
+   (js/note-attachment-menu.js); the look of the tree indentation slider */
+.image-menu-slider {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 220px;
+    padding: 8px 15px 10px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    color: var(--pz-text);
+}
+
+.image-menu-slider-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 22px;
+    white-space: nowrap;
+}
+
+.image-menu-slider-head > i {
+    width: 16px;
+    text-align: center;
+    color: var(--pz-accent);
+}
+
+.image-menu-slider-value {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: var(--pz-weight-semibold);
+    font-variant-numeric: tabular-nums;
+    color: var(--pz-text-secondary);
+}
+
+.image-menu-slider-reset {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    margin-left: -4px;
+    padding: 0;
+    border: none;
+    border-radius: var(--pz-radius);
+    background: transparent;
+    color: var(--pz-text-muted);
+    cursor: pointer;
+}
+
+.image-menu-slider-reset[hidden] {
+    display: none;
+}
+
+.image-menu-slider-reset:hover,
+.image-menu-slider-reset:focus-visible {
+    background-color: var(--pz-surface-hover);
+    color: var(--pz-text);
+    outline: none;
+}
+
+.image-menu-slider-input {
+    width: 100%;
+    margin: 0;
+    accent-color: var(--pz-accent);
+    cursor: pointer;
+}

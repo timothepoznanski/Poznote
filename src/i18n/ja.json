@@ -221,7 +221,9 @@
       "update_badge_level": "どのリリースで設定の項目に赤いドットを付けるかを選びます。どれを選んでも新しいバージョンはこのページで告知されるので、何も隠れません。",
       "update_check_interval": "新しいバージョンがあるかを Poznote がバックグラウンドで確認する間隔です。ドットは確認のあとにしか出ないので、間隔が長いほど表示は遅くなります。上の「バージョン」カードはクリックすればいつでもすぐ確認します。",
       "sessions": "いまアカウントにログインしているブラウザーとデバイスを確認し、使わなくなったものをログアウトできます。",
-      "session_lifetime": "操作がないままログイン状態が続く期間です。.env ファイルの POZNOTE_SESSION_LIFETIME_DAYS で設定するため、ここでは表示のみで、このページからは変更できません。「ログインしたままにする」でのログインはより長く続き、SSO でのログインは続きません。"
+      "session_lifetime": "操作がないままログイン状態が続く期間です。.env ファイルの POZNOTE_SESSION_LIFETIME_DAYS で設定するため、ここでは表示のみで、このページからは変更できません。「ログインしたままにする」でのログインはより長く続き、SSO でのログインは続きません。",
+      "attachments_single_line": "ノートの添付ファイルを複数行に折り返さず、1行で表示します。指またはマウスで行をスライドできます。行が切れている場合は「…」で終わります。",
+      "attachment_links_as_cards": "「添付ファイルへのリンク」でノートに添付ファイルを挿入するとき、本文中のリンクではなく、専用の行にカード（種類のアイコン、名前、ダウンロード矢印）として表示します。"
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "モバイルでは、この設定に関係なく、キーボードの上のツールバーにある「+」ボタンから同じメニューを開けます。"
@@ -583,7 +585,9 @@
       "markdown_view_cycle": "表示メニュー",
       "tab_follows_note": "タブが開いているノートに追従",
       "update_badge_level": "更新ドット",
-      "update_check_interval": "更新の確認"
+      "update_check_interval": "更新の確認",
+      "attachments_single_line": "添付ファイルを1行で表示",
+      "attachment_links_as_cards": "添付ファイルのリンクをカードで表示"
     },
     "badges": {
       "font_size_default": "既定（{{size}}px）",
@@ -840,7 +844,10 @@
       "show_thumbnails": "この一覧にサムネイルを表示",
       "show_inline_images": "ノートの本文に表示されている画像も表示",
       "all_file_types": "すべての種類",
-      "file_type_filter": "ファイルの種類で絞り込み"
+      "file_type_filter": "ファイルの種類で絞り込み",
+      "grid_view": "グリッド表示",
+      "list_view": "リスト表示",
+      "pager_status": "{{pages}} ページ中 {{page}} ページ目、添付ファイル {{total}} 件"
     },
     "context_menu": {
       "open": "開く",
@@ -851,7 +858,8 @@
       "delete_confirm_title": "添付ファイルを削除",
       "delete_confirm_message": "「{{filename}}」を削除しますか？ノートから削除され、復元できません。",
       "delete_confirm_message_unnamed": "この添付ファイルを削除しますか？ノートから削除され、復元できません。",
-      "move": "別のノートに移動"
+      "move": "別のノートに移動",
+      "preview_size": "プレビューのサイズ"
     },
     "move": {
       "title": "添付ファイルを移動",

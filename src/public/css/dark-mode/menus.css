@@ -175,6 +175,10 @@ html[data-theme='dark'] .image-menu-item i {
     color: var(--pz-text-muted);
 }
 
+html[data-theme='dark'] .image-menu-slider-head > i {
+    color: var(--pz-text-muted);
+}
+
 html[data-theme='dark'] .image-submenu {
     background: var(--pz-bg);
     border-color: var(--pz-border);

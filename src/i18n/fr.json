@@ -414,7 +414,10 @@
       "show_inline_images": "Afficher aussi les images déjà visibles dans le contenu de la note",
       "all_file_types": "Tous les types",
       "file_type_filter": "Filtrer par type de fichier",
-      "download": "Télécharger"
+      "download": "Télécharger",
+      "grid_view": "Vue en grille",
+      "list_view": "Vue en liste",
+      "pager_status": "Page {{page}} sur {{pages}}, {{total}} pièces jointes"
     },
     "context_menu": {
       "open": "Ouvrir",
@@ -425,7 +428,8 @@
       "delete_confirm_title": "Supprimer la pièce jointe",
       "delete_confirm_message": "Supprimer « {{filename}} » ? La pièce jointe est retirée de la note et ne pourra pas être récupérée.",
       "delete_confirm_message_unnamed": "Supprimer cette pièce jointe ? Elle est retirée de la note et ne pourra pas être récupérée.",
-      "move": "Déplacer vers une autre note"
+      "move": "Déplacer vers une autre note",
+      "preview_size": "Taille des aperçus"
     },
     "move": {
       "title": "Déplacer la pièce jointe",
@@ -566,7 +570,9 @@
       "update_badge_level": "Choisissez quelles versions posent la pastille rouge sur les entrées Réglages. Quel que soit le choix, la nouvelle version reste annoncée sur cette page, rien n'est caché.",
       "update_check_interval": "À quelle fréquence Poznote vérifie en arrière-plan s'il existe une version plus récente. La pastille n'apparaît qu'après une vérification, donc un intervalle plus long la retarde. La carte Version ci-dessus vérifie toujours tout de suite quand on clique dessus.",
       "sessions": "Voir les navigateurs et les appareils actuellement connectés à votre compte, et déconnecter ceux que vous n’utilisez plus.",
-      "session_lifetime": "Combien de temps une connexion dure sans activité. Réglée avec POZNOTE_SESSION_LIFETIME_DAYS dans le fichier .env, donc affichée ici sans pouvoir être modifiée depuis cette page. Une connexion avec « Se souvenir de moi » dure plus longtemps ; une connexion par SSO, non."
+      "session_lifetime": "Combien de temps une connexion dure sans activité. Réglée avec POZNOTE_SESSION_LIFETIME_DAYS dans le fichier .env, donc affichée ici sans pouvoir être modifiée depuis cette page. Une connexion avec « Se souvenir de moi » dure plus longtemps ; une connexion par SSO, non.",
+      "attachments_single_line": "Affiche les pièces jointes de la note sur une seule ligne au lieu de les répartir sur plusieurs lignes. Faites glisser la ligne avec le doigt ou la souris ; quand elle est coupée, elle se termine par « … ».",
+      "attachment_links_as_cards": "Quand vous insérez une pièce jointe dans une note avec « Lien vers une pièce jointe », l'affiche en carte (une icône selon son type, son nom et une flèche de téléchargement) sur sa propre ligne, au lieu d'un lien dans le texte."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "Sur mobile, la barre d'outils au-dessus du clavier a un bouton + qui ouvre le même menu, quel que soit ce réglage."
@@ -964,7 +970,9 @@
       "markdown_view_cycle": "Menu des vues",
       "tab_follows_note": "L'onglet suit la note ouverte",
       "update_badge_level": "Pastille de mise à jour",
-      "update_check_interval": "Vérification des mises à jour"
+      "update_check_interval": "Vérification des mises à jour",
+      "attachments_single_line": "Pièces jointes sur une ligne",
+      "attachment_links_as_cards": "Liens de pièces jointes en carte"
     },
     "badges": {
       "font_size_default": "par défaut ({{size}}px)",

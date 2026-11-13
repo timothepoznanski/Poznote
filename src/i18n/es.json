@@ -415,7 +415,10 @@
       "show_inline_images": "Mostrar también las imágenes ya visibles en el contenido de la nota",
       "all_file_types": "Todos los tipos",
       "file_type_filter": "Filtrar por tipo de archivo",
-      "download": "Descargar"
+      "download": "Descargar",
+      "grid_view": "Vista de cuadrícula",
+      "list_view": "Vista de lista",
+      "pager_status": "Página {{page}} de {{pages}}, {{total}} adjuntos"
     },
     "context_menu": {
       "open": "Abrir",
@@ -426,7 +429,8 @@
       "delete_confirm_title": "Eliminar adjunto",
       "delete_confirm_message": "¿Eliminar «{{filename}}»? Se quita de la nota y no se puede recuperar.",
       "delete_confirm_message_unnamed": "¿Eliminar este adjunto? Se quita de la nota y no se puede recuperar.",
-      "move": "Mover a otra nota"
+      "move": "Mover a otra nota",
+      "preview_size": "Tamaño de las vistas previas"
     },
     "move": {
       "title": "Mover adjunto",
@@ -567,7 +571,9 @@
       "update_badge_level": "Elige qué versiones ponen el punto rojo en las entradas de Ajustes. Elijas lo que elijas, la nueva versión se sigue anunciando en esta página, no se oculta nada.",
       "update_check_interval": "Con qué frecuencia Poznote comprueba en segundo plano si hay una versión más reciente. El punto solo puede aparecer después de una comprobación, así que un intervalo más largo lo retrasa. La tarjeta Versión de arriba sigue comprobando al instante cuando la pulsas.",
       "sessions": "Ver los navegadores y dispositivos conectados ahora mismo a tu cuenta, y cerrar la sesión de los que ya no uses.",
-      "session_lifetime": "Cuánto dura un inicio de sesión sin actividad. Se configura con POZNOTE_SESSION_LIFETIME_DAYS en el archivo .env, así que aquí solo se muestra y no se puede cambiar desde esta página. Iniciar sesión con «Recordarme» dura más; iniciar sesión por SSO, no."
+      "session_lifetime": "Cuánto dura un inicio de sesión sin actividad. Se configura con POZNOTE_SESSION_LIFETIME_DAYS en el archivo .env, así que aquí solo se muestra y no se puede cambiar desde esta página. Iniciar sesión con «Recordarme» dura más; iniciar sesión por SSO, no.",
+      "attachments_single_line": "Muestra los adjuntos de la nota en una sola línea en lugar de repartirlos en varias. Desliza la línea con el dedo o el ratón; cuando está cortada, termina con «…».",
+      "attachment_links_as_cards": "Al insertar un adjunto en una nota con «Enlace a adjunto», se muestra como una tarjeta (un icono según su tipo, su nombre y una flecha de descarga) en su propia línea, en lugar de un enlace en el texto."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "En el móvil, la barra de herramientas sobre el teclado tiene un botón + que abre el mismo menú, sea cual sea este ajuste."
@@ -964,7 +970,9 @@
       "markdown_view_cycle": "Menú de vistas",
       "tab_follows_note": "La pestaña sigue la nota abierta",
       "update_badge_level": "Punto de actualización",
-      "update_check_interval": "Comprobación de actualizaciones"
+      "update_check_interval": "Comprobación de actualizaciones",
+      "attachments_single_line": "Adjuntos en una línea",
+      "attachment_links_as_cards": "Enlaces de adjuntos como tarjetas"
     },
     "badges": {
       "font_size_default": "predeterminado ({{size}}px)",

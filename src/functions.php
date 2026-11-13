@@ -14,6 +14,7 @@ require_once __DIR__ . '/lib/diary.php';
 require_once __DIR__ . '/lib/markdown-colored.php';
 require_once __DIR__ . '/lib/code-block-fold.php';
 require_once __DIR__ . '/lib/tree-indent.php';
+require_once __DIR__ . '/lib/attachment-preview-size.php';
 require_once __DIR__ . '/lib/datetime.php';
 require_once __DIR__ . '/lib/note-colors.php';
 require_once __DIR__ . '/lib/quotas.php';

@@ -5,6 +5,18 @@ let allRows = [];
 let filteredRows = [];
 let filterText = '';
 let selectedFileType = '';
+// 'list' (grouped by note) or 'grid' (one tile per attachment), and the size
+// of the tiles, kept per browser like the dashboard's view: one button steps
+// through small, medium, large, wide, then the list
+let viewMode = 'list';
+let gridSize = 'medium';
+const VIEWS = ['small', 'medium', 'large', 'wide', 'list'];
+// Paging counts attachments, in both views (a note whose attachments run over
+// two pages shows on both, each with its part). The page size is the
+// account setting attachments_list_per_page; 0 shows everything on one page.
+let currentPage = 1;
+const PAGE_SIZE_OPTIONS = [25, 50, 100, 250, 0];
+const VIEW_STORAGE_KEY = 'attachments_list_view';
 
 document.addEventListener('DOMContentLoaded', function () {
     const filterInput = document.getElementById('filterInput');
@@ -73,12 +85,41 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // List or grid: the button shows the view a click leads to
+    const viewToggle = document.getElementById('attachmentsViewToggle');
+    try {
+        let stored = localStorage.getItem(VIEW_STORAGE_KEY);
+        // 'grid' was stored before the sizes came
+        if (stored === 'grid') stored = 'medium';
+        if (VIEWS.indexOf(stored) !== -1 && stored !== 'list') {
+            viewMode = 'grid';
+            gridSize = stored;
+        }
+    } catch (e) { /* storage blocked: the list */ }
+    syncViewToggle(viewToggle);
+    if (viewToggle) {
+        viewToggle.addEventListener('click', function () {
+            const current = viewMode === 'list' ? 'list' : gridSize;
+            const next = VIEWS[(VIEWS.indexOf(current) + 1) % VIEWS.length];
+            if (next === 'list') {
+                viewMode = 'list';
+            } else {
+                viewMode = 'grid';
+                gridSize = next;
+            }
+            try { localStorage.setItem(VIEW_STORAGE_KEY, next); } catch (e) { /* not kept */ }
+            syncViewToggle(viewToggle);
+            renderRows();
+        });
+    }
+
     // The "Also show images inserted in the notes" checkbox (js/inserted-images-toggle.js)
     document.addEventListener('poznote:inserted-images-changed', function () {
         populateFileTypeFilter(allRows);
         applyFilter();
     });
 
+    initPager();
     loadAttachments();
 });
 
@@ -210,6 +251,8 @@ function applyFilter() {
     const hasTextFilter = filterText !== '';
     const hasTypeFilter = selectedFileType !== '';
 
+    // A new filter re-slices the list: the old page number points nowhere
+    currentPage = 1;
     filteredRows = allRows.filter(row => {
         const displayableAttachments = getDisplayableAttachments(row);
         const matchingTypeAttachments = hasTypeFilter
@@ -238,6 +281,106 @@ function applyFilter() {
     }
 }
 
+function getPageSize() {
+    const value = parseInt(document.body.getAttribute('data-per-page'), 10);
+    return PAGE_SIZE_OPTIONS.indexOf(value) !== -1 ? value : 50;
+}
+
+// The pager under the list, the look and the wording of the one of the user
+// management page: Previous / Next, "Page x of y" and the page size, which is
+// always there (the way back to a smaller size once "All" is picked)
+function renderPager(total, totalPages) {
+    const pager = document.getElementById('attachmentsPager');
+    if (!pager) return;
+    pager.hidden = total === 0;
+    const prev = pager.querySelector('[data-pager="prev"]');
+    const next = pager.querySelector('[data-pager="next"]');
+    const status = pager.querySelector('.attachments-pager-status');
+    if (prev) prev.hidden = currentPage <= 1;
+    if (next) next.hidden = currentPage >= totalPages;
+    if (status) {
+        status.textContent = (pager.getAttribute('data-status') || 'Page {{page}} of {{pages}}, {{total}} attachments')
+            .replace('{{page}}', currentPage).replace('{{pages}}', totalPages).replace('{{total}}', total);
+    }
+}
+
+function initPager() {
+    const pager = document.getElementById('attachmentsPager');
+    if (!pager) return;
+    const select = pager.querySelector('select');
+    if (select) select.value = String(getPageSize());
+    pager.addEventListener('click', function (e) {
+        const button = e.target.closest('[data-pager]');
+        if (!button) return;
+        currentPage += button.getAttribute('data-pager') === 'next' ? 1 : -1;
+        renderRows();
+        const container = document.getElementById('attachmentsContainer');
+        if (container) container.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    });
+    if (select) {
+        select.addEventListener('change', function () {
+            const previous = document.body.getAttribute('data-per-page');
+            document.body.setAttribute('data-per-page', select.value);
+            currentPage = 1;
+            renderRows();
+            fetch('/api/v1/settings/attachments_list_per_page', {
+                method: 'PUT',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ value: select.value })
+            }).then(function (response) {
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+            }).catch(function (error) {
+                // A session that may not write the account's settings: the
+                // choice holds for this visit only
+                console.debug('attachments-list: page size not saved:', error, previous);
+            });
+        });
+    }
+}
+
+// The button shows the current view, as the dashboard's does: the grid icon
+// and the size letter, or the list icon
+function syncViewToggle(button) {
+    if (!button) return;
+    const isList = viewMode === 'list';
+    const sizeLabel = button.getAttribute('data-label-' + gridSize) || gridSize;
+    const label = isList
+        ? (button.getAttribute('data-label-list') || '')
+        : (button.getAttribute('data-label-grid') || '') + ' (' + sizeLabel + ')';
+    button.title = label;
+    button.setAttribute('aria-label', label);
+    const icon = button.querySelector('i');
+    if (icon) icon.className = 'lucide ' + (isList ? 'lucide-layout-list' : 'lucide-grid');
+    const letter = button.querySelector('.attachments-view-letter');
+    if (letter) letter.textContent = isList ? '' : (gridSize === 'wide' ? 'W' : sizeLabel.charAt(0).toUpperCase());
+    button.classList.toggle('is-list', isList);
+}
+
+// Icon of a file kind in the grid, and its colour: the same kinds as the
+// attachment cards of a note (attachmentCardKind() in js/attachments.js,
+// css/components/attachment-card.css), which this page does not load
+const GRID_KINDS = {
+    pdf: ['file-text', ['pdf']],
+    doc: ['file-text', ['doc', 'docx', 'odt', 'rtf', 'pages']],
+    sheet: ['table', ['xls', 'xlsx', 'xlsm', 'ods', 'csv', 'tsv', 'numbers']],
+    slides: ['projector', ['ppt', 'pptx', 'odp', 'key']],
+    archive: ['archive', ['zip', 'rar', '7z', 'tar', 'gz', 'tgz', 'bz2', 'xz', 'zst']],
+    image: ['file-image', ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'heic', 'heif', 'avif', 'tif', 'tiff', 'ico']],
+    audio: ['music', ['mp3', 'wav', 'm4a', 'ogg', 'oga', 'flac', 'aac', 'opus', 'wma']],
+    video: ['file-video', ['mp4', 'webm', 'mov', 'mkv', 'avi', 'm4v', 'ogv']],
+    code: ['file-code', ['js', 'ts', 'py', 'php', 'html', 'htm', 'css', 'json', 'xml', 'yml', 'yaml', 'toml', 'sh', 'sql', 'java', 'c', 'h', 'cpp', 'go', 'rs', 'rb', 'swift', 'kt']],
+    text: ['file-text', ['txt', 'md', 'log', 'ini', 'cfg', 'conf']]
+};
+
+function gridKind(attachment) {
+    const ext = String(attachment.extension || '').toLowerCase();
+    for (const kind in GRID_KINDS) {
+        if (GRID_KINDS[kind][1].indexOf(ext) !== -1) return { kind: kind, icon: GRID_KINDS[kind][0] };
+    }
+    return { kind: 'file', icon: 'file' };
+}
+
 function renderRows() {
     const container = document.getElementById('attachmentsContainer');
     const emptyMessage = document.getElementById('emptyMessage');
@@ -256,12 +399,14 @@ function renderRows() {
         if (emptyMessage) {
             emptyMessage.style.display = hasActiveFilters ? 'none' : 'block';
         }
+        renderPager(0, 1);
         return;
     }
 
     if (emptyMessage) emptyMessage.style.display = 'none';
 
-    const rowsHtmlArray = filteredRows.map(row => {
+    // The attachments each note shows, then the slice of them on this page
+    const groups = filteredRows.map(row => {
         // Filter attachments based on visibility settings
         const displayableAttachments = getDisplayableAttachments(row);
         const typeFilteredAttachments = selectedFileType
@@ -269,11 +414,53 @@ function renderRows() {
             : displayableAttachments;
 
         const noteNameMatchesFilter = filterText !== '' && row.noteName.toLowerCase().includes(filterText);
-        const visibleAttachments = filterText !== '' && !noteNameMatchesFilter
+        const attachments = filterText !== '' && !noteNameMatchesFilter
             ? typeFilteredAttachments.filter(att => att.filename.toLowerCase().includes(filterText))
             : typeFilteredAttachments;
+        return { row: row, attachments: attachments };
+    }).filter(group => group.attachments.length > 0);
 
-        if (visibleAttachments.length === 0) return null;
+    const total = groups.reduce((sum, group) => sum + group.attachments.length, 0);
+    const pageSize = getPageSize();
+    const totalPages = pageSize > 0 ? Math.max(1, Math.ceil(total / pageSize)) : 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+    const sliceStart = pageSize > 0 ? (currentPage - 1) * pageSize : 0;
+    const sliceEnd = pageSize > 0 ? sliceStart + pageSize : total;
+    let seen = 0;
+    const pageGroups = [];
+    groups.forEach(group => {
+        const from = Math.max(0, sliceStart - seen);
+        const to = Math.min(group.attachments.length, sliceEnd - seen);
+        seen += group.attachments.length;
+        if (to > from) pageGroups.push({ row: group.row, attachments: group.attachments.slice(from, to) });
+    });
+    renderPager(total, totalPages);
+
+    const rowsHtmlArray = pageGroups.map(group => {
+        const row = group.row;
+        const visibleAttachments = group.attachments;
+
+        if (viewMode === 'grid') {
+            const noteUrl = `index.php?note=${row.noteId}${workspace ? '&workspace=' + encodeURIComponent(workspace) : ''}`;
+            return visibleAttachments.map(att => {
+                const isImage = isImageAttachment(att);
+                let media;
+                if (isImage && showThumbnails) {
+                    let fileUrl = `/api/v1/notes/${row.noteId}/attachments/${att.id}`;
+                    if (workspace) fileUrl += `?workspace=${encodeURIComponent(workspace)}`;
+                    media = `<img data-src="${fileUrl}" alt="" class="lazy-thumb">`;
+                } else {
+                    const kind = gridKind(att);
+                    media = `<i class="lucide lucide-${kind.icon} attachments-grid-icon attachments-grid-icon-${kind.kind}" aria-hidden="true"></i>`;
+                }
+                return `<div class="attachments-grid-item">
+                    <a href="#" class="attachment-file-link attachments-grid-media" data-attachment-id="${att.id}" data-note-id="${row.noteId}" title="${escapeHtml(att.filename)}" tabindex="-1" aria-hidden="true">${media}</a>
+                    <a href="#" class="attachment-file-link attachments-grid-name" data-attachment-id="${att.id}" data-note-id="${row.noteId}" title="${escapeHtml(att.filename)}">${escapeHtml(att.filename)}</a>
+                    <a href="${noteUrl}" class="attachments-grid-note" title="${escapeHtml(row.noteName)}">${escapeHtml(row.noteName)}</a>
+                </div>`;
+            }).join('');
+        }
 
         const attachmentsList = visibleAttachments.map(att => {
             const isImage = isImageAttachment(att);
@@ -311,7 +498,10 @@ function renderRows() {
         return;
     }
 
-    container.innerHTML = rowsHtmlArray.join('');
+    container.classList.toggle('is-grid', viewMode === 'grid');
+    container.innerHTML = viewMode === 'grid'
+        ? '<div class="attachments-grid attachments-grid-' + gridSize + '">' + rowsHtmlArray.join('') + '</div>'
+        : rowsHtmlArray.join('');
 
     initLazyThumbnails(container);
 

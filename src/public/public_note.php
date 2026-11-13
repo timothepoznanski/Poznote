@@ -1068,6 +1068,7 @@ if (poznoteMarkdownColoredEnabled($markdownColoredTheme)) {
 <script src="<?php echo poznoteAsset('js/embeds.js'); ?>"></script>
 <script src="<?php echo poznoteAsset('js/audio-player.js'); ?>"></script>
 <script src="<?php echo poznoteAsset('js/public-note.js'); ?>"></script>
+<script src="<?php echo poznoteAsset('js/attachment-card-download.js'); ?>"></script>
 <?php if ($noteBodyEditable): ?>
 <script src="<?php echo poznoteAsset('js/shortcut-key.js'); ?>"></script>
 <script src="<?php echo poznoteAsset('js/public-note-edit.js'); ?>"></script>
