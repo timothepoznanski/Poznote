@@ -365,8 +365,10 @@ if (!function_exists('poznoteUiCustomizationSectionHeader')) {
 </div>
 
 <!-- Task Lists Section: the parts of a task list note's rows
-     (tasklist:* keys, see poznoteTasklistUiSelectors() in lib/ui-customization.php) -->
-<div class="ui-custom-section" data-ui-pages="notes">
+     (tasklist:* keys, see poznoteTasklistUiSelectors() in lib/ui-customization.php).
+     data-ui-section-id: a right-click on a task opens the panel on this section
+     (js/hide-element-menu.js). -->
+<div class="ui-custom-section" data-ui-pages="notes" data-ui-section-id="task-lists">
 <?php echo poznoteUiCustomizationSectionHeader(t_h('modals.ui_customization.sections.task_lists', [], 'Task lists')); ?>
 <div class="ui-custom-items">
 <?php echo poznoteUiCustomizationListToggleAll(); ?>

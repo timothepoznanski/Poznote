@@ -22,6 +22,10 @@
  * box there could be hidden and never shown again. A row the administrator
  * locked, or already unticked, is left out too.
  *
+ * A task row also answers on its text, which matches no key: the menu then
+ * holds only the "Element visibility" entry, opened on the "Task lists"
+ * section. A link or a selection in that text keeps the browser's menu.
+ *
  * Left alone: text being edited (the browser's own menu belongs to it), and
  * the regions that answer a right-click with a menu of their own.
  */
@@ -54,6 +58,12 @@
     // this a right-click on it would answer "Hide the frame around each task"
     // instead of the browser's own copy and spelling menu.
     var CONTENT_REGIONS = '.task-text, .task-subitem-text, .tasklist-embed-text';
+
+    // A task row, in a task list note or in a list embedded in a note. Its
+    // text matches no key, so a right-click on it offers only the way to the
+    // "Task lists" section of the panel, where every part of a row has a box.
+    var TASK_ROWS = '.task-list-container .task-item, .tasklist-embed-task';
+    var TASK_LISTS_SECTION = 'task-lists';
 
     // Keys read off the clicked element instead of a fixed selector: menu
     // entries whose data attribute is the second half of their key. Mirrors
@@ -190,19 +200,54 @@
         return found.slice(0, MAX_ENTRIES);
     }
 
+    // True when text is selected inside the element: the browser's menu, which
+    // copies it, keeps the right-click.
+    function hasSelectionIn(element) {
+        var selection = window.getSelection ? window.getSelection() : null;
+        if (!selection || selection.isCollapsed || !selection.rangeCount) return false;
+        return typeof selection.containsNode === 'function' && selection.containsNode(element, true);
+    }
+
+    function taskListsPanel() {
+        var panel = window.PoznoteUiCustomizationPanel;
+        if (!panel || typeof panel.openSection !== 'function' || typeof panel.hasSection !== 'function') return null;
+        return panel.hasSection(TASK_LISTS_SECTION) ? panel : null;
+    }
+
+    function sectionItem(panel) {
+        return {
+            icon: 'lucide-settings',
+            label: label('menuElementVisibility', 'Element visibility'),
+            run: function () { panel.openSection(TASK_LISTS_SECTION); }
+        };
+    }
+
     document.addEventListener('contextmenu', function (event) {
         if (event.defaultPrevented || event.shiftKey || !mayCustomize()) return;
 
         var target = event.target;
         if (!target || !target.closest) return;
-        if (target.closest(OWNED_REGIONS) || target.closest(CONTENT_REGIONS)) return;
+        if (target.closest(OWNED_REGIONS)) return;
         if (isTextEditingContext(target)) return;
 
         var menu = contextMenu();
         if (!menu) return;
 
-        var found = candidates(target);
-        if (!found.length) return;
+        // A task row: its text (and any spot that matches no key) leads to the
+        // "Task lists" section. A link in the text and a selection keep the
+        // browser's menu (open in a new tab, copy).
+        var task = target.closest(TASK_ROWS);
+        var inTaskText = !!target.closest(CONTENT_REGIONS);
+        if (inTaskText && (!task || target.closest('a[href]') || hasSelectionIn(task))) return;
+
+        var found = inTaskText ? [] : candidates(target);
+        if (!found.length) {
+            var sectionPanel = task ? taskListsPanel() : null;
+            if (!sectionPanel) return;
+            event.preventDefault();
+            menu.open(event, task, { items: [sectionItem(sectionPanel)] });
+            return;
+        }
 
         var items = found.map(function (candidate) {
             return {

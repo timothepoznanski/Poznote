@@ -1024,6 +1024,20 @@
         },
         hasKey: function (key) {
             return !!(panel && key && panel.querySelector('[data-ui-key="' + key + '"]'));
+        },
+        // A whole section rather than one row: a right-click on a task, whose
+        // text matches no single key, opens the "Task lists" section.
+        openSection: function (sectionId) {
+            if (!panel || !sectionId) return false;
+            setOpen(true);
+            revealSection(sectionId);
+            return true;
+        },
+        // False when this page's list pruned the section (no row left in it)
+        hasSection: function (sectionId) {
+            if (!panel || !sectionId) return false;
+            var section = panel.querySelector('.ui-custom-section[data-ui-section-id="' + sectionId + '"]');
+            return !!(section && section.querySelector('[data-ui-key]'));
         }
     };
 
