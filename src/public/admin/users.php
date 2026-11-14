@@ -447,6 +447,7 @@ function usersLanguageName(string $code): string {
         'fr' => ['settings.language.french', 'French'],
         'es' => ['settings.language.spanish', 'Spanish'],
         'de' => ['settings.language.german', 'German'],
+        'de-ch' => ['settings.language.german_swiss', 'German (Switzerland)'],
         'pt' => ['settings.language.portuguese', 'Portuguese'],
         'ru' => ['settings.language.russian', 'Russian'],
         'zh-cn' => ['settings.language.chinese_simplified', 'Chinese Simplified'],

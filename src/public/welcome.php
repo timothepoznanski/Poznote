@@ -101,6 +101,7 @@ $welcomeLanguageNames = [
     'ko' => '한국어',
     'ja' => '日本語',
     'ca' => 'Català',
+    'de-ch' => 'Deutsch (Schweiz)',
 ];
 $welcomeLanguages = [];
 foreach (poznoteSupportedLanguages() as $welcomeLanguageCode) {

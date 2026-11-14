@@ -37,6 +37,7 @@
         'fr': 'fr-FR',
         'es': 'es-ES',
         'de': 'de-DE',
+        'de-ch': 'de-DE',
         'pt': 'pt-BR',
         'ru': 'ru-RU',
         'zh-cn': 'zh-CN',
