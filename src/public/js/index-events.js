@@ -999,6 +999,10 @@
                 break;
             case 'show-note-info':
                 if (noteId && typeof window.showNoteInfoModal === 'function') {
+                    // From the toolbar's "..." menu: close it first
+                    var toolbarElForInfo = target.closest('.note-edit-toolbar');
+                    var menuElForInfo = toolbarElForInfo && toolbarElForInfo.querySelector('.mobile-toolbar-menu');
+                    if (menuElForInfo) menuElForInfo.hidden = true;
                     window.showNoteInfoModal(noteId);
                 }
                 break;

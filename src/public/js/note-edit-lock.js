@@ -306,6 +306,7 @@
         noteCard.querySelectorAll('.mobile-toolbar-menu [data-action]').forEach(function (element) {
             var selector = element.getAttribute('data-selector') || '';
             var keepEnabled = element.getAttribute('data-action') === 'print-note'
+                || element.getAttribute('data-action') === 'show-note-info'
                 || selector === '.btn-download'
                 // The way out of a lock its owner set, when the row was too
                 // short to keep the button itself (js/toolbar-overflow.js)
