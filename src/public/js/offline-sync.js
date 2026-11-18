@@ -268,14 +268,37 @@
         }).forEach(function (record) {
             var pinned = (reasons[record.id] || 'recent') !== 'recent';
             var content = String(record.content || '');
+            // A file known to be over the limit is never asked for: it would
+            // be downloaded whole, refused, and downloaded again on the next
+            // sync (each page load). Sizes are known for the note's own files.
+            // Same for a file only a picture would be kept of (a note kept
+            // for its date) whose recorded type is not a picture: the server
+            // serves it under that type, so it would be refused on arrival.
+            var tooBig = {};
+            var notPicture = {};
+            (record.attachments || []).forEach(function (attachment) {
+                if (!attachment || !attachment.id) {
+                    return;
+                }
+                if (Number(attachment.file_size) > limits.picture_mb * MB) {
+                    tooBig[attachment.id] = true;
+                }
+                var type = String(attachment.file_type || '').trim().toLowerCase();
+                if (type && type.indexOf('image/') !== 0) {
+                    notPicture[attachment.id] = true;
+                }
+            });
             var match;
             ATTACHMENT_URL.lastIndex = 0;
             while ((match = ATTACHMENT_URL.exec(content)) !== null) {
+                if (Number(match[1]) === Number(record.id) && (tooBig[match[2]] || (!pinned && notPicture[match[2]]))) {
+                    continue;
+                }
                 add(new URL('/api/v1/notes/' + match[1] + '/attachments/' + match[2], window.location.origin).href, false);
             }
             if (pinned) {
                 (record.attachments || []).forEach(function (attachment) {
-                    if (attachment && attachment.id) {
+                    if (attachment && attachment.id && !tooBig[attachment.id]) {
                         add(new URL('/api/v1/notes/' + record.id + '/attachments/' + attachment.id, window.location.origin).href, true);
                     }
                 });
@@ -358,6 +381,11 @@
                                 // Pictures only, unless the note is kept whatever
                                 // its date; big files stay online either way.
                                 if (!response.ok || (type.indexOf('image/') !== 0 && !anyType[url]) || announced > limits.picture_mb * MB) {
+                                    // A body left unread keeps downloading:
+                                    // cancelling it ends the request.
+                                    if (response.body && typeof response.body.cancel === 'function') {
+                                        response.body.cancel().catch(function () {});
+                                    }
                                     return null;
                                 }
                                 return response.blob().then(function (blob) {
