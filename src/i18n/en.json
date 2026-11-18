@@ -748,7 +748,8 @@
       "note_id": "Note ID:",
       "full_path": "Full Path:",
       "last_modified_from": "Last modified from:",
-      "locked": "Locked:"
+      "locked": "Locked:",
+      "size": "Size:"
     },
     "attachments": {
       "count_singular": "1 file",
@@ -772,6 +773,9 @@
       "extension": "The browser extension",
       "ai": "The AI assistant",
       "public": "A visitor of the public share"
+    },
+    "size": {
+      "with_attachments": "({{size}} with attachments)"
     }
   },
   "attachments": {

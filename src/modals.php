@@ -938,6 +938,8 @@ $pzNoteInfoRows = [
     'favorite' => t_h('info.labels.favorite', [], 'Favorite:'),
     'locked_text' => t_h('info.labels.locked', [], 'Locked:'),
     'attachments' => t_h('info.labels.attachments', [], 'Attachments:'),
+    // Content file on disk, plus the attachments in brackets when it has any
+    'size' => t_h('info.labels.size', [], 'Size:'),
     // Counted in the browser from the note on screen (js/note-stats.js), so
     // they match the line under the note title and include unsaved edits
     'characters' => t_h('info.labels.characters', [], 'Characters:'),

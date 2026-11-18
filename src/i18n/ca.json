@@ -748,7 +748,8 @@
       "note_id": "Identificador de la nota:",
       "full_path": "Camí complet:",
       "last_modified_from": "Última modificació des de:",
-      "locked": "Bloquejada:"
+      "locked": "Bloquejada:",
+      "size": "Mida:"
     },
     "attachments": {
       "count_singular": "1 fitxer",
@@ -772,6 +773,9 @@
       "extension": "L'extensió del navegador",
       "ai": "L'assistent d'IA",
       "public": "Un visitant de l'enllaç públic"
+    },
+    "size": {
+      "with_attachments": "({{size}} amb els fitxers adjunts)"
     }
   },
   "attachments": {

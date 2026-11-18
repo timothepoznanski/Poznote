@@ -76,6 +76,19 @@ function poznoteNoteInfoUser(?int $userId): string {
     return $name !== '' ? $name : t('info.users.user_id', ['id' => $userId], 'User #{{id}}');
 }
 
+/**
+ * A byte count with its unit, through the attachments formatter so the units
+ * are translated the same way as the attachment tiles. That formatter returns
+ * nothing for 0, which an empty note legitimately weighs.
+ */
+function poznoteNoteInfoSize(int $bytes): string {
+    if ($bytes <= 0) {
+        return '0 ' . t('attachments.size.units.bytes', [], 'bytes');
+    }
+
+    return poznoteFormatAttachmentSize($bytes);
+}
+
 function poznoteNoteInfoFail(int $status, string $message): never {
     http_response_code($status);
     echo json_encode(['success' => false, 'message' => $message]);
@@ -158,6 +171,45 @@ if (!empty($note['attachments']) && $note['attachments'] !== '[]') {
     }
 }
 
+// Size of the note: its content file on disk, which is what a backup or an
+// export carries. A note whose file is missing (never saved since a restore,
+// for instance) falls back to the bytes of the database column.
+$contentBytes = null;
+$contentFile = getEntryFilename($noteId, $note['type'] ?? 'note');
+if (is_file($contentFile)) {
+    $fileSize = @filesize($contentFile);
+    if ($fileSize !== false) {
+        $contentBytes = (int)$fileSize;
+    }
+}
+if ($contentBytes === null) {
+    try {
+        $sizeStmt = $con->prepare('SELECT length(CAST(entry AS BLOB)) FROM entries WHERE id = ?');
+        $sizeStmt->execute([$noteId]);
+        $contentBytes = (int)$sizeStmt->fetchColumn();
+    } catch (PDOException $e) {
+        $contentBytes = 0;
+    }
+}
+
+// The attachments are added in brackets, from the size recorded at upload
+// (the same records the attachment count reads, snapshot-only ones excluded)
+$attachmentsBytes = 0;
+if (!empty($note['attachments']) && substr((string)$note['attachments'], 0, 1) === '[') {
+    foreach (poznoteFilterVisibleAttachments($note['attachments']) as $attachment) {
+        $attachmentsBytes += max(0, (int)($attachment['file_size'] ?? 0));
+    }
+}
+
+$sizeText = poznoteNoteInfoSize($contentBytes);
+if ($attachmentsBytes > 0) {
+    $sizeText .= ' ' . t(
+        'info.size.with_attachments',
+        ['size' => poznoteNoteInfoSize($contentBytes + $attachmentsBytes)],
+        '({{size}} with attachments)'
+    );
+}
+
 $isFavorite = (int)$note['favorite'] === 1;
 
 echo json_encode([
@@ -184,6 +236,9 @@ echo json_encode([
         'attachments' => $attachmentsCount === 1
             ? t('info.attachments.count_singular', ['count' => $attachmentsCount], '1 file')
             : t('info.attachments.count_plural', ['count' => $attachmentsCount], '{{count}} files'),
+        'size' => $sizeText,
+        'size_bytes' => $contentBytes,
+        'attachments_bytes' => $attachmentsBytes,
         'note_id' => $noteId,
         'full_path' => $fullPath,
     ],

@@ -745,7 +745,8 @@
       "created_by": "Автор:",
       "last_modified_by": "Последнее изменение:",
       "last_modified_from": "Последнее изменение из:",
-      "locked": "Заблокирована:"
+      "locked": "Заблокирована:",
+      "size": "Размер:"
     },
     "attachments": {
       "count_singular": "1 файл",
@@ -769,6 +770,9 @@
       "extension": "Расширение браузера",
       "ai": "ИИ-помощник",
       "public": "Посетитель публичной ссылки"
+    },
+    "size": {
+      "with_attachments": "({{size}} с вложениями)"
     }
   },
   "attachments": {

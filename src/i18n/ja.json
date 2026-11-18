@@ -748,7 +748,8 @@
       "note_id": "ノートID：",
       "full_path": "フルパス：",
       "last_modified_from": "最終更新元:",
-      "locked": "ロック:"
+      "locked": "ロック:",
+      "size": "サイズ："
     },
     "attachments": {
       "count_singular": "1件",
@@ -772,6 +773,9 @@
       "extension": "ブラウザー拡張機能",
       "ai": "AI アシスタント",
       "public": "公開共有の閲覧者"
+    },
+    "size": {
+      "with_attachments": "(添付ファイルを含めて {{size}})"
     }
   },
   "attachments": {

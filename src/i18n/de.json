@@ -1410,7 +1410,8 @@
       "created_by": "Erstellt von:",
       "last_modified_by": "Zuletzt geändert von:",
       "last_modified_from": "Zuletzt geändert von:",
-      "locked": "Gesperrt:"
+      "locked": "Gesperrt:",
+      "size": "Größe:"
     },
     "attachments": {
       "count_singular": "1 Datei",
@@ -1434,6 +1435,9 @@
       "extension": "Die Browser-Erweiterung",
       "ai": "Der KI-Assistent",
       "public": "Ein Besucher der öffentlichen Freigabe"
+    },
+    "size": {
+      "with_attachments": "({{size}} mit Anhängen)"
     }
   },
   "modals": {

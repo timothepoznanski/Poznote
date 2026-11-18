@@ -1410,7 +1410,8 @@
       "created_by": "Criado por:",
       "last_modified_by": "Última modificação por:",
       "last_modified_from": "Última alteração a partir de:",
-      "locked": "Bloqueada:"
+      "locked": "Bloqueada:",
+      "size": "Tamanho:"
     },
     "attachments": {
       "count_singular": "1 arquivo",
@@ -1434,6 +1435,9 @@
       "extension": "A extensão do navegador",
       "ai": "O assistente de IA",
       "public": "Um visitante da partilha pública"
+    },
+    "size": {
+      "with_attachments": "({{size}} com os anexos)"
     }
   },
   "modals": {

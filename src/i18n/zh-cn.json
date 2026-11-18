@@ -1408,7 +1408,8 @@
       "created_by": "创建者：",
       "last_modified_by": "最后修改者：",
       "last_modified_from": "最后修改来自：",
-      "locked": "已锁定："
+      "locked": "已锁定：",
+      "size": "大小:"
     },
     "attachments": {
       "count_singular": "1 个文件",
@@ -1432,6 +1433,9 @@
       "extension": "浏览器扩展",
       "ai": "AI 助手",
       "public": "公开分享页的访客"
+    },
+    "size": {
+      "with_attachments": "(含附件 {{size}})"
     }
   },
   "modals": {

@@ -748,7 +748,8 @@
       "note_id": "노트 ID:",
       "full_path": "전체 경로:",
       "last_modified_from": "마지막 수정 위치:",
-      "locked": "잠김:"
+      "locked": "잠김:",
+      "size": "크기:"
     },
     "attachments": {
       "count_singular": "파일 1개",
@@ -772,6 +773,9 @@
       "extension": "브라우저 확장 프로그램",
       "ai": "AI 어시스턴트",
       "public": "공개 공유 방문자"
+    },
+    "size": {
+      "with_attachments": "(첨부 파일 포함 {{size}})"
     }
   },
   "attachments": {

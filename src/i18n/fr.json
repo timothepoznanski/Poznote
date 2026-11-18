@@ -1410,7 +1410,8 @@
       "note_id": "ID de la note :",
       "full_path": "Chemin complet :",
       "last_modified_from": "Dernière modification depuis :",
-      "locked": "Verrouillée :"
+      "locked": "Verrouillée :",
+      "size": "Taille :"
     },
     "attachments": {
       "count_singular": "1 fichier",
@@ -1434,6 +1435,9 @@
       "extension": "L'extension de navigateur",
       "ai": "L'assistant IA",
       "public": "Un visiteur du partage public"
+    },
+    "size": {
+      "with_attachments": "({{size}} avec les pièces jointes)"
     }
   },
   "modals": {
