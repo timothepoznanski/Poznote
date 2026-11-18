@@ -45,6 +45,7 @@ function poznoteCssGroups(): array
             'css/components/attachment-card.css',
             'css/components/resize-handle.css',
             'css/components/toggle-block.css',
+            'css/components/toggle-block-unwrapped.css',
             'css/components/toolbar-button.css',
         ],
 

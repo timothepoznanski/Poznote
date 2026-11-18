@@ -42,12 +42,31 @@
     var _loadingNoteId = null;
 
     /**
+     * Hourglass on the tab a slow note load is heading for. It only shows
+     * once the load has lasted LOADING_HOURGLASS_DELAY_MS, so a quick open
+     * never flickers it.
+     */
+    var LOADING_HOURGLASS_DELAY_MS = 300;
+    var _loadingHourglassTimer = null;
+    var _loadingHourglassShown = false;
+
+    /**
      * The tab a sidebar navigation has just repurposed, with a copy of what it
      * held before. The second click of a double-click on that note (open in a
      * new tab) uses it to give the previous content its tab back.
-     * @type {{tabId: string, tab: Object, at: number}|null}
+     * @type {{tabId: string, tab: Object, clickSeq: number}|null}
      */
     var _lastReplacedTab = null;
+
+    // Single clicks counted (detail 1: the first click of a double-click
+    // included, its second click excluded), and the count when the load in
+    // flight left, so a double-click can tell whether its own first click
+    // started that load.
+    var _clickSeq = 0;
+    var _loadClickSeq = -1;
+    document.addEventListener('click', function (e) {
+        if (e.detail === 1) _clickSeq++;
+    }, true);
 
     /** Scroll positions keyed by tab ID — kept in memory only, not persisted. */
     var _scrollPositions = {};
@@ -966,6 +985,7 @@
         }
 
         _applySearchTabVisibility();
+        _paintLoadingHourglass();
 
         _labelTabScrollButtons(bar);
         _updateTabScrollButtons();
@@ -1307,9 +1327,12 @@
     function _reopenTabReplacedBySidebarClick(noteId) {
         var replaced = _lastReplacedTab;
         if (!replaced || replaced.tabId !== activeTabId) return false;
-        // Only the click that started this gesture qualifies: anything older
-        // is a plain double-click on the note already open, a no-op
-        if (Date.now() - replaced.at > 1000) return false;
+        // Only a load started by the first click of this double-click
+        // qualifies: anything older is a plain double-click on the note
+        // already open, a no-op. Counted in clicks, not timed: a heavy note
+        // keeps the page busy for seconds and the double-click waits behind
+        // it, so a one-second window read the gesture as an old one.
+        if (replaced.clickSeq !== _clickSeq) return false;
         var active = _findTabById(activeTabId);
         if (!active || !_isNoteTab(active) || active.noteId !== noteId) return false;
 
@@ -1846,6 +1869,15 @@
      */
     function _onNoteLoadStarted(noteId) {
         _loadingNoteId = String(noteId);
+        _loadClickSeq = _clickSeq;
+        _clearLoadingHourglass();
+        var startedFor = _loadingNoteId;
+        _loadingHourglassTimer = setTimeout(function () {
+            _loadingHourglassTimer = null;
+            if (_loadingNoteId !== startedFor) return;
+            _loadingHourglassShown = true;
+            _paintLoadingHourglass();
+        }, LOADING_HOURGLASS_DELAY_MS);
         // A pending tab switch belongs to the load it was set for. A different
         // note leaving now means that load was dropped for this one, and the
         // switch must not be applied to what lands.
@@ -1858,6 +1890,86 @@
     }
 
     /**
+     * Hook called by note-loader.js once a load is over, whatever its outcome
+     * (landed, failed, timed out, dropped for a newer one). Called from the
+     * same task that swaps the note in, so the hourglass leaves in the same
+     * frame as the note arrives.
+     */
+    function _onNoteLoadFinished() {
+        _clearLoadingHourglass();
+    }
+
+    /**
+     * Hook called by note-loader.js before it swaps in a heavy note: the
+     * swap keeps the page busy for a while, so the delayed hourglass would
+     * never get to the screen. Shown at once instead, for that load.
+     */
+    function _showLoadingHourglassNow() {
+        if (_loadingNoteId === null) return;
+        if (_loadingHourglassTimer !== null) {
+            clearTimeout(_loadingHourglassTimer);
+            _loadingHourglassTimer = null;
+        }
+        _loadingHourglassShown = true;
+        _paintLoadingHourglass();
+    }
+
+    /**
+     * The tab the load in flight will land in, the way _onNoteLoaded() picks
+     * it: the tab being switched to, else a tab already holding the note,
+     * else the active tab (which the note replaces).
+     * @returns {string|null}
+     */
+    function _loadingTargetTabId() {
+        if (_loadingNoteId === null) return null;
+        if (_pendingTabSwitch !== null) return _pendingTabSwitch;
+        for (var i = 0; i < tabs.length; i++) {
+            if (_isNoteTab(tabs[i]) && tabs[i].noteId === _loadingNoteId) return tabs[i].id;
+        }
+        return activeTabId;
+    }
+
+    function _clearLoadingHourglass() {
+        if (_loadingHourglassTimer !== null) {
+            clearTimeout(_loadingHourglassTimer);
+            _loadingHourglassTimer = null;
+        }
+        if (!_loadingHourglassShown) return;
+        _loadingHourglassShown = false;
+        _paintLoadingHourglass();
+    }
+
+    /**
+     * Puts the hourglass on the target tab and takes it off any other. The
+     * strip is rebuilt by render(), which calls this again, so the marker
+     * survives a re-render while the load is still in flight.
+     */
+    function _paintLoadingHourglass() {
+        var strip = document.querySelector('#app-tab-bar .app-tab-strip');
+        if (!strip) return;
+        var targetId = _loadingHourglassShown ? _loadingTargetTabId() : null;
+        var tabEls = strip.querySelectorAll('.app-tab');
+        for (var i = 0; i < tabEls.length; i++) {
+            var el = tabEls[i];
+            var isTarget = targetId !== null && el.getAttribute('data-tab-id') === targetId;
+            var icon = el.querySelector('.app-tab-loading');
+            if (isTarget && !icon) {
+                icon = document.createElement('span');
+                icon.className = 'app-tab-loading';
+                icon.setAttribute('aria-hidden', 'true');
+                icon.innerHTML = '<i class="lucide lucide-hourglass"></i>';
+                el.insertBefore(icon, el.querySelector('.app-tab-title'));
+                el.classList.add('is-loading');
+                el.setAttribute('aria-busy', 'true');
+            } else if (!isTarget && icon) {
+                icon.remove();
+                el.classList.remove('is-loading');
+                el.removeAttribute('aria-busy');
+            }
+        }
+    }
+
+    /**
      * Hook called from loadNoteCommon immediately after innerHTML replacement.
      * Decides whether to update the active tab's note (regular navigation)
      * or just confirm the tab switch (tab click).
@@ -1865,6 +1977,7 @@
      */
     function _onNoteLoaded(noteId) {
         _loadingNoteId = null;
+        _clearLoadingHourglass();
         _lastReplacedTab = null;
         if (!_areTabsEnabled()) return;
         noteId = String(noteId);
@@ -1915,7 +2028,7 @@
             } else if (tab) {
                 // Update the active tab to the new note, remembering what it held
                 // in case this click turns out to be the first of a double-click
-                _lastReplacedTab = { tabId: tab.id, tab: Object.assign({}, tab), at: Date.now() };
+                _lastReplacedTab = { tabId: tab.id, tab: Object.assign({}, tab), clickSeq: _loadClickSeq };
                 tab.type = 'note';
                 tab.noteId = noteId;
                 delete tab.folderId;
@@ -2395,6 +2508,8 @@
         render: render,
         updateUI: updateOpenInNewTabButtons, // Expose for external calls
         _onNoteLoadStarted: _onNoteLoadStarted,
+        _onNoteLoadFinished: _onNoteLoadFinished,
+        _showLoadingHourglassNow: _showLoadingHourglassNow,
         _onNoteLoaded: _onNoteLoaded,
         _saveScrollPosition: _saveScrollPosition,
         _restoreScrollForNote: _restoreScrollForNote,

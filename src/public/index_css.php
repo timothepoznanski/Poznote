@@ -43,6 +43,9 @@ function poznoteGetIndexCssGroups(): array {
             'css/components/embed-blocked.css',
             'css/components/resize-handle.css',
             'css/components/toggle-block.css',
+            // Not css/components/toggle-block-unwrapped.css: the editor wraps
+            // every toggle body, and that rule cost a whole-page restyle on
+            // every DOM insertion here (see the file).
             'css/components/attachment-card.css',
             'css/utilities.css',
             'css/layout.css',

@@ -252,7 +252,9 @@
 
         setContentEditableState(entry, true);
 
-        if (isMarkdownEntry(entry) || isTasklistEntry(entry)) {
+        // Only when it differs: writing the same value still restyles the
+        // whole note
+        if ((isMarkdownEntry(entry) || isTasklistEntry(entry)) && entry.getAttribute('contenteditable') !== 'false') {
             entry.setAttribute('contenteditable', 'false');
         }
 
@@ -732,16 +734,65 @@
         }
 
         if (entry) {
-            setContentEditableState(entry, false);
-            entry.querySelectorAll('[contenteditable="true"]').forEach(function (element) {
-                setContentEditableState(element, false);
-            });
+            // The body keeps its contenteditable: switching it off and back on
+            // restyles every element of the note twice (whether text can be
+            // edited is inherited), over a second on a long one, for a check
+            // that ends editable nearly every time. guardCheckingNoteInput()
+            // refuses the typing instead. Nothing depends on it for safety:
+            // the first edit takes the lock itself, and a note someone else
+            // holds turns read-only then with the local draft kept.
             entry.querySelectorAll('input, textarea, select, button').forEach(function (element) {
                 setTemporarilyDisabled(element, true, true);
             });
             syncMarkdownEditorReadOnly(entry);
         }
     }
+
+    // Keys that edit text, refused while the lock status of a freshly opened
+    // note is on its way. Everything else (moving, selecting, copying, the
+    // app's shortcuts, F5) keeps working as it did when the body was made
+    // read-only; what slips past these is caught by beforeinput.
+    var CHECKING_EDIT_KEYS = { Enter: 1, Backspace: 1, Delete: 1, Tab: 1 };
+    var CHECKING_EDIT_SHORTCUTS = { b: 1, i: 1, u: 1, z: 1, y: 1, v: 1, x: 1, d: 1, ' ': 1, enter: 1, backspace: 1, delete: 1 };
+
+    function isCheckingEditKey(event) {
+        var key = String(event.key || '');
+        if (event.ctrlKey || event.metaKey) {
+            return CHECKING_EDIT_SHORTCUTS[key.toLowerCase()] === 1;
+        }
+        return key.length === 1 || CHECKING_EDIT_KEYS[key] === 1;
+    }
+
+    function checkingNoteIdFor(target) {
+        var entry = target && target.closest ? target.closest('.noteentry') : null;
+        if (!entry || !entry.id) {
+            return null;
+        }
+        var noteId = normalizeNoteId(entry.id.replace(/^entry/, ''));
+        return noteId && noteStates[noteId] && noteStates[noteId].checking ? noteId : null;
+    }
+
+    // While a note waits for its lock status (setNoteCheckingState), typing
+    // and pasting into it are refused (a text drop or a cut arrives as a
+    // beforeinput too; a file drop still uploads, as it did), in the capture phase
+    // so the editor's own key handlers (lists, toggles, checklists, the slash
+    // menu) never see them either.
+    function guardCheckingNoteInput() {
+        var refuse = function (event) {
+            if (!checkingNoteIdFor(event.target)) {
+                return;
+            }
+            if (event.type === 'keydown' && !isCheckingEditKey(event)) {
+                return;
+            }
+            event.preventDefault();
+            event.stopImmediatePropagation();
+        };
+        ['keydown', 'beforeinput', 'paste'].forEach(function (type) {
+            document.addEventListener(type, refuse, true);
+        });
+    }
+    guardCheckingNoteInput();
 
     // CodeMirror owns the contenteditable of its .cm-content and writes it
     // back from its own state at its next update, so forcing the attribute

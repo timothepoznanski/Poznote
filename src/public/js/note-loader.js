@@ -28,6 +28,26 @@ function restoreNoteDomFromCache(url, noteId, options) {
     var currentRightColumn = document.getElementById('right_col');
     if (!currentRightColumn) return false;
 
+    // A heavy swap waits for the hourglass to reach the screen first, as one
+    // arriving over AJAX does (runAfterNextPaint()).
+    if (!options.heavyNotePainted && isHeavyNoteSwap(cached.fragment)) {
+        var paintedOptions = Object.assign({}, options, { heavyNotePainted: true });
+        runAfterNextPaint(function () {
+            // Evicted meanwhile: load it the ordinary way
+            if (!restoreNoteDomFromCache(url, noteId, paintedOptions)) {
+                loadNoteCommon(url, noteId, paintedOptions);
+            }
+        }, function () {
+            if (typeof options.onLoadingComplete === 'function') {
+                options.onLoadingComplete();
+            }
+            if (window.tabManager && typeof window.tabManager._onNoteLoadFinished === 'function') {
+                window.tabManager._onNoteLoadFinished();
+            }
+        });
+        return true;
+    }
+
     if (typeof clearSearchHighlights === 'function') {
         try { clearSearchHighlights(); } catch (e) { /* ignore */ }
     }
@@ -344,7 +364,67 @@ function findNoteLinkById(noteId) {
 // it instead of being ignored while it is in flight.
 var activeNoteLoadXhr = null;
 
+// Swapping a heavy note in keeps the page busy in one go (a 2.4 MB note:
+// about 2 s of layout), so nothing can be drawn meanwhile, the tab hourglass
+// timer included, and the click looks lost. Past this much note text, the
+// hourglass is put up first and the swap waits for it to reach the screen.
+var HEAVY_NOTE_TEXT_CHARS = 150000;
+
+// The swap held back by runAfterNextPaint(), so that a newer navigation can
+// drop it like a request still in flight.
+var pendingHeavyNoteSwap = null;
+
+/**
+ * @param {ParentNode|null} root - the incoming #right_col, or a cached fragment
+ * @returns {boolean}
+ */
+function isHeavyNoteContent(root) {
+    if (!root) return false;
+    var entry = root.querySelector('.noteentry') || root;
+    return (entry.textContent || '').length > HEAVY_NOTE_TEXT_CHARS;
+}
+
+/**
+ * Heavy either way: the note coming in, or the one being left, whose DOM is
+ * moved out and laid out again just as slowly.
+ * @param {ParentNode|null} incoming
+ * @returns {boolean}
+ */
+function isHeavyNoteSwap(incoming) {
+    return isHeavyNoteContent(incoming) || isHeavyNoteContent(document.getElementById('right_col'));
+}
+
+/**
+ * Puts the hourglass on the tab now and runs the swap once that frame has
+ * been painted (a timeout after requestAnimationFrame). The fallback timer
+ * covers a background tab, where requestAnimationFrame does not fire.
+ * @param {Function} run - the swap
+ * @param {Function} cancel - ends the load when a newer navigation drops it
+ */
+function runAfterNextPaint(run, cancel) {
+    var done = false;
+    var finish = function (fn) {
+        if (done) return;
+        done = true;
+        if (pendingHeavyNoteSwap === job) pendingHeavyNoteSwap = null;
+        fn();
+    };
+    var job = { cancel: function () { finish(cancel); } };
+    pendingHeavyNoteSwap = job;
+    if (window.tabManager && typeof window.tabManager._showLoadingHourglassNow === 'function') {
+        window.tabManager._showLoadingHourglassNow();
+    }
+    requestAnimationFrame(function () {
+        setTimeout(function () { finish(run); }, 0);
+    });
+    setTimeout(function () { finish(run); }, 250);
+}
+
 function abortActiveNoteLoad() {
+    if (pendingHeavyNoteSwap) {
+        pendingHeavyNoteSwap.cancel();
+        return true;
+    }
     var xhr = activeNoteLoadXhr;
     if (!xhr) return false;
     activeNoteLoadXhr = null;
@@ -402,6 +482,11 @@ function loadNoteCommon(url, noteId, options) {
         if (typeof options.onLoadingComplete === 'function') {
             options.onLoadingComplete();
         }
+        // Takes the hourglass off the tab (js/tabs.js). Called from the same
+        // handler that swaps the note in, so both reach the screen together.
+        if (window.tabManager && typeof window.tabManager._onNoteLoadFinished === 'function') {
+            window.tabManager._onNoteLoadFinished();
+        }
     };
 
     var handleError = function () {
@@ -423,93 +508,112 @@ function loadNoteCommon(url, noteId, options) {
     activeNoteLoadXhr = xhr;
 
     xhr.onreadystatechange = function () {
+        if (xhr.readyState !== 4) return;
+        if (activeNoteLoadXhr === xhr) activeNoteLoadXhr = null;
+
+        // A heavy swap waits for the hourglass to reach the screen before it
+        // runs (see runAfterNextPaint()).
+        if (!xhr.poznoteAborted && xhr.status === 200) {
+            var parsedDoc = null;
+            try {
+                parsedDoc = new DOMParser().parseFromString(xhr.responseText, 'text/html');
+            } catch (e) {
+                parsedDoc = null;
+            }
+            if (parsedDoc && isHeavyNoteSwap(parsedDoc.getElementById('right_col'))) {
+                runAfterNextPaint(function () { finishXhrLoad(parsedDoc); }, clearLoading);
+                return;
+            }
+            finishXhrLoad(parsedDoc);
+            return;
+        }
+        finishXhrLoad(null);
+    };
+
+    var finishXhrLoad = function (parsedDoc) {
         try {
-            if (xhr.readyState === 4) {
-                if (activeNoteLoadXhr === xhr) activeNoteLoadXhr = null;
-                clearLoading();
+            clearLoading();
 
-                // Dropped for a newer navigation: nothing to show, nothing failed
-                if (xhr.poznoteAborted) return;
+            // Dropped for a newer navigation: nothing to show, nothing failed
+            if (xhr.poznoteAborted) return;
 
-                if (xhr.status === 200) {
-                    try {
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(xhr.responseText, 'text/html');
-                        const rightColumn = doc.getElementById('right_col');
+            if (xhr.status === 200) {
+                try {
+                    const doc = parsedDoc || new DOMParser().parseFromString(xhr.responseText, 'text/html');
+                    const rightColumn = doc.getElementById('right_col');
 
-                        if (rightColumn) {
-                            const currentRightColumn = document.getElementById('right_col');
-                            if (currentRightColumn) {
-                                // Clear existing highlights first to avoid overlays being left over
-                                if (typeof clearSearchHighlights === 'function') {
-                                    try { clearSearchHighlights(); } catch (e) { /* ignore */ }
-                                }
+                    if (rightColumn) {
+                        const currentRightColumn = document.getElementById('right_col');
+                        if (currentRightColumn) {
+                            // Clear existing highlights first to avoid overlays being left over
+                            if (typeof clearSearchHighlights === 'function') {
+                                try { clearSearchHighlights(); } catch (e) { /* ignore */ }
+                            }
 
-                                storeCurrentNoteDomInCache(noteId, url, options);
+                            storeCurrentNoteDomInCache(noteId, url, options);
 
-                                // Destroy editors that were not moved into the
-                                // DOM cache before their DOM is discarded
-                                if (typeof window.destroyMarkdownCodeMirrorEditorsWithin === 'function') {
-                                    window.destroyMarkdownCodeMirrorEditorsWithin(currentRightColumn);
-                                }
+                            // Destroy editors that were not moved into the
+                            // DOM cache before their DOM is discarded
+                            if (typeof window.destroyMarkdownCodeMirrorEditorsWithin === 'function') {
+                                window.destroyMarkdownCodeMirrorEditorsWithin(currentRightColumn);
+                            }
 
-                                // Replace right_col content (tab bar lives in #right_pane, not here)
-                                currentRightColumn.innerHTML = rightColumn.innerHTML;
+                            // Replace right_col content (tab bar lives in #right_pane, not here)
+                            currentRightColumn.innerHTML = rightColumn.innerHTML;
 
-                                if (typeof window.hideNoteCreationLoading === 'function') {
-                                    window.hideNoteCreationLoading();
-                                }
+                            if (typeof window.hideNoteCreationLoading === 'function') {
+                                window.hideNoteCreationLoading();
+                            }
 
-                                // Update tab state and re-render tab bar
-                                if (window.tabManager) {
-                                    window.tabManager._onNoteLoaded(noteId);
-                                    window.tabManager.render();
-                                }
+                            // Update tab state and re-render tab bar
+                            if (window.tabManager) {
+                                window.tabManager._onNoteLoaded(noteId);
+                                window.tabManager.render();
+                            }
 
-                                clearKanbanStateForNoteLoad(options);
+                            clearKanbanStateForNoteLoad(options);
 
-                                // Update URL (skip if coming from popstate)
-                                if (!options.fromHistory) {
-                                    updateBrowserUrl(url, noteId);
-                                }
+                            // Update URL (skip if coming from popstate)
+                            if (!options.fromHistory) {
+                                updateBrowserUrl(url, noteId);
+                            }
 
-                                reinitializeNoteContent();
+                            reinitializeNoteContent();
 
-                                // Post-content hook for caller-specific logic
-                                if (typeof options.onContentLoaded === 'function') {
-                                    options.onContentLoaded(noteId, url);
-                                }
+                            // Post-content hook for caller-specific logic
+                            if (typeof options.onContentLoaded === 'function') {
+                                options.onContentLoaded(noteId, url);
+                            }
 
-                                // Reapply highlights after content initialization
-                                if (typeof applyHighlightsWithRetries === 'function') {
-                                    try { applyHighlightsWithRetries(); } catch (e) { /* ignore */ }
-                                }
+                            // Reapply highlights after content initialization
+                            if (typeof applyHighlightsWithRetries === 'function') {
+                                try { applyHighlightsWithRetries(); } catch (e) { /* ignore */ }
+                            }
 
-                                finishNoteLoadVisualState(options);
+                            finishNoteLoadVisualState(options);
 
-                                // Reinitialize note click handlers if requested
-                                if (options.reinitClickHandlers && typeof window.initializeNoteClickHandlers === 'function') {
-                                    window.initializeNoteClickHandlers();
-                                }
-                            } else {
-                                throw new Error('Could not find current right column');
+                            // Reinitialize note click handlers if requested
+                            if (options.reinitClickHandlers && typeof window.initializeNoteClickHandlers === 'function') {
+                                window.initializeNoteClickHandlers();
                             }
                         } else {
-                            throw new Error('Could not find note content in response');
+                            throw new Error('Could not find current right column');
                         }
-                    } catch (error) {
-                        console.error('Error loading note:', error);
-                        showNotificationPopup('Error loading note: ' + error.message, 'error');
-                        handleError();
+                    } else {
+                        throw new Error('Could not find note content in response');
                     }
-                } else {
-                    // Don't show error popup for network errors (status 0), xhr.onerror will handle it
-                    if (xhr.status !== 0) {
-                        console.error('Failed to load note, status:', xhr.status);
-                        showNotificationPopup('Failed to load note (status: ' + xhr.status + ')', 'error');
-                    }
+                } catch (error) {
+                    console.error('Error loading note:', error);
+                    showNotificationPopup('Error loading note: ' + error.message, 'error');
                     handleError();
                 }
+            } else {
+                // Don't show error popup for network errors (status 0), xhr.onerror will handle it
+                if (xhr.status !== 0) {
+                    console.error('Failed to load note, status:', xhr.status);
+                    showNotificationPopup('Failed to load note (status: ' + xhr.status + ')', 'error');
+                }
+                handleError();
             }
         } catch (error) {
             console.error('Error in xhr onreadystatechange:', error);
@@ -662,6 +766,9 @@ window.loadNoteDirectly = function (url, noteId, event, clickedElement, extraOpt
     } catch (error) {
         console.error('Error in loadNoteDirectly:', error);
         window.isLoadingNote = false;
+        if (window.tabManager && typeof window.tabManager._onNoteLoadFinished === 'function') {
+            window.tabManager._onNoteLoadFinished();
+        }
         if (isMobileDevice()) {
             document.body.classList.remove('note-open');
         }

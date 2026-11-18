@@ -1,0 +1,21 @@
+/* Toggle block without a wrapper: the guide line.
+
+   A toggle rendered from Markdown by the server has no wrapper (the parser
+   writes its blocks as the direct children of the <details>), so there is no
+   box to run the guide line along and the box the <details> puts its content
+   in stands in. Like the opening animation in css/components/toggle-block.css
+   it asks for ::details-content, so a browser that does not know the
+   pseudo-element simply leaves the line out.
+
+   Only for the pages that read a note without editing it (a public share, an
+   export, the journal): in the note editor js/toggle-block.js wraps the
+   blocks and this never matches, and index_css.php leaves this file out on
+   purpose. Next to the `:has(> br:only-child)` of the placeholders in
+   toggle-block.css, this `:has()` made Chrome restyle the whole page on any
+   element inserted or removed anywhere in it, a quarter of a second per
+   change on a long note, and opening one makes dozens of such changes. */
+.toggle-block:not(:has(> .toggle-content))::details-content {
+    padding-left: var(--pz-toggle-indent);
+    margin-left: 6px;
+    border-left: 1px solid var(--pz-border);
+}

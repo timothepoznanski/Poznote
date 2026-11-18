@@ -208,17 +208,9 @@ body.pz-toggle-marker-hover .toggle-block>summary:hover::before {
     margin-bottom: 0.5em;
 }
 
-/* Without a wrapper there is no box to run the guide line along, so the box
-   the <details> puts its content in stands in. In the app js/toggle-block.js
-   wraps the blocks and this never matches; it is for a page that only reads
-   the note (a public share, an export, the journal). Like the animation
-   above it asks for ::details-content, so a browser that does not know the
-   pseudo-element simply leaves the line out. */
-.toggle-block:not(:has(> .toggle-content))::details-content {
-    padding-left: var(--pz-toggle-indent);
-    margin-left: 6px;
-    border-left: 1px solid var(--pz-border);
-}
+/* The guide line of a toggle without a wrapper lives in
+   css/components/toggle-block-unwrapped.css, which the note editor does not
+   load (see there why). */
 
 /* ---- Placeholders ----
    An empty header used to be a bare triangle with the content hidden behind

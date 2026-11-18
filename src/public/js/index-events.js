@@ -370,6 +370,8 @@
         var colFits = noteColumnContentFits(rightCol);
         document.body.classList.toggle('note-col-fits', colFits);
 
+        var anyArrowShown = false;
+        var bothArrowsShown = false;
         document.querySelectorAll('#right_col .note-scroll-edge-controls').forEach(function (controls) {
             var topButton = controls.querySelector('.note-scroll-top-btn');
             var bottomButton = controls.querySelector('.note-scroll-bottom-btn');
@@ -392,7 +394,17 @@
                 pair[0].hidden = !scrollable;
                 pair[0].disabled = !pair[1];
             });
+            var topShown = !!topButton && !topButton.hidden;
+            var bottomShown = !!bottomButton && !bottomButton.hidden;
+            if (topShown || bottomShown) anyArrowShown = true;
+            if (topShown && bottomShown) bothArrowsShown = true;
         });
+        // The floating stack lifts over the arrows from these
+        // (css/ui-customization-panel.css). Recomputed whenever #right_col
+        // changes (the MutationObserver below), so a note swapped for the
+        // kanban drops them.
+        document.body.classList.toggle('note-scroll-arrow-shown', anyArrowShown);
+        document.body.classList.toggle('note-scroll-arrows-both-shown', bothArrowsShown);
 
         updateNoteScrollbarClearance(colFits);
     }
@@ -401,7 +413,6 @@
     // already paints the thumb 2px in from each edge (css/layout.css).
     var NOTE_SCROLLBAR_GAP = 4;
     var NOTE_SCROLLBAR_BESIDE_MIN_GAP = 6;
-    var noteScrollbarClearance = 0;
 
     /**
      * The fixed controls on the right (the arrows above, and .pz-edge-stack
@@ -435,8 +446,10 @@
             });
 
             if (bar) {
-                // Where the controls' right edge sits with no clearance
-                var home = window.innerWidth - (parseFloat(getComputedStyle(controls).right) - noteScrollbarClearance);
+                // Where the controls' right edge sits with no clearance (the
+                // controls of a note just swapped in carry none yet)
+                var applied = parseFloat(controls.style.getPropertyValue('--pz-docked-note-scrollbar')) || 0;
+                var home = window.innerWidth - (parseFloat(getComputedStyle(controls).right) - applied);
                 var size = parseFloat(getComputedStyle(controls).width) || 32;
                 if (home - size < bar.right + NOTE_SCROLLBAR_BESIDE_MIN_GAP) {
                     offset = Math.max(0, Math.ceil(home - (bar.left - NOTE_SCROLLBAR_GAP)));
@@ -444,10 +457,16 @@
             }
         }
 
-        if (offset !== noteScrollbarClearance) {
-            noteScrollbarClearance = offset;
-            document.body.style.setProperty('--pz-docked-note-scrollbar', offset + 'px');
-        }
+        // Written on the two fixed controls that read it, not on <body>: a
+        // custom property changed on <body> is inherited by the whole page,
+        // which then restyles in full (a third of a second on a long note).
+        // Checked on every pass, the arrows being new with every note.
+        var value = offset + 'px';
+        document.querySelectorAll('.pz-edge-stack, #right_col .note-scroll-edge-controls').forEach(function (el) {
+            if (el.style.getPropertyValue('--pz-docked-note-scrollbar') !== value) {
+                el.style.setProperty('--pz-docked-note-scrollbar', value);
+            }
+        });
     }
 
     function scheduleUpdateNoteScrollButtons() {
