@@ -164,27 +164,14 @@ function applyIndexIconScale(scale) {
     `;
 }
 
-// Initialize on page load
+// Apply right away: index.php loads this file at the top of <body>, after
+// every stylesheet of <head> and before anything is painted (it is the only
+// page that loads it), so the style is in place for the first paint. Applied
+// on DOMContentLoaded, the icons came up at their base size and then grew or
+// shrank under the eye.
 (function() {
-    // Only apply visual scaling on the index layout
-    const isIndexLayout = !!(
-        document.getElementById('left_col') &&
-        document.querySelector('.sidebar-title-actions')
-    );
-    if (!isIndexLayout) {
-        return;
-    }
-
-    // 1. Check data attribute (from PHP)
-    // 2. Fallback to localStorage
-    // 3. Fallback to default 1.0
-    let scale = indexIconScaleStore.getItem('index_icon_scale') || '1.0';
-
+    const scale = indexIconScaleStore.getItem('index_icon_scale') || '1.0';
     if (parseFloat(scale) !== 1.0) {
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => applyIndexIconScale(scale));
-        } else {
-            applyIndexIconScale(scale);
-        }
+        applyIndexIconScale(scale);
     }
 })();
