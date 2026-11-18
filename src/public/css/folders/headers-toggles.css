@@ -20,6 +20,21 @@
     font-size: var(--sidebar-font-size, 13px);
 }
 
+/* The folder whose Kanban board is the open pane: the accent the open note's
+   title takes (.selected-note, css/sidebar.css), the name already being
+   semibold. Set and cleared by markOpenKanbanFolder() of
+   js/utils-folder-tree.js. A colour picked for the name keeps the lead, as
+   it does on the open note. */
+.folder-header.kanban-open-folder > .folder-toggle .folder-name,
+.folder-header.kanban-open-folder > .folder-toggle .folder-icon {
+    color: var(--pz-accent-strong);
+}
+
+html[data-theme='dark'] .folder-header.kanban-open-folder > .folder-toggle .folder-name,
+html[data-theme='dark'] .folder-header.kanban-open-folder > .folder-toggle .folder-icon {
+    color: var(--pz-accent-text);
+}
+
 /* A coloured folder name (css/components/folder-title.css) on its shortcut
    in Favorites takes the accent on hover like the other rows there
    (css/sidebar.css). !important: so does the colour it answers. */

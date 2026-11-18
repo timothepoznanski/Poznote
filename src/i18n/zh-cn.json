@@ -322,6 +322,14 @@
       "confirm_message": "创建新笔记“{{title}}”？",
       "confirm_button": "创建",
       "error_creating": "创建笔记时出错"
+    },
+    "folder": {
+      "modal_title": "插入文件夹链接",
+      "search_placeholder": "搜索文件夹...",
+      "no_match": "没有与搜索匹配的文件夹",
+      "no_folders": "此工作区中没有文件夹",
+      "error_loading": "加载文件夹时出错",
+      "missing": "此文件夹已不存在"
     }
   },
   "attachments": {
@@ -2410,6 +2418,7 @@
     "table": "表格",
     "separator": "分隔符",
     "link_to_note": "链接到笔记",
+    "link_to_folder": "链接到文件夹",
     "link_to_attachment": "链接到附件",
     "link": "链接",
     "cancel": "取消",

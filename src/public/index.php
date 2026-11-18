@@ -138,6 +138,32 @@ if (!$isRightColFragment
     }
 }
 
+// Same for a folder's board, ?kanban=<id> without a note (a link made by
+// "Link to folder" carries no workspace, and the folder may have moved to
+// another one): the board opens in its folder's workspace, so the tree next
+// to it is that folder's tree.
+if (!$isRightColFragment
+    && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET'
+    && !isset($_GET['note'])
+    && isset($_GET['kanban']) && is_string($_GET['kanban']) && ctype_digit($_GET['kanban'])
+    && !(function_exists('isSharedWorkspaceScopeActive') && isSharedWorkspaceScopeActive())) {
+    $folderWorkspaceStmt = $con->prepare('SELECT workspace FROM folders WHERE id = ?');
+    $folderWorkspaceStmt->execute([(int) $_GET['kanban']]);
+    $folderWorkspace = $folderWorkspaceStmt->fetchColumn();
+    if (is_string($folderWorkspace) && $folderWorkspace !== '') {
+        $requestedWorkspace = isset($_GET['workspace']) && is_string($_GET['workspace']) ? $_GET['workspace'] : null;
+        if ($requestedWorkspace === null) {
+            $_GET['workspace'] = $folderWorkspace;
+            $workspaceResolvedInternally = $folderWorkspace;
+        } elseif ($requestedWorkspace !== $folderWorkspace) {
+            $redirectQuery = $_GET;
+            $redirectQuery['workspace'] = $folderWorkspace;
+            header('Location: index.php?' . http_build_query($redirectQuery));
+            exit;
+        }
+    }
+}
+
 // A workspace named in the URL that this account does not have (a stale
 // link, a workspace since renamed or deleted, or one that was shared with
 // this login and then unshared: login.php brings the person back to the same

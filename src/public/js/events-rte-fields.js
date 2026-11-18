@@ -218,9 +218,25 @@ function handleInternalNoteLink(href) {
     var noteMatch = href.match(/[?&]note=(\d+)/);
     var workspaceMatch = href.match(/[?&]workspace=([^&#]+)/);
 
+    // A link to a folder ("Link to folder"): index.php?kanban=<id> opens the
+    // folder's Kanban board (js/note-reference.js finds its workspace)
+    if (!noteMatch) {
+        var folderMatch = /(?:^|\/)index\.php\?(?:[^#]*&)?kanban=(\d+)(?:[&#]|$)/.exec(href);
+        if (folderMatch && typeof window.navigateToFolder === 'function') {
+            window.navigateToFolder(folderMatch[1]);
+            return true;
+        }
+    }
+
     if (!noteMatch || !noteMatch[1]) return false;
 
     var targetNoteId = noteMatch[1];
+
+    // The note is shown in the tree once it is on screen, its folders
+    // opened and its row selected (js/utils-folder-tree.js)
+    if (typeof window.poznoteRequestTreeReveal === 'function') {
+        window.poznoteRequestTreeReveal('note', targetNoteId);
+    }
 
     // A link to one section of the note (discussion 1758). The request waits
     // for the note to be on screen, whichever of the loaders below opens it,

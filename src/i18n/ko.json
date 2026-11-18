@@ -1879,6 +1879,7 @@
     "table": "표",
     "separator": "구분 기호",
     "link_to_note": "노트에 링크",
+    "link_to_folder": "폴더로 연결",
     "link_to_attachment": "첨부 파일 링크",
     "link": "링크",
     "cancel": "취소",
@@ -4666,7 +4667,15 @@
     "error": {
       "loading_notes": "노트 불러오는 중 오류 발생"
     },
-    "loading": "불러오는 중..."
+    "loading": "불러오는 중...",
+    "folder": {
+      "modal_title": "폴더 링크 삽입",
+      "search_placeholder": "폴더 검색...",
+      "no_match": "검색과 일치하는 폴더가 없습니다",
+      "no_folders": "이 작업 공간에 폴더가 없습니다",
+      "error_loading": "폴더를 불러오는 중 오류가 발생했습니다",
+      "missing": "이 폴더는 더 이상 존재하지 않습니다"
+    }
   },
   "ai_settings": {
     "title": "AI 어시스턴트",

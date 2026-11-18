@@ -2385,6 +2385,7 @@
     var OFFLINE_UNAVAILABLE_COMMANDS = {
         'excalidraw': true,
         'note-reference': true,
+        'folder-reference': true,
         'image': true,
         'take-photo': true,
         'record-audio': true,
@@ -3003,6 +3004,19 @@
                     }
                 }
             },
+            // A link that opens a folder's Kanban board (js/note-reference.js).
+            // Not in the menu of a text field (task, title), whose [[Title]]
+            // form names a note.
+            folderReference: {
+                id: 'folder-reference',
+                icon: 'lucide lucide-folder',
+                label: t('slash_menu.link_to_folder', null, 'Link to folder'),
+                action: function () {
+                    if (typeof window.openFolderReferenceModal === 'function') {
+                        window.openFolderReferenceModal();
+                    }
+                }
+            },
             image: {
                 id: 'image',
                 icon: 'lucide lucide-image',
@@ -3362,6 +3376,7 @@
                         }
                     },
                     common.noteReference,
+                    common.folderReference,
                     {
                         id: 'link-to-attachment',
                         icon: 'lucide lucide-paperclip',
@@ -3771,6 +3786,7 @@
                         }
                     },
                     common.noteReference,
+                    common.folderReference,
                     {
                         id: 'link-to-attachment',
                         icon: 'lucide lucide-paperclip',

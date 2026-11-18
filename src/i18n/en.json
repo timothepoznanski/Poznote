@@ -1879,6 +1879,7 @@
     "table": "Table",
     "separator": "Separator",
     "link_to_note": "Link to note",
+    "link_to_folder": "Link to folder",
     "link_to_attachment": "Link to attachment",
     "link": "Link",
     "cancel": "Cancel",
@@ -4666,7 +4667,15 @@
     "error": {
       "loading_notes": "Error loading notes"
     },
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "folder": {
+      "modal_title": "Insert folder link",
+      "search_placeholder": "Search for a folder...",
+      "no_match": "No folders match your search",
+      "no_folders": "No folders in this workspace",
+      "error_loading": "Error loading folders",
+      "missing": "This folder no longer exists"
+    }
   },
   "ai_settings": {
     "title": "AI Assistant",

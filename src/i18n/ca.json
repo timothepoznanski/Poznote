@@ -1879,6 +1879,7 @@
     "table": "Taula",
     "separator": "Separador",
     "link_to_note": "Enllaç a una nota",
+    "link_to_folder": "Enllaç a una carpeta",
     "link_to_attachment": "Enllaç a fitxer adjunt",
     "link": "Enllaç",
     "cancel": "Cancel·la",
@@ -4666,7 +4667,15 @@
     "error": {
       "loading_notes": "S'ha produït un error en carregar les notes"
     },
-    "loading": "S'està carregant..."
+    "loading": "S'està carregant...",
+    "folder": {
+      "modal_title": "Insereix un enllaç a una carpeta",
+      "search_placeholder": "Cerqueu una carpeta...",
+      "no_match": "Cap carpeta no coincideix amb la cerca",
+      "no_folders": "No hi ha carpetes en aquest espai de treball",
+      "error_loading": "Error en carregar les carpetes",
+      "missing": "Aquesta carpeta ja no existeix"
+    }
   },
   "ai_settings": {
     "title": "Assistent d'IA",

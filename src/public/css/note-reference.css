@@ -251,6 +251,68 @@ a.note-internal-link:hover {
     text-decoration: underline;
 }
 
+/* Link to a folder ("Link to folder", js/note-reference.js): the colour of a
+   note link, plus a small folder before it so that it reads as a folder.
+   Found by its address, index.php?kanban=<id>, so a link typed by hand or
+   written by the API looks the same: rich text note and Markdown preview
+   (the link itself), Live preview and Rich text views of a Markdown note
+   (the mark CodeMirror puts on the link's text). Nothing is added to the
+   note: the icon is drawn here. */
+a.folder-internal-link,
+.noteentry a[href^="index.php?kanban="],
+.noteentry .cm-live-link[data-live-href^="index.php?kanban="] {
+    color: var(--pz-accent-text);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+a.folder-internal-link:hover,
+.noteentry a[href^="index.php?kanban="]:hover {
+    text-decoration: underline;
+}
+
+a.folder-internal-link::before,
+.noteentry a[href^="index.php?kanban="]::before,
+.noteentry .cm-live-link[data-live-href^="index.php?kanban="]::before {
+    content: "";
+    display: inline-block;
+    width: 0.85em;
+    height: 0.85em;
+    margin-right: 0.2em;
+    vertical-align: -0.08em;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3C!--%20%40license%20lucide-static%20v0.575.0%20-%20ISC%20--%3E%20%3Csvg%20class%3D%27lucide%20lucide-folder%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2724%27%20height%3D%2724%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27currentColor%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%20%3E%20%3Cpath%20d%3D%27M20%2020a2%202%200%200%200%202-2V8a2%202%200%200%200-2-2h-7.9a2%202%200%200%201-1.69-.9L9.6%203.9A2%202%200%200%200%207.93%203H4a2%202%200%200%200-2%202v13a2%202%200%200%200%202%202Z%27%20%2F%3E%20%3C%2Fsvg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3C!--%20%40license%20lucide-static%20v0.575.0%20-%20ISC%20--%3E%20%3Csvg%20class%3D%27lucide%20lucide-folder%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2724%27%20height%3D%2724%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27currentColor%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%20%3E%20%3Cpath%20d%3D%27M20%2020a2%202%200%200%200%202-2V8a2%202%200%200%200-2-2h-7.9a2%202%200%200%201-1.69-.9L9.6%203.9A2%202%200%200%200%207.93%203H4a2%202%200%200%200-2%202v13a2%202%200%200%200%202%202Z%27%20%2F%3E%20%3C%2Fsvg%3E") center / contain no-repeat;
+}
+
+html[data-theme='dark'] a.folder-internal-link,
+html[data-theme='dark'] .noteentry a[href^="index.php?kanban="],
+html[data-theme='dark'] .noteentry .cm-live-link[data-live-href^="index.php?kanban="] {
+    color: var(--pz-accent-text-hover);
+}
+
+/* "Link to folder" opens this window on the folders: each text that differs
+   comes in two spans, one per mode (modals.php) */
+.note-reference-modal-content .note-reference-for-folder,
+.note-reference-modal-content.is-folder-mode .note-reference-for-note {
+    display: none;
+}
+
+.note-reference-modal-content.is-folder-mode .note-reference-for-folder {
+    display: inline;
+}
+
+/* .modal-buttons gives its buttons a display of their own */
+#noteReferenceCreateBtn[hidden] {
+    display: none;
+}
+
+.note-reference-item-folder-icon {
+    margin-right: 6px;
+    color: var(--pz-text-subtle);
+    vertical-align: -0.1em;
+}
+
 /* Broken/not found link (span or dead anchor) — clickable to create the missing note */
 .note-internal-link.note-link-broken {
     color: var(--pz-danger);

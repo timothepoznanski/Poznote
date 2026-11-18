@@ -742,6 +742,8 @@ function hideNoteLoadingState() {
  */
 function updateSelectedNote(clickedLink) {
     // updateSelectedNote start
+    // A note takes the selected look from the folder of a Kanban board
+    if (typeof window.markOpenKanbanFolder === 'function') window.markOpenKanbanFolder(null);
     // Remove selected class from all notes
     document.querySelectorAll('.links_arbo_left').forEach(link => {
         link.classList.remove('selected-note');

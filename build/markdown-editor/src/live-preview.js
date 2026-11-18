@@ -3335,6 +3335,12 @@ function followLink(href) {
     window.navigateToNote(internal[1] || internal[2])
     return
   }
+  // A link to a folder ("Link to folder"): its Kanban board, in the app
+  const folder = /(?:^|\/)index\.php\?(?:[^#\s]*&)?kanban=(\d+)(?:[&#]|$)/.exec(href)
+  if (folder && typeof window.navigateToFolder === 'function') {
+    window.navigateToFolder(folder[1])
+    return
+  }
   window.open(href, '_blank', 'noopener')
 }
 
