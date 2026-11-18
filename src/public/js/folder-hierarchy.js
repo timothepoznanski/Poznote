@@ -65,8 +65,12 @@ function createSubfolder(parentFolderKey) {
                     var parentFolderId = parentFolderKey.replace('folder_', '');
                     var folderDomId = 'folder-' + parentFolderId;
 
-                    // Mark parent folder as open in localStorage before reload
-                    localStorage.setItem('folder_' + folderDomId, 'open');
+                    // Remember the parent folder as open before reload
+                    if (typeof rememberFolderOpenState === 'function') {
+                        rememberFolderOpenState(folderDomId, true);
+                    } else {
+                        localStorage.setItem('folder_' + folderDomId, 'open');
+                    }
 
                     // Reload the page
                     if (window.location.pathname.endsWith('create.php')) {

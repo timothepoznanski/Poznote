@@ -91,6 +91,73 @@ function positionMenuNearButton(menu, button) {
 }
 
 /**
+ * Rewire what lives in #left_col after its innerHTML was swapped for a fresh
+ * server render: after a folder action here, and after a workspace switch
+ * (refreshLeftColumnForWorkspace() of js/workspaces-create.js). The server
+ * renders folders in their default open/closed state, so restoreFolderStates()
+ * must run on every swap or the user's choices are lost.
+ * @param {{skipKanbanViewRefresh?: boolean}} [options]
+ */
+function reinitializeLeftColumn(options) {
+    options = options || {};
+    try {
+        if (typeof initializeWorkspaceMenu === 'function') {
+            initializeWorkspaceMenu();
+        }
+
+        if (window.searchManager) {
+            window.searchManager.initializeSearch();
+            window.searchManager.ensureAtLeastOneButtonActive();
+        }
+
+        if (typeof reinitializeClickableTagsAfterAjax === 'function') {
+            reinitializeClickableTagsAfterAjax();
+        }
+
+        if (typeof window.initializeNoteClickHandlers === 'function') {
+            window.initializeNoteClickHandlers();
+        }
+
+        if (typeof setupNoteDragDropEvents === 'function') {
+            setupNoteDragDropEvents();
+        }
+
+        if (typeof restoreFolderStates === 'function') {
+            restoreFolderStates();
+        }
+
+        // The drag & drop import overlay lives inside #left_col and
+        // was destroyed by the innerHTML swap.
+        if (typeof window.reinitializeSidebarFileImportOverlay === 'function') {
+            window.reinitializeSidebarFileImportOverlay();
+        }
+
+        if (typeof window.reinitializeFavoritesToggle === 'function') {
+            window.reinitializeFavoritesToggle();
+        }
+
+        // Account rows (js/other-accounts.js): listeners and
+        // unfolded states of the rebuilt markup.
+        if (typeof window.reinitializeAccountRows === 'function') {
+            window.reinitializeAccountRows();
+        }
+
+        if (!options.skipKanbanViewRefresh && typeof window.refreshKanbanView === 'function') {
+            window.refreshKanbanView();
+        }
+
+        // The mini calendar lives inside #left_col: replacing the
+        // innerHTML destroyed its DOM and listeners, so rebuild it.
+        if (window.MiniCalendar && document.getElementById('mini-calendar')) {
+            window.miniCalendar = new window.MiniCalendar();
+        }
+    } catch (error) {
+        console.error('Error reinitializing the notes column:', error);
+    }
+}
+window.reinitializeLeftColumn = reinitializeLeftColumn;
+
+/**
  * Refresh notes list after folder action (share/revoke)
  */
 function refreshNotesListAfterFolderAction(folderIdToOpen, options) {
@@ -124,62 +191,7 @@ function refreshNotesListAfterFolderAction(folderIdToOpen, options) {
 
                 currentLeftCol.innerHTML = newLeftCol.innerHTML;
 
-                // Reinitialize components
-                try {
-                    if (typeof initializeWorkspaceMenu === 'function') {
-                        initializeWorkspaceMenu();
-                    }
-
-                    if (window.searchManager) {
-                        window.searchManager.initializeSearch();
-                        window.searchManager.ensureAtLeastOneButtonActive();
-                    }
-
-                    if (typeof reinitializeClickableTagsAfterAjax === 'function') {
-                        reinitializeClickableTagsAfterAjax();
-                    }
-
-                    if (typeof window.initializeNoteClickHandlers === 'function') {
-                        window.initializeNoteClickHandlers();
-                    }
-
-                    if (typeof setupNoteDragDropEvents === 'function') {
-                        setupNoteDragDropEvents();
-                    }
-
-                    if (typeof restoreFolderStates === 'function') {
-                        restoreFolderStates();
-                    }
-
-                    // The drag & drop import overlay lives inside #left_col and
-                    // was destroyed by the innerHTML swap above.
-                    if (typeof window.reinitializeSidebarFileImportOverlay === 'function') {
-                        window.reinitializeSidebarFileImportOverlay();
-                    }
-
-                    if (typeof window.reinitializeFavoritesToggle === 'function') {
-                        window.reinitializeFavoritesToggle();
-                    }
-
-                    // Account rows (js/other-accounts.js): listeners and
-                    // unfolded states of the rebuilt markup.
-                    if (typeof window.reinitializeAccountRows === 'function') {
-                        window.reinitializeAccountRows();
-                    }
-
-                    if (!options.skipKanbanViewRefresh && typeof window.refreshKanbanView === 'function') {
-                        window.refreshKanbanView();
-                    }
-
-                    // The mini calendar lives inside #left_col: replacing the
-                    // innerHTML destroyed its DOM and listeners, so rebuild it
-                    // (same as workspaces-core.js does after a workspace switch).
-                    if (window.MiniCalendar && document.getElementById('mini-calendar')) {
-                        window.miniCalendar = new window.MiniCalendar();
-                    }
-                } catch (error) {
-                    console.error('Error reinitializing after folder action:', error);
-                }
+                reinitializeLeftColumn(options);
 
                 // Once the folders are open again, or there is nothing to scroll back to
                 const newList = currentLeftCol.querySelector('.notes-list-scrollable-content');

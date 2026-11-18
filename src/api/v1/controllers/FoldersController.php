@@ -1842,6 +1842,76 @@ class FoldersController {
     }
 
     /**
+     * PUT /api/v1/folders/tree-state
+     * Remember folders as opened or closed in the notes tree, which renders
+     * them that way (shouldFolderBeOpen() of folders_display.php).
+     *
+     * Body: { "states": { "12": true, "13": false, "14": null } }
+     * true = open, false = closed, null = forget, back to the tree's own
+     * choice. Several at once: "Expand all folders" sends every folder.
+     *
+     * Only the account's owner: someone looking at another account (a shared
+     * workspace, a granted account) keeps the states in their browser, their
+     * clicks must not fold the owner's tree. Ids that are not folders of the
+     * account are skipped, not refused, a folder deleted in another tab is no
+     * reason to lose the rest. Presentation state: no Git push, no webhook.
+     */
+    public function updateTreeState(): void {
+        if (function_exists('isActiveAccountOwnedByAuthenticatedUser') && !isActiveAccountOwnedByAuthenticatedUser()) {
+            $this->sendError('Folder states belong to the account owner', 403);
+            return;
+        }
+
+        $data = $this->getInputData();
+        $states = $data['states'] ?? null;
+        if (!is_array($states) || ($states !== [] && array_is_list($states))) {
+            $this->sendError('Invalid JSON in request body: expected a "states" object of folder id => true|false|null', 400);
+            return;
+        }
+        if (count($states) > 5000) {
+            $this->sendError('Too many folders in one request (5000 at most)', 400);
+            return;
+        }
+
+        $rows = [];
+        foreach ($states as $id => $value) {
+            $folderId = filter_var($id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            if ($folderId === false) {
+                $this->sendError('Invalid folder id: ' . (string)$id, 400);
+                return;
+            }
+            if ($value !== null && !is_bool($value)) {
+                $this->sendError('Invalid state for folder ' . $folderId . ': expected true, false or null', 400);
+                return;
+            }
+            $rows[$folderId] = $value === null ? null : ($value ? 1 : 0);
+        }
+
+        $updated = 0;
+        try {
+            $this->db->beginTransaction();
+            $stmt = $this->db->prepare('UPDATE folders SET tree_open = ? WHERE id = ?');
+            foreach ($rows as $folderId => $value) {
+                $stmt->execute([$value, $folderId]);
+                $updated += $stmt->rowCount();
+            }
+            $this->db->commit();
+        } catch (Throwable $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            error_log('FoldersController::updateTreeState failed: ' . $e->getMessage());
+            $this->sendError('Database error while updating folder states', 500);
+            return;
+        }
+
+        $this->sendJson([
+            'success' => true,
+            'updated' => $updated,
+        ]);
+    }
+
+    /**
      * PUT /api/v1/folders/{id}/pinned
      * Pin or unpin a folder. Pinned folders sort first on the dashboard board.
      *

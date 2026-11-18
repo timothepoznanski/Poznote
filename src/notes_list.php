@@ -322,8 +322,11 @@ $renderOtherAccounts = static function (array $profiles): void {
     }
     echo '</div>';
 };
+// data-folder-states: where the folders' open/closed states live, "account"
+// (folders.tree_open, rendered below) or "browser" (localStorage, for someone
+// looking at another account), read by js/utils-folder-tree.js.
 ?>
-<div class="notes-list-scrollable-content">
+<div class="notes-list-scrollable-content" data-folder-states="<?php echo poznoteFolderTreeStatesStored() ? 'account' : 'browser'; ?>">
 <?php
 
 // The active account heads the list with the same collapsible row the other
@@ -660,7 +663,11 @@ function displayFolderRecursive($folderId, $folderData, $depth, $con, $is_search
         
         echo "</span>";
         echo "</div>";
-        echo "<div class='folder-content' id='$folderDomId' style='display: $folder_display;'>";
+        // data-tree-open: the state stored for the folder, if any (the
+        // one-time hand-over of states this browser kept, js/utils-folder-tree.js)
+        $storedOpenState = poznoteFolderStoredOpenState($folderData);
+        $treeOpenAttr = $storedOpenState === null ? '' : " data-tree-open='" . ($storedOpenState ? '1' : '0') . "'";
+        echo "<div class='folder-content' id='$folderDomId' style='display: $folder_display;'$treeOpenAttr>";
 
         // Favorite folders are listed first inside the Favorites section
         if ($hasFavoriteFolders) {

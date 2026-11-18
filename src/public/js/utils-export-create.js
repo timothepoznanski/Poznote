@@ -287,9 +287,13 @@ function createNoteOfType(noteType, globalFnNames) {
     }
 
     if (isCreatingInFolder && targetFolderId) {
-        // Mark folder as open in localStorage to keep it open after page reload
+        // Remember the folder as open to keep it open after page reload
         var folderDomId = 'folder-' + targetFolderId;
-        localStorage.setItem('folder_' + folderDomId, 'open');
+        if (typeof rememberFolderOpenState === 'function') {
+            rememberFolderOpenState(folderDomId, true);
+        } else {
+            localStorage.setItem('folder_' + folderDomId, 'open');
+        }
 
         var originalSelectedFolderId = selectedFolderId;
         var originalSelectedFolder = selectedFolder;

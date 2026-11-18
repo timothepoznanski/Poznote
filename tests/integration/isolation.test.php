@@ -174,6 +174,10 @@ function routeTable(): array
             'target_folder_id' => 0, 'workspace' => '{workspace}']],
         'POST /folders/reorder' => [OWNED, 'body' => ['folder_id' => '{folder}',
             'target_folder_id' => '{other_folder}', 'position' => 'before', 'workspace' => '{workspace}']],
+        // Ids resolve in the caller's own database and unknown ones are
+        // skipped (a folder deleted in another tab), so there is nothing of
+        // the owner's to refuse: the answer must just carry none of it.
+        'PUT /folders/tree-state' => [SCOPED, 'body' => ['states' => ['1' => true]]],
         'POST /folders/restore' => [OWNED, 'body' => ['workspace' => '{workspace}',
             'folders' => [['id' => '{folder}', 'name' => 'restored-by-stranger']]]],
 

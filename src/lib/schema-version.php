@@ -12,13 +12,14 @@
  * Bump it whenever the bootstrap of db_connect.php gains something an existing
  * database has to receive (a column, an index, a migration).
  *
- * 55: entries.updated_source (where the last change came from); 54:
+ * 56: folders.tree_open (a folder opened or closed in the tree); 55:
+ * entries.updated_source (where the last change came from); 54:
  * entries.locked (a note its owner locked against editing); 53:
  * shared_notes.password_exempt (per-note exemption from an inherited folder
  * share password); 52: folders.title_color (#1729); 51: the speed dial's rail
  * entry shown again; 50: entries.speed_dial_order
  */
-const POZNOTE_SCHEMA_VERSION = 55;
+const POZNOTE_SCHEMA_VERSION = 56;
 
 /**
  * Make the next request replay the bootstrap on a database that was just

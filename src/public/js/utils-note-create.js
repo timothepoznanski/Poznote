@@ -123,7 +123,11 @@ function rememberFolderStatesForCreatedNote(folderId) {
 
         if (folderId !== null && folderId !== undefined && folderId !== '') {
             var folderDomId = 'folder-' + String(folderId);
-            localStorage.setItem('folder_' + folderDomId, 'open');
+            if (typeof rememberFolderOpenState === 'function') {
+                rememberFolderOpenState(folderDomId, true);
+            } else {
+                localStorage.setItem('folder_' + folderDomId, 'open');
+            }
 
             try {
                 var pendingCreateFolders = JSON.parse(sessionStorage.getItem('poznote_create_open_folders') || '[]');

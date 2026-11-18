@@ -2597,6 +2597,36 @@ curl -X PUT -u 'username:password' -H "X-User-ID: 1" \
   http://YOUR_SERVER/api/v1/folders/12/pinned
 ```
 
+### Set Folders Open or Closed in the Tree
+
+```
+PUT /folders/tree-state
+```
+
+Remember folders as opened or closed in the notes tree, which renders them that way on every device. Several folders at once: "Expand all folders" sends them all in one call. Only the account's owner can write them; someone looking at another account (a shared workspace, a granted account) gets a 403, their tree keeps its states in the browser. Ids that are not folders of the account are skipped.
+
+**Request Body (JSON):**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `states` | object | Yes | Folder id => `true` (open), `false` (closed) or `null` (forget, the tree picks again). 5000 folders at most |
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "updated": 2
+}
+```
+
+```bash
+curl -X PUT -u 'username:password' -H "X-User-ID: 1" \
+  -H "Content-Type: application/json" \
+  -d '{"states": {"12": true, "13": false}}' \
+  http://YOUR_SERVER/api/v1/folders/tree-state
+```
+
 ### Set Folder Favorite State
 
 ```
@@ -4449,6 +4479,7 @@ curl http://YOUR_SERVER/api_health.php
 | `PUT` | `/folders/{id}/icon` | Update icon |
 | `PUT` | `/folders/{id}/color` | Update card color |
 | `PUT` | `/folders/{id}/pinned` | Pin or unpin a folder |
+| `PUT` | `/folders/tree-state` | Remember folders as open or closed in the tree |
 | `PUT` | `/folders/{id}/favorite` | Set favorite state |
 | `POST` | `/folders/move-files` | Move files |
 | `POST` | `/folders/reorder` | Reorder folders |

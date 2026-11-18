@@ -421,6 +421,14 @@ try {
             if (!in_array('title_color', $existingColumns)) {
                 $con->exec("ALTER TABLE folders ADD COLUMN title_color TEXT");
             }
+            // Folder opened (1) or closed (0) by hand in the tree, NULL when
+            // its owner never touched it and shouldFolderBeOpen()
+            // (folders_display.php) decides. Kept in the account so the tree
+            // comes back as it was left on every device; it used to live in
+            // the browser's localStorage only.
+            if (!in_array('tree_open', $existingColumns)) {
+                $con->exec("ALTER TABLE folders ADD COLUMN tree_open INTEGER DEFAULT NULL");
+            }
             if (!in_array('kanban_enabled', $existingColumns)) {
                 $con->exec("ALTER TABLE folders ADD COLUMN kanban_enabled INTEGER DEFAULT 0");
             }
