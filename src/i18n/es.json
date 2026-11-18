@@ -4740,7 +4740,7 @@
       "secret": "Sirve para firmar la carga de modo que el receptor pueda verificar que proviene de esta instancia.",
       "app_url_env": "Actualmente proporcionada por la variable de entorno POZNOTE_APP_URL: {{url}}. Guardar un valor aquí la sustituye.",
       "app_url_unset": "Sin definir: los payloads no incluyen actualmente ningún enlace a la nota (data.note.url es null).",
-      "description": "Se muestra en la lista siguiente para distinguir sus puntos de conexión. Nunca se envía al punto de conexión."
+      "description": "Se muestra en la lista siguiente para distinguir sus endpoints. Nunca se envía al endpoint."
     },
     "status": {
       "none": "Ninguno"
@@ -6080,7 +6080,7 @@
       "large": "Grande",
       "xlarge": "Muy grande"
     },
-    "apply_size_to_all": "Aplicar a todas",
+    "apply_size_to_all": "Aplicar el tamaño a todas las notas",
     "apply_size_to_all_hint": "Dar a todas las notas el tamaño de título de esta",
     "applied_size_to_all": "Tamaño del título aplicado a todas las notas",
     "change_icon": "Cambiar icono",

@@ -4844,7 +4844,7 @@
       "secret": "Sert à signer la charge pour que le récepteur puisse vérifier qu'elle provient bien de cette instance.",
       "app_url_env": "Actuellement fournie par la variable d'environnement POZNOTE_APP_URL : {{url}}. Enregistrer une valeur ici la remplace.",
       "app_url_unset": "Non définie : les payloads ne contiennent actuellement aucun lien vers la note (data.note.url vaut null).",
-      "description": "Affichée dans la liste ci-dessous pour distinguer vos points de terminaison. Elle n'est jamais envoyée au point de terminaison."
+      "description": "Affichée dans la liste ci-dessous pour distinguer vos endpoints. Elle n'est jamais envoyée à l'endpoint."
     },
     "status": {
       "none": "Aucun"
@@ -6184,7 +6184,7 @@
       "large": "Grand",
       "xlarge": "Très grand"
     },
-    "apply_size_to_all": "Appliquer à toutes",
+    "apply_size_to_all": "Appliquer la taille à toutes les notes",
     "apply_size_to_all_hint": "Donner à toutes les notes la taille de titre de celle-ci",
     "applied_size_to_all": "Taille du titre appliquée à toutes les notes",
     "change_icon": "Changer l'icône",

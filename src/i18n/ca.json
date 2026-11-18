@@ -170,7 +170,7 @@
       "note_virtual_space": "Deixa espai buit sota l'última línia d'una nota, de manera que el final del text es pugui desplaçar fins al mig de la pantalla en lloc de quedar-se a baix de tot.",
       "default_image_border": "Mostra per defecte les imatges de les notes amb vora i sense farciment.",
       "spellcheck_html_notes": "Activa el corrector ortogràfic del navegador a les notes de text enriquit i Markdown.",
-      "note_autocapitalize": "En un telèfon, el teclat comença cada frase i cada línia nova amb majúscula a les notes i les tasques. El teu teclat també ho pot desactivar per a totes les aplicacions.",
+      "note_autocapitalize": "En un telèfon, el teclat comença cada frase i cada línia nova amb majúscula a les notes i les tasques. El vostre teclat també ho pot desactivar per a totes les aplicacions.",
       "slash_menu_trigger": "En un ordinador, trieu si el menú d'ordres s'obre escrivint /, amb Alt + / o gens des del teclat. Un clic amb el botó dret en una nota l'obre independentment d'aquest paràmetre.",
       "slash_menu_trigger_mobile": "En un mòbil, trieu si el menú d'ordres s'obre escrivint /, amb Alt + / des d'un teclat físic o gens des del teclat.",
       "icon_sidebar_order": "Canvieu l'ordre i el color dels botons de la barra lateral d'icones i col·loqueu-hi separadors.",
@@ -220,7 +220,7 @@
       "two_factor_required": "Tots els comptes que inicien la sessió amb contrasenya han de fer servir l'autenticació de dos factors. Un compte que no la té la configura en el proper inici de sessió, i les sessions obertes sense aquesta autenticació es tanquen. La contrasenya del compte deixa de funcionar a través de l'API: les aplicacions han de fer servir una contrasenya d'aplicació. Els inicis de sessió amb SSO no s'hi veuen afectats, ja que el proveïdor d'identitat en gestiona el segon factor.",
       "tab_follows_note": "Anomena la pestanya del navegador segons la nota que hi ha oberta, amb la icona d'aquella nota, en lloc del nom i la icona d'aquesta instància. Així es distingeixen diverses pestanyes obertes en diverses notes.",
       "workspace_color_accent": "Fes servir el color de l'espai de treball on ets en lloc del blau de Poznote: icones, pas del ratolí, línia de la pestanya activa, enllaços i botons. Només amb els temes Clar, Fosc i Negre, els altres temes conserven els seus propis colors. Un espai de treball sense color, i les pàgines de Paràmetres, es queden en blau. El color d'un espai de treball es tria amb l'entrada Color del seu menú …, més amunt.",
-      "update_badge_level": "Tria quines versions posen el punt vermell a les entrades de Configuració. Triïs el que triïs, la nova versió continua anunciant-se en aquesta pàgina, no s'amaga res.",
+      "update_badge_level": "Trieu quines versions posen el punt vermell a les entrades de Configuració. Trieu el que trieu, la nova versió continua anunciant-se en aquesta pàgina, no s'amaga res.",
       "update_check_interval": "Amb quina freqüència Poznote comprova en segon pla si hi ha una versió més recent. El punt només pot aparèixer després d'una comprovació, així que un interval més llarg el retarda. La targeta Versió de dalt continua comprovant-ho de seguida quan hi fas clic.",
       "sessions": "Mireu els navegadors i dispositius que ara mateix tenen la sessió iniciada al vostre compte, i tanqueu la sessió dels que ja no feu servir.",
       "session_lifetime": "Quant dura un inici de sessió sense activitat. Es configura amb POZNOTE_SESSION_LIFETIME_DAYS al fitxer .env, de manera que aquí només es mostra i no es pot canviar des d’aquesta pàgina. Iniciar la sessió amb «Recorda’m» dura més; iniciar-la amb SSO, no.",
@@ -448,7 +448,7 @@
       },
       "confirm": {
         "title": "Comparteix l'espai de treball",
-        "message": "Tria els usuaris que poden obrir l'espai de treball \"{{workspace}}\". El trobaran al seu menú d'espais de treball. Al costat de cada nom, tria si poden editar-ne les notes i carpetes o només llegir-les."
+        "message": "Trieu els usuaris que poden obrir l'espai de treball \"{{workspace}}\". El trobaran al seu menú d'espais de treball. Al costat de cada nom, trieu si poden editar-ne les notes i carpetes o només llegir-les."
       },
       "messages": {
         "disabled": "L'espai de treball ja no es comparteix",
@@ -1476,7 +1476,7 @@
         "user_sharing": "Descoberta d'usuaris i compartició",
         "user_sharing_help": "El directori d'usuaris passa a ser només per als administradors i es rebutja la compartició amb usuaris concrets.",
         "user_webhooks": "Webhooks d'usuari",
-        "user_webhooks_help": "Els usuaris que no són administradors ja no poden registrar webhooks que enviïn esdeveniments sobre les seves notes a punts finals externs.",
+        "user_webhooks_help": "Els usuaris que no són administradors ja no poden registrar webhooks que enviïn esdeveniments sobre les seves notes a endpoints externs.",
         "user_s3_backups": "Còpies de seguretat a S3 a la pàgina de còpia de seguretat",
         "user_s3_backups_help": "Els usuaris que no són administradors ja no veuen la secció «Còpia de seguretat a S3» de la pàgina Còpia de seguretat / Exportació i no poden pujar ni baixar arxius del bucket.",
         "user_s3_restore": "Restauració des d'S3 a la pàgina de restauració",
@@ -2346,13 +2346,13 @@
       },
       "local_backup": {
         "title": "Còpia de seguretat en una carpeta del servidor",
-        "description": "Deseu un arxiu de còpia de seguretat del teu compte a la carpeta de còpies d'aquest servidor i baixa els arxius que ja hi ha.",
+        "description": "Deseu un arxiu de còpia de seguretat del vostre compte a la carpeta de còpies d'aquest servidor i baixeu els arxius que ja hi ha.",
         "backup_now": "Copia el meu compte a la carpeta",
         "running": "S'està desant la còpia a la carpeta...",
         "done": "Còpia desada ({{size}}).",
-        "list_empty": "Encara no hi ha cap còpia del teu compte a la carpeta.",
-        "confirm_run": "Voleu copiar ara el teu compte a la carpeta de còpies? Crear l'arxiu pot trigar una estona.",
-        "delete_disabled": "El teu administrador ha desactivat la supressió de còpies."
+        "list_empty": "Encara no hi ha cap còpia del vostre compte a la carpeta.",
+        "confirm_run": "Voleu copiar ara el vostre compte a la carpeta de còpies? Crear l'arxiu pot trigar una estona.",
+        "delete_disabled": "El vostre administrador ha desactivat la supressió de còpies."
       },
       "s3_backup": {
         "title": "Còpia de seguretat a S3",
@@ -2623,9 +2623,9 @@
       },
       "local_restore": {
         "title": "Restaura des d'una carpeta del servidor",
-        "description": "Restaureu el teu compte directament des d'un dels arxius de còpia de seguretat desats a la carpeta de còpies d'aquest servidor.",
-        "confirm": "Vols restaurar el teu compte des de {{filename}}? Les teves notes, adjunts i configuració actuals se substituiran pel contingut de l'arxiu.",
-        "disabled": "El teu compte té {{count}} còpia(es) a la carpeta de còpies d'aquest servidor, però la restauració per tu mateix no està activada. Demana al teu administrador que en restauri una per tu, o que activi la restauració des d'aquesta pàgina."
+        "description": "Restaureu el vostre compte directament des d'un dels arxius de còpia de seguretat desats a la carpeta de còpies d'aquest servidor.",
+        "confirm": "Voleu restaurar el vostre compte des de {{filename}}? Les vostres notes, adjunts i configuració actuals se substituiran pel contingut de l'arxiu.",
+        "disabled": "El vostre compte té {{count}} còpia(es) a la carpeta de còpies d'aquest servidor, però la restauració per vosaltres mateixos no està activada. Demaneu al vostre administrador que en restauri una per vosaltres, o que activi la restauració des d'aquesta pàgina."
       }
     },
     "buttons": {
@@ -4368,7 +4368,7 @@
       "secret": "Es fa servir per signar la càrrega útil perquè el receptor pugui verificar que prové d'aquesta instància.",
       "app_url_env": "Ara el proporciona la variable d'entorn POZNOTE_APP_URL: {{url}}. Si deseu un valor aquí, la substitueix.",
       "app_url_unset": "No definit: ara mateix les càrregues útils no inclouen cap enllaç a la nota (data.note.url és null).",
-      "description": "Es mostra a la llista de sota per distingir els punts finals. No s'envia mai a l'endpoint."
+      "description": "Es mostra a la llista de sota per distingir els endpoints. No s'envia mai a l'endpoint."
     },
     "status": {
       "none": "Cap"
@@ -4804,7 +4804,7 @@
     "tool_view_image": "Veient una imatge de la nota #{{id}}",
     "tool_list": "S'estan llistant les notes recents",
     "no_tools_notice": "Aquest model no admet eines: l'assistent no pot explorar les notes.",
-    "images_unsupported_notice": "Aquest model no accepta imatges, així que l'assistent no pot veure les imatges de les teves notes. Tria un model capaç de llegir imatges a la configuració de l'assistent d'IA.",
+    "images_unsupported_notice": "Aquest model no accepta imatges, així que l'assistent no pot veure les imatges de les vostres notes. Trieu un model capaç de llegir imatges a la configuració de l'assistent d'IA.",
     "no_tools_reasoning_notice": "Aquest model rebutja les eines amb l'esforç de raonament actual, de manera que l'assistent no pot explorar les notes. Definiu l'esforç de raonament a Cap als paràmetres de l'assistent d'IA.",
     "unreachable": "No s'ha pogut contactar amb el servidor d'IA després de {{attempts}} intents: {{error}}",
     "retrying": "No s'ha pogut connectar amb el servidor d'IA; s'està tornant a provar ({{attempt}}/{{max}})",
@@ -4973,7 +4973,7 @@
     "pause": "Pausa",
     "seek": "Desplaça't per la pista",
     "speed": "Velocitat de reproducció",
-    "unsupported": "El teu navegador no pot reproduir aquest format d'àudio",
+    "unsupported": "El vostre navegador no pot reproduir aquest format d'àudio",
     "load_error": "No s'ha pogut carregar aquest enregistrament",
     "volume": "Volum",
     "mute": "Silencia",
@@ -5088,7 +5088,7 @@
     "show_hidden": "Mostra les llistes amagades",
     "empty_hidden": "Totes les llistes estan amagades.",
     "show_note_checklists_help": "Mostra també les caselles escrites dins de les notes normals, al costat de les tasques de les vostres llistes de tasques. El seu grup porta una insígnia Nota.",
-    "show_hidden_help": "Una llista amagada amb l'ull de la seva capçalera no surt en aquesta pàgina, el calendari ni dels comptadors. Marqueu aquesta opció per tornar a mostrar les llistes amagades, atenuades, amb un ull per recuperar-ne cadascuna. En gris mentre no hi hagi cap llista amagada.",
+    "show_hidden_help": "Una llista amagada amb l'ull de la seva capçalera desapareix d'aquesta pàgina, del calendari i dels comptadors. Marqueu aquesta opció per tornar a mostrar les llistes amagades, atenuades, amb un ull per recuperar-ne cadascuna. En gris mentre no hi hagi cap llista amagada.",
     "filter_priority_high": "Alta",
     "filter_priority_medium": "Mitjana",
     "filter_priority_low": "Baixa"
@@ -5234,7 +5234,7 @@
     "directory_description": "Camí absolut al servidor (dins del contenidor, amb Docker). Deixeu-ho buit per fer servir {{default}}. Amb la instal·lació de Docker per defecte, aquesta carpeta és a l'amfitrió a data/backups, al costat del fitxer docker-compose.yml (per exemple ~/poznote/data/backups). Per emmagatzemar les còpies de seguretat en un altre lloc, munteu un volum i introduïu-ne el camí aquí.",
     "retention_description": "Els arxius més antics se suprimeixen de la carpeta després de cada còpia de seguretat. 0 ho conserva tot.",
     "manual_description": "Copia ara els usuaris marcats a sota a la carpeta, d'un en un. Aquesta selecció no es desa i no canvia les còpies automàtiques.",
-    "confirm_run": "Vols copiar ara els {{count}} usuari(s) marcat(s) a la carpeta de còpies?",
+    "confirm_run": "Voleu copiar ara els {{count}} usuari(s) marcat(s) a la carpeta de còpies?",
     "run_done": "Ha finalitzat la còpia de seguretat: {{saved}}/{{total}} usuaris desats.",
     "user_ok": "{{username}}: desat ({{size}})",
     "last_run": "Última execució ({{trigger}}): {{date}}, {{saved}}/{{total}} usuaris desats.",
@@ -5245,7 +5245,7 @@
     "confirm_delete": "Voleu suprimir la còpia de seguretat {{filename}} de la carpeta?",
     "restore": "Restaura",
     "restore_title": "Restaura una còpia de seguretat",
-    "confirm_restore": "Vols restaurar el compte {{username}} des de {{filename}}? Les notes, els adjunts i la configuració actuals d'aquest compte se substituiran pel contingut de l'arxiu.",
+    "confirm_restore": "Voleu restaurar el compte {{username}} des de {{filename}}? Les notes, els adjunts i la configuració actuals d'aquest compte se substituiran pel contingut de l'arxiu.",
     "restoring": "S'està restaurant {{username}} des de {{filename}}...",
     "restore_done": "{{username}} restaurat des de {{filename}}.",
     "restore_error": "La restauració de {{username}} ha fallat: {{error}}",
@@ -5932,7 +5932,7 @@
   },
   "speed_dial": {
     "title": "Accés ràpid",
-    "empty": "El teu accés ràpid és buit.\n\nPer afegir una rajola, feu servir «Afegeix a l'accés ràpid» al menú d'una nota o carpeta, o doneu l'etiqueta «{{tag}}» a una nota.\n\nEn fer clic al mosaic s'obre el primer enllaç de la nota, o la mateixa nota si no té cap enllaç.\nLa seva icona és la primera imatge de la nota; si no, la icona del lloc; si no, la primera lletra del títol.\n\nUna nota amb diversos enllaços es converteix en un grup de rajoles sota el seu títol, i una línia horitzontal (----) comença una fila nova.\nUn clic al títol d'un grup obre la nota, i un clic dret en canvia el color.",
+    "empty": "El vostre accés ràpid és buit.\n\nPer afegir una rajola, feu servir «Afegeix a l'accés ràpid» al menú d'una nota o carpeta, o doneu l'etiqueta «{{tag}}» a una nota.\n\nEn fer clic al mosaic s'obre el primer enllaç de la nota, o la mateixa nota si no té cap enllaç.\nLa seva icona és la primera imatge de la nota; si no, la icona del lloc; si no, la primera lletra del títol.\n\nUna nota amb diversos enllaços es converteix en un grup de rajoles sota el seu títol, i una línia horitzontal (----) comença una fila nova.\nUn clic al títol d'un grup obre la nota, i un clic dret en canvia el color.",
     "edit_note": "Obre la nota",
     "label_color": "Color de l'etiqueta",
     "tile_size": "Mida de les rajoles",
@@ -5961,7 +5961,7 @@
       "title": "Com funciona l'accés ràpid",
       "intro": "L'accés ràpid converteix notes en una pàgina de mosaics d'enllaços, pensada per ser la pàgina d'inici del navegador.",
       "add_title": "Afegir un mosaic",
-      "add": "Tria «Afegeix a l'accés ràpid» al menú d'una nota o d'una carpeta (per a una carpeta, totes les seves notes, subcarpetes incloses), o posa a una nota l'etiqueta «{{tag}}».",
+      "add": "Trieu «Afegeix a l'accés ràpid» al menú d'una nota o d'una carpeta (per a una carpeta, totes les seves notes, subcarpetes incloses), o poseu a una nota l'etiqueta «{{tag}}».",
       "tile_title": "Un enllaç o cap",
       "tile": "La nota és un mosaic que obre aquest enllaç, o la mateixa nota. La seva icona és la primera imatge de la nota; si no n'hi ha, la icona del lloc; si no, la primera lletra del títol.",
       "group_title": "Diversos enllaços",
