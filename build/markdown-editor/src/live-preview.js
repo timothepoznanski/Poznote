@@ -4712,6 +4712,45 @@ const typeOutsideLinkFilter = EditorState.transactionFilter.of(transaction => {
   }
 })
 
+// A triple click selects a whole line, and CodeMirror takes its line break
+// along (a code editor's habit: cutting the selection removes the line). In
+// the live views that drew the highlight across the editor and the caret at
+// the start of the next line, and typing over the selection joined the next
+// line to what was typed. Here the selection stops at the end of the line.
+// Both ways a triple click arrives are covered: CodeMirror's own, and the
+// browser's, which handles the first clicks in an editor in Chrome
+// (leaveFirstClickToBrowser() in main.js) and which CodeMirror reads back
+// from the DOM; hence a window listener in the capture phase, ahead of both.
+let lineClickDown = false
+let lineClickUntil = 0
+if (typeof window !== 'undefined') {
+  window.addEventListener('mousedown', event => {
+    lineClickDown = event.button === 0 && event.detail >= 3
+    lineClickUntil = 0
+  }, true)
+  window.addEventListener('mouseup', () => {
+    // the selection the browser settles on can be read a moment later
+    if (lineClickDown) lineClickUntil = Date.now() + 300
+    lineClickDown = false
+  }, true)
+}
+
+const lineClickFilter = EditorState.transactionFilter.of(transaction => {
+  if (transaction.docChanged || !transaction.selection) return transaction
+  if (!lineClickDown && Date.now() >= lineClickUntil) return transaction
+  const selection = transaction.selection
+  if (selection.ranges.length !== 1) return transaction
+  const range = selection.main
+  const doc = transaction.newDoc
+  // a drag that goes on after the third click extends line by line, and
+  // ends on a line start just the same
+  if (range.empty || doc.lineAt(range.to).from !== range.to) return transaction
+  const end = range.to - 1
+  const anchor = range.anchor === range.to ? end : range.anchor
+  const head = range.head === range.to ? end : range.head
+  return [transaction, { selection: EditorSelection.single(anchor, head) }]
+})
+
 function deleteSelectionSafely(view) {
   if (isSyntaxRevealed() || view.state.readOnly) return false
   const selection = view.state.selection
@@ -6001,6 +6040,7 @@ export const livePreview = [
   alignedCaretFilter,
   protectMarkersFilter,
   typeOutsideLinkFilter,
+  lineClickFilter,
   livePreviewPlugin,
   EditorView.atomicRanges.of(view => {
     const plugin = view.plugin(livePreviewPlugin)
