@@ -138,6 +138,32 @@ if (!$isRightColFragment
     }
 }
 
+// Same for a folder's board, ?kanban=<id> without a note (a link made by
+// "Link to folder" carries no workspace, and the folder may have moved to
+// another one): the board opens in its folder's workspace, so the tree next
+// to it is that folder's tree.
+if (!$isRightColFragment
+    && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET'
+    && !isset($_GET['note'])
+    && isset($_GET['kanban']) && is_string($_GET['kanban']) && ctype_digit($_GET['kanban'])
+    && !(function_exists('isSharedWorkspaceScopeActive') && isSharedWorkspaceScopeActive())) {
+    $folderWorkspaceStmt = $con->prepare('SELECT workspace FROM folders WHERE id = ?');
+    $folderWorkspaceStmt->execute([(int) $_GET['kanban']]);
+    $folderWorkspace = $folderWorkspaceStmt->fetchColumn();
+    if (is_string($folderWorkspace) && $folderWorkspace !== '') {
+        $requestedWorkspace = isset($_GET['workspace']) && is_string($_GET['workspace']) ? $_GET['workspace'] : null;
+        if ($requestedWorkspace === null) {
+            $_GET['workspace'] = $folderWorkspace;
+            $workspaceResolvedInternally = $folderWorkspace;
+        } elseif ($requestedWorkspace !== $folderWorkspace) {
+            $redirectQuery = $_GET;
+            $redirectQuery['workspace'] = $folderWorkspace;
+            header('Location: index.php?' . http_build_query($redirectQuery));
+            exit;
+        }
+    }
+}
+
 // A workspace named in the URL that this account does not have (a stale
 // link, a workspace since renamed or deleted, or one that was shared with
 // this login and then unshared: login.php brings the person back to the same
@@ -394,6 +420,25 @@ if ($center_note_content_enabled && $width_value !== '1' && $width_value !== 'tr
     <link rel="manifest" href="<?php echo htmlspecialchars(poznoteManifestHref('pwa/manifest.webmanifest?v=' . $v), ENT_QUOTES); ?>" crossorigin="use-credentials">
     <?php poznoteRenderBrandIcons('', $v); ?>
     <script src="js/theme-init.js?v=<?php echo $v; ?>"></script>
+    <script>
+    // Text sizes this browser keeps (note, tree, code blocks; the Font size
+    // card of Settings, js/font-size-settings.js), set before the first
+    // paint: applied by that script once the bundles ran, the note and the
+    // tree came up at the default size and then grew or shrank under the eye.
+    // Same values and defaults as its applyFontSizeToNotes(), which still
+    // runs and finds nothing to change.
+    (function () {
+        try {
+            var store = window.__poznoteUserStorage || window.localStorage;
+            var root = document.documentElement.style;
+            root.setProperty('--note-font-size', (store.getItem('note_font_size') || '15') + 'px');
+            root.setProperty('--sidebar-font-size', (store.getItem('sidebar_font_size') || '13') + 'px');
+            root.setProperty('--code-block-font-size', (store.getItem('code_block_font_size') || '15') + 'px');
+        } catch (e) {
+            // js/font-size-settings.js applies them once loaded
+        }
+    })();
+    </script>
     <script src="js/session-guard.js?v=<?php echo $v; ?>"></script>
     <?php if ($workspaceResolvedInternally !== null): ?>
     <script>
@@ -725,6 +770,11 @@ $whats_new_preview_since = $whats_new_preview ? trim((string)@file_get_contents(
         console.debug('index: sidebar collapsed state failed:', _error);
     }
     </script>
+    <?php // Icon scale, kept by this browser: loaded here, not in the deferred
+          // bundle, so its style is in place before the first paint. Not in
+          // <head>: the style it appends there must come after every
+          // stylesheet of <head>, whose !important sizes it overrides. ?>
+    <script src="<?php echo htmlspecialchars(poznoteAsset('js/index-icon-scale-settings.js'), ENT_QUOTES); ?>"></script>
     <script>
     (function () {
         try {

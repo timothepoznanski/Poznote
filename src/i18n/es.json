@@ -323,6 +323,14 @@
       "confirm_message": "¿Crear una nueva nota «{{title}}»?",
       "confirm_button": "Crear",
       "error_creating": "Error al crear la nota"
+    },
+    "folder": {
+      "modal_title": "Insertar un enlace a una carpeta",
+      "search_placeholder": "Buscar una carpeta...",
+      "no_match": "Ninguna carpeta coincide con tu búsqueda",
+      "no_folders": "No hay carpetas en este espacio de trabajo",
+      "error_loading": "Error al cargar las carpetas",
+      "missing": "Esta carpeta ya no existe"
     }
   },
   "attachments": {
@@ -1410,7 +1418,8 @@
       "created_by": "Creado por:",
       "last_modified_by": "Última modificación por:",
       "last_modified_from": "Última modificación desde:",
-      "locked": "Bloqueada:"
+      "locked": "Bloqueada:",
+      "size": "Tamaño:"
     },
     "attachments": {
       "count_singular": "1 archivo",
@@ -1434,6 +1443,9 @@
       "extension": "La extensión del navegador",
       "ai": "El asistente de IA",
       "public": "Un visitante del enlace público"
+    },
+    "size": {
+      "with_attachments": "({{size}} con los adjuntos)"
     }
   },
   "modals": {
@@ -2408,6 +2420,7 @@
     "table": "Tabla",
     "separator": "Separador",
     "link_to_note": "Enlace a nota",
+    "link_to_folder": "Enlace a una carpeta",
     "link_to_attachment": "Enlace a adjunto",
     "link": "Enlace",
     "cancel": "Cancelar",

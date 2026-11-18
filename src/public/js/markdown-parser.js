@@ -309,6 +309,14 @@ function _mdTryParseInternalNoteId(url) {
     return id ? parseInt(id, 10) : null;
 }
 
+// A link to a folder ("Link to folder", js/note-reference.js):
+// index.php?kanban=<id>, with or without a workspace
+function _mdTryParseInternalFolderId(url) {
+    if (!url) return null;
+    const match = String(url).match(/(?:^|\/)index\.php\?(?:[^\s#]*&)?kanban=(\d+)(?:[&#]|$)/);
+    return match ? parseInt(match[1], 10) : null;
+}
+
 /**
  * A link target the preview may turn into a real link.
  *
@@ -1305,6 +1313,9 @@ function parseMarkdown(text) {
             // Internal note link: keep navigation in-app (handled by note-reference.js)
             // Do not force target=_blank.
             linkTag = '<a href="' + safeUrl + '" class="note-internal-link" data-note-id="' + internalNoteId + '" data-note-reference="true"' + titleAttr + '>' + safeText + '</a>';
+        } else if (_mdTryParseInternalFolderId(url)) {
+            // Folder link: opened in the app too (js/events-rte-fields.js)
+            linkTag = '<a href="' + safeUrl + '" class="folder-internal-link"' + titleAttr + '>' + safeText + '</a>';
         } else {
             linkTag = '<a href="' + safeUrl + '"' + titleAttr + ' target="_blank" rel="noopener">' + safeText + '</a>';
         }

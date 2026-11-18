@@ -247,10 +247,13 @@ body.note-virtual-space #right_col .note-bottom-space {
     }
 
     /* --pz-docked-note-scrollbar, the room left for the note's scrollbar
-       (#1544), is measured and written on <body> by
-       updateNoteScrollbarClearance() in js/index-events.js: the bar moves
-       with the split pane ratio and the window, and is absent on a short
-       note. */
+       (#1544), is measured by updateNoteScrollbarClearance() in
+       js/index-events.js and written on the two fixed controls that read it
+       (.pz-edge-stack and .note-scroll-edge-controls), never on <body>,
+       where every element of the page would inherit the change: the bar
+       moves with the split pane ratio and the window, and is absent on a
+       short note. The 0px here is only its resting value, never written
+       to again. */
     body {
         --pz-docked-note-scrollbar: 0px;
     }

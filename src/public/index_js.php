@@ -155,7 +155,6 @@ function poznoteGetIndexJsGroups(): array {
         'js/font-size-settings.js',
         'js/note-width-toggle.js',
         'js/note-sort-cycle.js',
-        'js/index-icon-scale-settings.js',
         'js/background-settings.js',
         'js/workspace-background.js',
         'js/task-priority.js',

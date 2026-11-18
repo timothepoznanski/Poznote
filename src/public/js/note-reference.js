@@ -27,6 +27,9 @@
     // The note whose sections the modal is showing, while it is on its second
     // step (discussion 1758)
     let sectionPickerNote = null;
+    // 'note' ("Link to note") or 'folder' ("Link to folder"): the same
+    // window lists one or the other
+    let referenceMode = 'note';
 
     // ============================================================================
     // HELPER FUNCTIONS
@@ -235,6 +238,40 @@
      * Open the note reference modal
      */
     window.openNoteReferenceModal = function() {
+        openReferenceModal('note');
+    };
+
+    /**
+     * Open the same window on the folders of the workspace ("Link to
+     * folder"): the link it inserts opens the folder's Kanban board, the
+     * address index.php?kanban=<id> every other page already uses for a
+     * folder (Folders, Shares, Offline).
+     */
+    window.openFolderReferenceModal = function() {
+        openReferenceModal('folder');
+    };
+
+    function applyReferenceMode() {
+        const isFolder = referenceMode === 'folder';
+        const content = document.querySelector('#noteReferenceModal .note-reference-modal-content');
+        if (content) content.classList.toggle('is-folder-mode', isFolder);
+
+        const searchInput = document.getElementById('noteReferenceSearch');
+        if (searchInput) {
+            const placeholder = searchInput.getAttribute(isFolder ? 'data-placeholder-folder' : 'data-placeholder-note');
+            if (placeholder) searchInput.placeholder = placeholder;
+        }
+
+        // A folder is never created from here: "Create & link" makes a note
+        const createBtn = document.getElementById('noteReferenceCreateBtn');
+        if (createBtn) createBtn.hidden = isFolder;
+    }
+
+    function loadReferenceList(searchQuery = '') {
+        return referenceMode === 'folder' ? loadFoldersList(searchQuery) : loadNotesList(searchQuery);
+    }
+
+    function openReferenceModal(mode) {
         saveSelection();
         
         const modal = document.getElementById('noteReferenceModal');
@@ -242,6 +279,9 @@
             resumeTaskEditBlurSaveIfNeeded();
             return;
         }
+
+        referenceMode = mode === 'folder' ? 'folder' : 'note';
+        applyReferenceMode();
         
         modal.style.display = 'flex';
         
@@ -258,10 +298,10 @@
             setTimeout(() => searchInput.focus(), 100);
         }
         
-        // Load recent notes and all notes
+        // Load recent notes and all notes (or the folders)
         showSectionStep(false);
-        loadNotesList();
-    };
+        loadReferenceList();
+    }
 
     /**
      * Close the note reference modal
@@ -586,6 +626,242 @@
     }
 
     // ============================================================================
+    // FOLDERS ("Link to folder")
+    // ============================================================================
+
+    // Case and accents ignored, as in the "Move to folder" window
+    function foldForSearch(text) {
+        return String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    }
+
+    async function fetchWorkspaceFolders(workspace) {
+        const response = await fetch(`/api/v1/folders?workspace=${encodeURIComponent(workspace)}`);
+        const data = await response.json();
+        if (!data || !data.success || !Array.isArray(data.folders)) return [];
+        return data.folders.map((folder) => Object.assign({}, folder, { workspace: workspace }));
+    }
+
+    /**
+     * The folders of this workspace, or of every workspace when the
+     * checkbox says so (GET /folders reads one workspace at a time).
+     */
+    async function fetchReferenceFolders(workspace) {
+        if (!(isAllWorkspacesSearch() && canLinkAcrossWorkspaces())) {
+            return fetchWorkspaceFolders(workspace);
+        }
+
+        let names = [];
+        try {
+            const response = await fetch('/api/v1/workspaces');
+            const data = await response.json();
+            names = (data && Array.isArray(data.workspaces) ? data.workspaces : [])
+                .map((entry) => (typeof entry === 'string' ? entry : entry && entry.name))
+                .filter((name) => typeof name === 'string' && name !== '');
+        } catch (e) {
+            console.debug('note-reference: workspaces list failed:', e);
+        }
+        if (names.indexOf(workspace) === -1) names.unshift(workspace);
+        // The current workspace first, then the others in their order
+        names = [workspace].concat(names.filter((name) => name !== workspace));
+
+        const lists = await Promise.all(names.map((name) => fetchWorkspaceFolders(name).catch(() => [])));
+        return [].concat.apply([], lists);
+    }
+
+    function renderFolderItem(folder, workspace) {
+        const item = document.createElement('div');
+        item.className = 'note-reference-item note-reference-folder-item';
+
+        const name = folder.name || '';
+        const path = folder.path || name;
+        // The parent folders, the name itself being the title
+        const parentPath = path.length > name.length && path.slice(-name.length) === name
+            ? path.slice(0, path.length - name.length).replace(/\/+$/, '')
+            : '';
+        const otherWorkspace = folder.workspace && folder.workspace !== workspace ? folder.workspace : '';
+
+        item.innerHTML = `
+            <div class="note-reference-item-content">
+                <span class="note-reference-item-title"><i class="lucide lucide-folder note-reference-item-folder-icon" aria-hidden="true"></i>${escapeHtml(name)}</span>
+                ${(parentPath || otherWorkspace) ? `<span class="note-reference-item-meta">
+                    ${otherWorkspace ? `<span class="note-reference-item-folder note-reference-item-workspace"><i class="lucide lucide-layers"></i> ${escapeHtml(otherWorkspace)}</span>` : ''}
+                    ${parentPath ? `<span class="note-reference-item-folder"><i class="lucide lucide-folder"></i> ${escapeHtml(parentPath)}</span>` : ''}
+                </span>` : ''}
+            </div>
+        `;
+
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            insertFolderReference(folder.id, name, path);
+        });
+
+        return item;
+    }
+
+    async function loadFoldersList(searchQuery = '') {
+        const listContainer = document.getElementById('noteReferenceList');
+        const recentLabel = document.querySelector('.note-reference-recent-label');
+        if (!listContainer) return;
+
+        // No "recent" for folders: they are listed by path
+        if (recentLabel) recentLabel.style.display = 'none';
+        listContainer.innerHTML = '<div class="note-reference-loading"><i class="lucide lucide-loader-2 lucide-spin"></i> ' + escapeHtml(tr('note_reference.loading', {}, 'Loading...')) + '</div>';
+
+        try {
+            const workspace = getCurrentWorkspace();
+            let folders = await fetchReferenceFolders(workspace);
+
+            // The window may have been switched back to notes meanwhile
+            if (referenceMode !== 'folder') return;
+
+            const query = foldForSearch(searchQuery.trim());
+            if (query !== '') {
+                folders = folders.filter((folder) => foldForSearch(folder.path || folder.name).includes(query));
+            }
+
+            if (folders.length === 0) {
+                const emptyMessage = query !== ''
+                    ? tr('note_reference.folder.no_match', {}, 'No folders match your search')
+                    : tr('note_reference.folder.no_folders', {}, 'No folders in this workspace');
+                listContainer.innerHTML = `<div class="note-reference-empty">${escapeHtml(emptyMessage)}</div>`;
+                return;
+            }
+
+            listContainer.innerHTML = '';
+            folders.forEach((folder) => {
+                listContainer.appendChild(renderFolderItem(folder, workspace));
+            });
+        } catch (error) {
+            console.error('Error loading folders:', error);
+            listContainer.innerHTML = '<div class="note-reference-empty">' + escapeHtml(tr('note_reference.folder.error_loading', {}, 'Error loading folders')) + '</div>';
+        }
+    }
+
+    /**
+     * Insert a link to a folder at the cursor: index.php?kanban=<id>, which
+     * opens the folder's Kanban board, in the app (navigateToFolder below) as
+     * in a new browser tab (index.php opens the board of ?kanban=, in the
+     * folder's own workspace). No workspace in the address, like a note link:
+     * a folder moved to another workspace keeps its links.
+     */
+    function insertFolderReference(folderId, name, path) {
+        closeNoteReferenceModal();
+        restoreSelection();
+
+        // Not offered in a text field (task, title): the [[Title]] form that
+        // goes there names a note, nothing can name a folder that way
+        if (isTextField(savedEditableElement)) return;
+
+        const href = `index.php?kanban=${encodeURIComponent(folderId)}`;
+        const noteEntry = document.querySelector('.noteentry');
+        const isMarkdown = noteEntry && noteEntry.closest('.innernote[data-markdown-note="true"]');
+
+        if (isMarkdown) {
+            // Brackets in the name would close the link text early
+            const label = String(name).replace(/([[\]\\])/g, '\\$1');
+            insertMarkdownText(`[${label}](${href})`);
+            return;
+        }
+
+        const link = document.createElement('a');
+        link.href = href;
+        link.className = 'folder-internal-link';
+        link.textContent = name;
+        link.title = path || name;
+
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            range.insertNode(link);
+            range.setStartAfter(link);
+            range.setEndAfter(link);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            // A space after the link, for easier continued typing
+            document.execCommand('insertText', false, ' ');
+        }
+    }
+
+    // Whether the open note's changes are written before leaving it for a
+    // folder's board: the board replaces the note pane. Same pattern as the
+    // AI panel (js/ai-chat.js): a refused save never calls back, so the wait
+    // is capped.
+    function saveOpenNoteFirst() {
+        const noteId = window.noteid;
+        if (!noteId || noteId === -1 || noteId === 'search'
+            || typeof window.hasUnsavedChanges !== 'function' || !window.hasUnsavedChanges(noteId)
+            || typeof window.saveNoteImmediately !== 'function') {
+            return Promise.resolve();
+        }
+        return new Promise((resolve) => {
+            let done = false;
+            const finish = () => { if (!done) { done = true; resolve(); } };
+            setTimeout(finish, 2500);
+            try {
+                window.saveNoteImmediately({ onSaved: finish });
+            } catch (e) {
+                finish();
+            }
+        });
+    }
+
+    // Folder whose lookup is in flight: one click can reach two handlers
+    let pendingNavigationFolderId = null;
+
+    /**
+     * Follow a link to a folder: its Kanban board, in a tab on desktop as a
+     * click in the tree does. A folder of another workspace is opened with a
+     * page load (the in-page board only knows the current workspace), a
+     * folder that no longer exists says so instead of an error board.
+     */
+    window.navigateToFolder = async function(folderId) {
+        const id = String(folderId);
+        if (!/^\d+$/.test(id) || pendingNavigationFolderId === id) return;
+        pendingNavigationFolderId = id;
+
+        let folder = null;
+        let status = 0;
+        try {
+            const response = await fetch(`/api/v1/folders/${encodeURIComponent(id)}`);
+            status = response.status;
+            if (response.ok) {
+                const data = await response.json();
+                folder = data && data.success ? data.folder : null;
+            }
+        } catch (e) {
+            console.debug('note-reference: navigateToFolder() lookup failed:', e);
+        } finally {
+            pendingNavigationFolderId = null;
+        }
+
+        if (!folder && status === 404) {
+            if (typeof window.poznoteCancelTreeReveal === 'function') window.poznoteCancelTreeReveal();
+            if (typeof window.poznoteShowToast === 'function') {
+                window.poznoteShowToast(tr('note_reference.folder.missing', {}, 'This folder no longer exists'), { variant: 'warning' });
+            }
+            return;
+        }
+
+        await saveOpenNoteFirst();
+
+        // Opened and selected in the tree once its board is on screen
+        if (typeof window.poznoteRequestTreeReveal === 'function') window.poznoteRequestTreeReveal('folder', id);
+
+        const workspace = getCurrentWorkspace();
+        const targetWorkspace = folder && folder.workspace ? folder.workspace : '';
+        if (!folder || typeof window.openKanbanView !== 'function' || (targetWorkspace && targetWorkspace !== workspace)) {
+            // index.php puts the board in the folder's own workspace
+            const query = targetWorkspace ? `workspace=${encodeURIComponent(targetWorkspace)}&` : '';
+            window.location.href = `index.php?${query}kanban=${encodeURIComponent(id)}`;
+            return;
+        }
+
+        window.openKanbanView(parseInt(id, 10), folder.name);
+    };
+
+    // ============================================================================
     // NOTE REFERENCE INSERTION
     // ============================================================================
 
@@ -597,8 +873,13 @@
      * Insert a note reference in markdown format
      */
     function insertMarkdownReference(heading, noteId, sectionHash) {
-        const referenceText = `[${heading}](index.php?note=${noteId}${sectionHash || ''})`;
+        insertMarkdownText(`[${heading}](index.php?note=${noteId}${sectionHash || ''})`);
+    }
 
+    /**
+     * Insert text at the cursor of a Markdown note
+     */
+    function insertMarkdownText(referenceText) {
         // The CodeMirror editor is written to through its own API: a text
         // node put into its DOM is read back as typed text, which the rich
         // text view takes literally (it escaped the link's bracket)
@@ -840,6 +1121,9 @@
         if (pendingNavigationNoteId === String(noteId)) return;
         pendingNavigationNoteId = String(noteId);
 
+        // Opened and selected in the tree once the note is on screen
+        if (typeof window.poznoteRequestTreeReveal === 'function') window.poznoteRequestTreeReveal('note', noteId);
+
         // A link may target a note of another workspace: the in-page loaders
         // only work within the current one, so switch with a page load.
         let targetWorkspace = null;
@@ -906,7 +1190,7 @@
         searchInput.addEventListener('input', function() {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
-                loadNotesList(this.value);
+                loadReferenceList(this.value);
             }, SEARCH_DEBOUNCE_MS);
         });
         
@@ -918,7 +1202,7 @@
                 const firstItem = document.querySelector('.note-reference-item');
                 if (firstItem) {
                     firstItem.click();
-                } else if (searchInput.value.trim() !== '') {
+                } else if (referenceMode === 'note' && searchInput.value.trim() !== '') {
                     createNoteAndInsertReference();
                 }
             } else if (e.key === 'Escape') {
@@ -939,7 +1223,7 @@
         toggle.addEventListener('change', function() {
             setAllWorkspacesSearch(toggle.checked);
             const searchInput = document.getElementById('noteReferenceSearch');
-            loadNotesList(searchInput ? searchInput.value : '');
+            loadReferenceList(searchInput ? searchInput.value : '');
             if (searchInput) searchInput.focus();
         });
     }

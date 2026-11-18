@@ -938,6 +938,8 @@ $pzNoteInfoRows = [
     'favorite' => t_h('info.labels.favorite', [], 'Favorite:'),
     'locked_text' => t_h('info.labels.locked', [], 'Locked:'),
     'attachments' => t_h('info.labels.attachments', [], 'Attachments:'),
+    // Content file on disk, plus the attachments in brackets when it has any
+    'size' => t_h('info.labels.size', [], 'Size:'),
     // Counted in the browser from the note on screen (js/note-stats.js), so
     // they match the line under the note title and include unsaved edits
     'characters' => t_h('info.labels.characters', [], 'Characters:'),
@@ -1340,9 +1342,12 @@ $pzNoteInfoRows = [
 </div>
 <div id="noteReferenceModal" class="modal">
     <div class="modal-content note-reference-modal-content">
-        <h3><i class="lucide lucide-link"></i> <?php echo t_h('editor.toolbar.insert_note_reference', [], 'Insert note reference'); ?></h3>
+        <?php // The same window links to a folder ("Link to folder"): each text
+              // that differs comes in two spans, the .is-folder-mode class
+              // on .modal-content picks one (css/note-reference.css) ?>
+        <h3><i class="lucide lucide-link"></i> <span class="note-reference-for-note"><?php echo t_h('editor.toolbar.insert_note_reference', [], 'Insert note reference'); ?></span><span class="note-reference-for-folder"><?php echo t_h('note_reference.folder.modal_title', [], 'Insert folder link'); ?></span></h3>
         <div class="note-reference-search">
-            <input type="text" id="noteReferenceSearch" placeholder="<?php echo t_h('note_reference.modal.search_placeholder', [], 'Search for a note...'); ?>" autocomplete="off">
+            <input type="text" id="noteReferenceSearch" placeholder="<?php echo t_h('note_reference.modal.search_placeholder', [], 'Search for a note...'); ?>" data-placeholder-note="<?php echo t_h('note_reference.modal.search_placeholder', [], 'Search for a note...'); ?>" data-placeholder-folder="<?php echo t_h('note_reference.folder.search_placeholder', [], 'Search for a folder...'); ?>" autocomplete="off">
         </div>
         <label class="note-reference-all-workspaces">
             <input type="checkbox" id="noteReferenceAllWorkspaces">

@@ -323,6 +323,14 @@
       "confirm_message": "Neue Notiz „{{title}}“ erstellen?",
       "confirm_button": "Erstellen",
       "error_creating": "Fehler beim Erstellen der Notiz"
+    },
+    "folder": {
+      "modal_title": "Ordner-Link einfügen",
+      "search_placeholder": "Nach einem Ordner suchen...",
+      "no_match": "Kein Ordner entspricht deiner Suche",
+      "no_folders": "Keine Ordner in diesem Arbeitsbereich",
+      "error_loading": "Fehler beim Laden der Ordner",
+      "missing": "Dieser Ordner existiert nicht mehr"
     }
   },
   "attachments": {
@@ -1410,7 +1418,8 @@
       "created_by": "Erstellt von:",
       "last_modified_by": "Zuletzt geändert von:",
       "last_modified_from": "Zuletzt geändert von:",
-      "locked": "Gesperrt:"
+      "locked": "Gesperrt:",
+      "size": "Größe:"
     },
     "attachments": {
       "count_singular": "1 Datei",
@@ -1434,6 +1443,9 @@
       "extension": "Die Browser-Erweiterung",
       "ai": "Der KI-Assistent",
       "public": "Ein Besucher der öffentlichen Freigabe"
+    },
+    "size": {
+      "with_attachments": "({{size}} mit Anhängen)"
     }
   },
   "modals": {
@@ -2409,6 +2421,7 @@
     "table": "Tabelle",
     "separator": "Trennlinie",
     "link_to_note": "Link zur Notiz",
+    "link_to_folder": "Link zum Ordner",
     "link_to_attachment": "Link zum Anhang",
     "link": "Link",
     "cancel": "Abbrechen",

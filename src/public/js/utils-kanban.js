@@ -25,6 +25,7 @@ function resetKanbanViewState() {
     window._kanbanFolderId = null;
     window._originalRightColContent = null;
     document.body.classList.remove('kanban-active');
+    if (typeof window.markOpenKanbanFolder === 'function') window.markOpenKanbanFolder(null);
 
     var isMobileClose = window.innerWidth <= 800;
     if (isMobileClose) {
@@ -47,6 +48,9 @@ function activateKanbanViewState(folderId) {
     window._isKanbanViewActive = true;
     window._kanbanFolderId = folderId;
     document.body.classList.add('kanban-active');
+    // The folder of the open board looks selected in the tree, as the open
+    // note does (js/utils-folder-tree.js)
+    if (typeof window.markOpenKanbanFolder === 'function') window.markOpenKanbanFolder(folderId);
 
     var isMobileKanban = window.innerWidth <= 800;
     if (isMobileKanban) {

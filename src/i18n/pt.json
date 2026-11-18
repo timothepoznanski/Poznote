@@ -323,6 +323,14 @@
       "confirm_message": "Criar uma nova nota “{{title}}”?",
       "confirm_button": "Criar",
       "error_creating": "Erro ao criar a nota"
+    },
+    "folder": {
+      "modal_title": "Inserir link para uma pasta",
+      "search_placeholder": "Pesquisar uma pasta...",
+      "no_match": "Nenhuma pasta corresponde à sua pesquisa",
+      "no_folders": "Nenhuma pasta neste espaço de trabalho",
+      "error_loading": "Erro ao carregar as pastas",
+      "missing": "Esta pasta já não existe"
     }
   },
   "attachments": {
@@ -1410,7 +1418,8 @@
       "created_by": "Criado por:",
       "last_modified_by": "Última modificação por:",
       "last_modified_from": "Última alteração a partir de:",
-      "locked": "Bloqueada:"
+      "locked": "Bloqueada:",
+      "size": "Tamanho:"
     },
     "attachments": {
       "count_singular": "1 arquivo",
@@ -1434,6 +1443,9 @@
       "extension": "A extensão do navegador",
       "ai": "O assistente de IA",
       "public": "Um visitante da partilha pública"
+    },
+    "size": {
+      "with_attachments": "({{size}} com os anexos)"
     }
   },
   "modals": {
@@ -2408,6 +2420,7 @@
     "table": "Tabela",
     "separator": "Separador",
     "link_to_note": "Link para nota",
+    "link_to_folder": "Link para uma pasta",
     "link_to_attachment": "Link para anexo",
     "link": "Link",
     "cancel": "Cancelar",

@@ -657,6 +657,20 @@ function markdownInternalNoteId($url): ?int
     return $id === '' ? null : (int)$id;
 }
 
+/**
+ * The folder id a link address points at ("Link to folder":
+ * index.php?kanban=<id>, with or without a workspace), null otherwise. Same
+ * rule as _mdTryParseInternalFolderId() of js/markdown-parser.js.
+ */
+function markdownInternalFolderId($url): ?int
+{
+    $value = html_entity_decode((string)$url, ENT_QUOTES, 'UTF-8');
+    if (!preg_match('#(?:^|/)index\.php\?(?:[^\s\#]*&)?kanban=(\d+)(?:[&\#]|$)#', $value, $m)) {
+        return null;
+    }
+    return (int)$m[1];
+}
+
 function buildMarkdownExcalidrawAttributes(DOMElement $element, array $allowedAttrs) {
     $attrs = [];
 
@@ -960,6 +974,9 @@ function parseMarkdown($text) {
             // share nothing takes the click over and a visitor sent to
             // index.php in the same tab would lose the page they were reading.
             $linkTag = '<a href="' . $href . '" class="note-internal-link" data-note-id="' . $internalNoteId . '" data-note-reference="true"' . $titleAttr . ' target="_blank" rel="noopener">' . renderMarkdownLinkText($linkText) . '</a>';
+        } elseif (markdownInternalFolderId($safeUrl) !== null) {
+            // A folder link, same target rule as a note link above
+            $linkTag = '<a href="' . $href . '" class="folder-internal-link"' . $titleAttr . ' target="_blank" rel="noopener">' . renderMarkdownLinkText($linkText) . '</a>';
         } else {
             $linkTag = '<a href="' . $href . '"' . $titleAttr . ' target="_blank" rel="noopener">' . renderMarkdownLinkText($linkText) . '</a>';
         }

@@ -180,17 +180,34 @@ html[data-theme='dark'] .hljs-deletion {
 ::highlight(pz-syntax-comment) { color: var(--pz-syntax-comment); }
 ::highlight(pz-syntax-tag) { color: var(--pz-syntax-tag); }
 
-::highlight(pz-syntax-addition) { color: var(--pz-success-hover); }
-::highlight(pz-syntax-deletion) { color: var(--pz-danger-hover); }
-
-:where(html[data-theme='dark']) ::highlight(pz-syntax-addition) {
-    color: var(--pz-success-text);
-    background-color: var(--pz-success-soft);
+/* The diff colours change with the theme through variables set once on the
+   root, never through a themed ::highlight rule: `html[data-theme='dark']
+   ::highlight(...)` matches every element of the page, which then computes
+   highlight styles of its own instead of inheriting them, and that doubled
+   the style cost of every element in all three dark themes (a 2.4 MB note
+   opened in 6 s instead of 3). */
+:root {
+    --pz-syntax-addition-fg: var(--pz-success-hover);
+    --pz-syntax-addition-bg: transparent;
+    --pz-syntax-deletion-fg: var(--pz-danger-hover);
+    --pz-syntax-deletion-bg: transparent;
 }
 
-:where(html[data-theme='dark']) ::highlight(pz-syntax-deletion) {
-    color: var(--pz-text-strong);
-    background-color: var(--pz-danger-soft);
+html[data-theme='dark'] {
+    --pz-syntax-addition-fg: var(--pz-success-text);
+    --pz-syntax-addition-bg: var(--pz-success-soft);
+    --pz-syntax-deletion-fg: var(--pz-text-strong);
+    --pz-syntax-deletion-bg: var(--pz-danger-soft);
+}
+
+::highlight(pz-syntax-addition) {
+    color: var(--pz-syntax-addition-fg);
+    background-color: var(--pz-syntax-addition-bg);
+}
+
+::highlight(pz-syntax-deletion) {
+    color: var(--pz-syntax-deletion-fg);
+    background-color: var(--pz-syntax-deletion-bg);
 }
 
 /* Language badge for code blocks */

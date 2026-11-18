@@ -748,7 +748,8 @@
       "note_id": "ノートID：",
       "full_path": "フルパス：",
       "last_modified_from": "最終更新元:",
-      "locked": "ロック:"
+      "locked": "ロック:",
+      "size": "サイズ："
     },
     "attachments": {
       "count_singular": "1件",
@@ -772,6 +773,9 @@
       "extension": "ブラウザー拡張機能",
       "ai": "AI アシスタント",
       "public": "公開共有の閲覧者"
+    },
+    "size": {
+      "with_attachments": "(添付ファイルを含めて {{size}})"
     }
   },
   "attachments": {
@@ -1875,6 +1879,7 @@
     "table": "表",
     "separator": "区切り線",
     "link_to_note": "ノートへのリンク",
+    "link_to_folder": "フォルダーへのリンク",
     "link_to_attachment": "添付ファイルへのリンク",
     "link": "リンク",
     "cancel": "キャンセル",
@@ -4662,7 +4667,15 @@
     "error": {
       "loading_notes": "ノートの読み込み中にエラーが発生しました"
     },
-    "loading": "読み込み中..."
+    "loading": "読み込み中...",
+    "folder": {
+      "modal_title": "フォルダーリンクを挿入",
+      "search_placeholder": "フォルダーを検索...",
+      "no_match": "検索に一致するフォルダーはありません",
+      "no_folders": "このワークスペースにフォルダーはありません",
+      "error_loading": "フォルダーの読み込み中にエラーが発生しました",
+      "missing": "このフォルダーはもう存在しません"
+    }
   },
   "ai_settings": {
     "title": "AIアシスタント",

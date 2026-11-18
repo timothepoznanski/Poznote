@@ -802,23 +802,27 @@ html[data-theme='dark'] .keyboard-shortcuts-keys kbd {
    disabled at the top or the bottom of a longer one (js/index-events.js), so
    the stack moves when the note starts or stops overflowing, never as it
    scrolls. On mobile the arrows show only with the note on screen
-   (body.note-open, css/notes/noteentry.css), so the lift follows that. */
+   (body.note-open, css/notes/noteentry.css), so the lift follows that.
+   Read from two body classes that updateNoteScrollButtons() sets, not from
+   `body:has(.note-scroll-edge-btn:not([hidden]))`: with that :has(), adding
+   an element or a hidden attribute anywhere in the page restyled all of it,
+   a quarter of a second per change on a long note. */
 @media (min-width: 801px) {
-    body:has(.note-scroll-edge-btn:not([hidden])) .pz-edge-stack {
+    body.note-scroll-arrow-shown .pz-edge-stack {
         bottom: calc(10px + var(--pz-edge-btn-size) + var(--pz-edge-btn-gap));
     }
 
-    body:has(.note-scroll-top-btn:not([hidden])):has(.note-scroll-bottom-btn:not([hidden])) .pz-edge-stack {
+    body.note-scroll-arrows-both-shown .pz-edge-stack {
         bottom: calc(10px + 2 * (var(--pz-edge-btn-size) + var(--pz-edge-btn-gap)));
     }
 }
 
 @media (max-width: 800px) {
-    body.note-open:has(.note-scroll-edge-btn:not([hidden])) .pz-edge-stack {
+    body.note-open.note-scroll-arrow-shown .pz-edge-stack {
         bottom: calc(10px + var(--pz-edge-btn-size) + var(--pz-edge-btn-gap));
     }
 
-    body.note-open:has(.note-scroll-top-btn:not([hidden])):has(.note-scroll-bottom-btn:not([hidden])) .pz-edge-stack {
+    body.note-open.note-scroll-arrows-both-shown .pz-edge-stack {
         bottom: calc(10px + 2 * (var(--pz-edge-btn-size) + var(--pz-edge-btn-gap)));
     }
 }

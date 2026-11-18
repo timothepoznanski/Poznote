@@ -664,7 +664,193 @@ function restoreFolderStates() {
 
     updateToggleAllFoldersButton();
 
+    // A redrawn tree has lost the mark of the folder whose board is open
+    if (window._isKanbanViewActive && window._kanbanFolderId) {
+        markOpenKanbanFolder(window._kanbanFolderId);
+    }
+
     if (mode === 'account' && (legacy || Object.keys(pending).length)) scheduleFolderStatesFlush();
+}
+
+// ============================================
+// Showing the target of a link in the tree
+// ============================================
+//
+// A link to a note or to a folder, followed from a note, leaves the tree
+// where it was: nothing opened the target's folders, and the row of the note
+// that was open before kept its selected look (the loaders only mark a row
+// that was clicked). Once the target is on screen, its folders are opened,
+// its row is marked as a click in the tree would mark it and scrolled into
+// view. The request survives a page load (a link to another workspace
+// reloads the page), through sessionStorage.
+
+var TREE_REVEAL_KEY = 'poznote_tree_reveal';
+var TREE_REVEAL_WAIT_MS = 8000;
+var TREE_REVEAL_INTERVAL_MS = 100;
+var treeRevealTimer = 0;
+
+function isFavoritesTreeElement(element) {
+    return !!(element && element.closest && element.closest('.folder-header[data-folder="Favorites"]'));
+}
+
+function findTreeFolderHeader(folderId) {
+    var headers = document.querySelectorAll('#left_col .folder-header[data-folder-id="' + CSS.escape(String(folderId)) + '"]');
+    for (var i = 0; i < headers.length; i++) {
+        if (!isFavoritesTreeElement(headers[i])) return headers[i];
+    }
+    return null;
+}
+
+/**
+ * The folder whose Kanban board is the open pane carries the open note's
+ * look in the tree (css/folders/headers-toggles.css). Called with null to
+ * clear it: a note was opened, or the board was closed.
+ */
+function markOpenKanbanFolder(folderId) {
+    document.querySelectorAll('.folder-header.kanban-open-folder').forEach(function (header) {
+        header.classList.remove('kanban-open-folder');
+    });
+    if (folderId === null || folderId === undefined || folderId === '') return;
+    var header = findTreeFolderHeader(folderId);
+    if (header) header.classList.add('kanban-open-folder');
+}
+
+// Open every folder from the root down to `element` (the element itself too
+// when it is a folder's content)
+function openTreePathTo(element) {
+    var node = element && element.classList && element.classList.contains('folder-content')
+        ? element
+        : (element && element.parentElement ? element.parentElement.closest('.folder-content') : null);
+    var changed = false;
+    while (node) {
+        if (node.id && !isFavoritesTreeElement(node) && !isFolderContentOpen(node)) {
+            setFolderOpenState(node.id, true);
+            changed = true;
+        }
+        node = node.parentElement ? node.parentElement.closest('.folder-content') : null;
+    }
+    if (changed) updateToggleAllFoldersButton();
+}
+
+// Centred in the tree's own vertical scroller when it is not fully in view,
+// left where it is otherwise (a tree that jumps for a row already on screen
+// loses the reader). The scroller is looked up rather than named, and only
+// it moves: never the sideways scroller <body> is on mobile, where the list
+// sits off screen next to the note or the board.
+function scrollTreeRowIntoView(row) {
+    var scroller = row.parentElement;
+    while (scroller && scroller !== document.body) {
+        var overflowY = window.getComputedStyle(scroller).overflowY;
+        if ((overflowY === 'auto' || overflowY === 'scroll') && scroller.scrollHeight > scroller.clientHeight) break;
+        scroller = scroller.parentElement;
+    }
+    if (!scroller || scroller === document.body) return;
+
+    var rowRect = row.getBoundingClientRect();
+    var boxRect = scroller.getBoundingClientRect();
+    if (rowRect.top >= boxRect.top && rowRect.bottom <= boxRect.bottom) return;
+
+    var offset = (rowRect.top - boxRect.top) - (scroller.clientHeight - rowRect.height) / 2;
+    var target = Math.max(0, Math.min(scroller.scrollTop + offset, scroller.scrollHeight - scroller.clientHeight));
+    if (typeof scroller.scrollTo === 'function') {
+        scroller.scrollTo({ top: target, behavior: 'smooth' });
+    } else {
+        scroller.scrollTop = target;
+    }
+}
+
+function treeRevealTargetShown(type, id) {
+    if (type === 'folder') {
+        return !!document.querySelector('#kanban-view-container[data-folder-id="' + CSS.escape(id) + '"]');
+    }
+    if (window._isKanbanViewActive) return false;
+    var entry = document.getElementById('entry' + id);
+    var card = entry ? entry.closest('.notecard') : null;
+    return !!(entry && entry.isConnected && (!card || card.style.display !== 'none'));
+}
+
+function revealTreeTarget(type, id) {
+    if (type === 'folder') {
+        var header = findTreeFolderHeader(id);
+        // Not in the tree as drawn (a search, a folder filter)
+        if (!header) return;
+        openTreePathTo(document.getElementById('folder-' + id) || header);
+        markOpenKanbanFolder(id);
+        scrollTreeRowIntoView(header.querySelector('.folder-toggle') || header);
+        return;
+    }
+
+    var rows = document.querySelectorAll('#left_col .links_arbo_left[data-note-id="' + CSS.escape(id) + '"]');
+    var row = null;
+    for (var i = 0; i < rows.length; i++) {
+        if (!isFavoritesTreeElement(rows[i])) { row = rows[i]; break; }
+    }
+    if (!row) row = rows[0] || null;
+    if (!row) return;
+    openTreePathTo(row);
+    if (typeof updateSelectedNote === 'function') updateSelectedNote(row);
+    scrollTreeRowIntoView(row);
+}
+
+function cancelTreeReveal() {
+    clearInterval(treeRevealTimer);
+    treeRevealTimer = 0;
+    try { sessionStorage.removeItem(TREE_REVEAL_KEY); } catch (e) { /* nothing to cancel then */ }
+}
+
+/**
+ * Show a link's target in the tree once it is on screen.
+ * @param {'note'|'folder'} type
+ * @param {string|number} id - Note or folder id
+ */
+function requestTreeReveal(type, id, startedAt) {
+    id = String(id);
+    if ((type !== 'note' && type !== 'folder') || !/^\d+$/.test(id)) return;
+
+    clearInterval(treeRevealTimer);
+    var since = startedAt || Date.now();
+    try {
+        sessionStorage.setItem(TREE_REVEAL_KEY, JSON.stringify({ type: type, id: id, at: since }));
+    } catch (e) {
+        console.debug('utils-folder-tree: tree reveal not kept:', e);
+    }
+
+    var check = function () {
+        if (treeRevealTargetShown(type, id)) {
+            cancelTreeReveal();
+            // After the loader's own last touches to the tree
+            setTimeout(function () { revealTreeTarget(type, id); }, 80);
+            return;
+        }
+        if (Date.now() - since > TREE_REVEAL_WAIT_MS) cancelTreeReveal();
+    };
+    treeRevealTimer = setInterval(check, TREE_REVEAL_INTERVAL_MS);
+    check();
+}
+
+// A request made just before a page load (link to another workspace)
+function resumeTreeReveal() {
+    var raw = null;
+    try { raw = sessionStorage.getItem(TREE_REVEAL_KEY); } catch (e) { return; }
+    if (!raw) return;
+    var request = null;
+    try { request = JSON.parse(raw); } catch (e) { request = null; }
+    if (!request || !document.getElementById('left_col') || Date.now() - (request.at || 0) > TREE_REVEAL_WAIT_MS * 2) {
+        cancelTreeReveal();
+        return;
+    }
+    // The wait starts again: the page load took part of it
+    requestTreeReveal(request.type, request.id);
+}
+
+window.poznoteRequestTreeReveal = requestTreeReveal;
+window.poznoteCancelTreeReveal = cancelTreeReveal;
+window.markOpenKanbanFolder = markOpenKanbanFolder;
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', resumeTreeReveal);
+} else {
+    resumeTreeReveal();
 }
 
 function emptyFolder(folderId, folderName) {

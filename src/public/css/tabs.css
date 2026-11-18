@@ -446,3 +446,28 @@ body.note-actions-hidden .note-list-item > a.links_arbo_left {
 /* The note three-dot toggle (.note-actions-toggle) and its menu
    (.note-actions-menu) share their rules with the folder ones in
    css/folders/actions-menu.css and css/dark-mode/menus.css. */
+
+/* ── Slow note load ── */
+
+/* Hourglass on the tab a note is loading into, shown by js/tabs.js once the
+   load has lasted 300ms (never for a quick open). */
+.app-tab-loading {
+    flex-shrink: 0;
+    display: inline-flex;
+    color: var(--pz-text-muted);
+}
+
+.app-tab-loading .lucide-hourglass {
+    animation: app-tab-hourglass-turn 1.2s ease-in-out infinite;
+}
+
+@keyframes app-tab-hourglass-turn {
+    0%, 40% { transform: rotate(0deg); }
+    60%, 100% { transform: rotate(180deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app-tab-loading .lucide-hourglass {
+        animation: none;
+    }
+}

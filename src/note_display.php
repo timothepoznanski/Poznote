@@ -496,6 +496,9 @@
                     } elseif ($note_type === 'note') {
                         echo '<button type="button" class="dropdown-item mobile-toolbar-item" role="menuitem" data-action="trigger-mobile-action" data-selector=".btn-convert"><i class="lucide lucide-refresh-cw-alt"></i> '.t_h('index.toolbar.convert_to_markdown', [], 'Convert to Markdown').'</button>';
                     }
+                    // Information, last: the same window as the (i) of the line
+                    // under the title and the floating "..." menu (#noteInfoModal)
+                    echo '<button type="button" class="dropdown-item mobile-toolbar-item" role="menuitem" data-action="show-note-info" data-note-id="'.$row['id'].'"><i class="lucide lucide-info"></i> '.t_h('common.information', [], 'Information').'</button>';
                     echo '</div>';
                     echo '</div>';
                 

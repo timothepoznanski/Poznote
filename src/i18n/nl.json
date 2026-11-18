@@ -748,7 +748,8 @@
       "note_id": "Notitie-ID:",
       "full_path": "Volledig pad:",
       "last_modified_from": "Laatst gewijzigd via:",
-      "locked": "Vergrendeld:"
+      "locked": "Vergrendeld:",
+      "size": "Grootte:"
     },
     "attachments": {
       "count_singular": "1 bestand",
@@ -772,6 +773,9 @@
       "extension": "De browserextensie",
       "ai": "De AI-assistent",
       "public": "Een bezoeker van de openbare deellink"
+    },
+    "size": {
+      "with_attachments": "({{size}} met bijlagen)"
     }
   },
   "attachments": {
@@ -1875,6 +1879,7 @@
     "table": "Tabel",
     "separator": "Scheidingslijn",
     "link_to_note": "Link naar notitie",
+    "link_to_folder": "Link naar map",
     "link_to_attachment": "Link naar bijlage",
     "link": "Link",
     "cancel": "Annuleren",
@@ -4662,7 +4667,15 @@
     "error": {
       "loading_notes": "Fout bij het laden van notities"
     },
-    "loading": "Laden..."
+    "loading": "Laden...",
+    "folder": {
+      "modal_title": "Maplink invoegen",
+      "search_placeholder": "Een map zoeken...",
+      "no_match": "Geen mappen gevonden voor je zoekopdracht",
+      "no_folders": "Geen mappen in deze werkruimte",
+      "error_loading": "Fout bij het laden van mappen",
+      "missing": "Deze map bestaat niet meer"
+    }
   },
   "ai_settings": {
     "title": "AI-assistent",
