@@ -182,12 +182,25 @@
         var anchor = atBottom
             ? noteEntry.nextElementSibling
             : ((noteEntry.parentNode && noteEntry.parentNode.querySelector('.note-title-heading')) || noteEntry);
+        // The attachment tiles sit right above the title, or right under the
+        // note, wherever they are drawn from (note_display.php or
+        // renderAttachmentPreviewsNow()): the row goes on the far side of
+        // them, so the order never depends on which arrived first.
+        var tiles = document.getElementById('attachment-previews-' + noteEntry.getAttribute('data-note-id'));
+        if (tiles && tiles.parentNode === noteEntry.parentNode) {
+            if (!atBottom && tiles.nextElementSibling === anchor) {
+                anchor = tiles;
+            } else if (atBottom && tiles === anchor) {
+                anchor = tiles.nextElementSibling;
+            }
+        }
         // A link the server found nothing quotable around (a bare URL in a
         // drawing, a link that is an image) must not put a chevron on the row:
         // unfolding it would open on an apology.
         var quotable = backlinks.some(function (link) { return link.has_mentions; });
 
         var row = buildRow(backlinks, isTasklist, quotable);
+        row.setAttribute('data-note-id', noteEntry.getAttribute('data-note-id') || '');
         noteEntry.parentNode.insertBefore(row, anchor);
 
         if (quotable) {
@@ -404,7 +417,13 @@
     /* --------------------------------------------------------------------- */
 
     function loadBacklinks(noteId) {
-        removePanel();
+        // A row of this note (restored with it from the note cache) stays up
+        // while the request runs, renderPanel() replaces it in one go: taken
+        // down first, it vanished and came back. A row of another note goes.
+        var current = document.getElementById('backlinks-row');
+        if (current && current.getAttribute('data-note-id') !== String(noteId)) {
+            removePanel();
+        }
 
         // 'check' rather than nothing: the row has to know, before drawing
         // the chevron, whether unfolding it would show anything at all
@@ -436,9 +455,32 @@
      */
     function initBacklinksPanel() {
         var noteId = getActiveNoteId();
-        if (noteId) {
-            loadBacklinks(noteId);
+        if (!noteId) return;
+        // The page drew the row with the note (note_display.php) and left
+        // the data it used next to it: rebuilt from that, the row is wired
+        // without a request and without moving. The data is used once, a
+        // later call for the same note asks the API as before.
+        var prerendered = consumePrerenderedBacklinks(noteId);
+        if (prerendered) {
+            renderPanel(prerendered);
+            return;
         }
+        loadBacklinks(noteId);
+    }
+
+    function consumePrerenderedBacklinks(noteId) {
+        var scripts = document.querySelectorAll('script.backlinks-data');
+        var found = null;
+        for (var i = 0; i < scripts.length; i++) {
+            if (!found && scripts[i].getAttribute('data-note-id') === String(noteId)) {
+                try {
+                    var data = JSON.parse(scripts[i].textContent || '[]');
+                    if (Array.isArray(data)) found = data;
+                } catch (e) { /* fall back to the API */ }
+            }
+            scripts[i].remove();
+        }
+        return found;
     }
 
     window.initBacklinksPanel = initBacklinksPanel;

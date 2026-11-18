@@ -59,6 +59,7 @@ const NO_GATE = [
     'index_css.php'      => 'concatenates the static stylesheets, reads no database',
     'index_js.php'       => 'concatenates the static scripts, reads no database',
     'dark_mode_css.php'  => 'concatenates the dark theme stylesheets, reads no database',
+    'i18n_js.php'        => 'the shipped interface dictionary of one language as a script, the same for everyone; reads the i18n JSON files, no database, no session',
     'offline.php'        => 'the offline page shell the service worker stores; static interface text only, every note comes from the browser',
     'pwa/manifest.php'   => 'the web app manifest with the custom logo as its icons (lib/branding.php); the login page links it, it reads one shipped file and the logo file dates, no database',
 

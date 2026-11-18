@@ -344,27 +344,10 @@ class SystemController {
             }
         }
         
-        $en = loadI18nDictionary('en');
-        $active = ($lang === 'en') ? $en : loadI18nDictionary($lang);
-        
-        // Deep merge
-        $merge = function($base, $over) use (&$merge) {
-            if (!is_array($base)) $base = [];
-            if (!is_array($over)) return $base;
-            foreach ($over as $k => $v) {
-                if (is_array($v) && isset($base[$k]) && is_array($base[$k])) {
-                    $base[$k] = $merge($base[$k], $v);
-                } else {
-                    $base[$k] = $v;
-                }
-            }
-            return $base;
-        };
-        
         return [
             'success' => true,
             'lang' => $lang,
-            'strings' => $merge($en, $active)
+            'strings' => poznoteMergedI18nStrings($lang)
         ];
     }
     

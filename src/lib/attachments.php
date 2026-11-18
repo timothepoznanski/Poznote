@@ -362,7 +362,14 @@ function poznoteFormatAttachmentSize($bytes) {
         return '';
     }
 
-    $units = ['B', 'KB', 'MB', 'GB'];
+    // Same label as formatFileSize() in js/attachments.js, which redraws the
+    // tiles once the page is up: translated unit, up to two decimals. Written
+    // differently here ("11 B" against "11 octets", "1.3 KB" against
+    // "1.25 KB"), the size changed under the eye a moment after the page.
+    $unitKeys = [['bytes', 'B'], ['kb', 'KB'], ['mb', 'MB'], ['gb', 'GB']];
+    $units = array_map(static function (array $unit): string {
+        return function_exists('t') ? (string)t('attachments.size.units.' . $unit[0], [], $unit[1]) : $unit[1];
+    }, $unitKeys);
     $index = 0;
     $size = (float)$bytes;
     while ($size >= 1024 && $index < count($units) - 1) {
@@ -370,8 +377,7 @@ function poznoteFormatAttachmentSize($bytes) {
         $index++;
     }
 
-    $precision = $index === 0 ? 0 : 1;
-    return rtrim(rtrim(number_format($size, $precision, '.', ''), '0'), '.') . ' ' . $units[$index];
+    return rtrim(rtrim(number_format($size, 2, '.', ''), '0'), '.') . ' ' . $units[$index];
 }
 
 /**

@@ -201,6 +201,47 @@ function loadI18nDictionary($lang) {
     return $data;
 }
 
+/**
+ * The dictionary the browser receives (window.POZNOTE_I18N.strings): English
+ * with the language's strings laid over it, so a key the language has not
+ * translated yet still reads in English rather than as its raw name. Served by
+ * GET /api/v1/system/i18n and by public/i18n_js.php.
+ */
+function poznoteMergedI18nStrings(string $lang): array {
+    $en = loadI18nDictionary('en');
+    $active = ($lang === 'en') ? $en : loadI18nDictionary($lang);
+
+    $merge = function ($base, $over) use (&$merge) {
+        if (!is_array($base)) $base = [];
+        if (!is_array($over)) return $base;
+        foreach ($over as $k => $v) {
+            if (is_array($v) && isset($base[$k]) && is_array($base[$k])) {
+                $base[$k] = $merge($base[$k], $v);
+            } else {
+                $base[$k] = $v;
+            }
+        }
+        return $base;
+    };
+
+    return $merge($en, $active);
+}
+
+/**
+ * Address of public/i18n_js.php for a language. The version is taken from the
+ * two dictionaries it merges, so the immutable cache is busted when either
+ * changes and kept otherwise (a release that touches no string reuses it).
+ */
+function poznoteI18nScriptUrl(string $lang): string {
+    $lang = poznoteNormalizeLanguageCode($lang) ?? 'en';
+    $dir = __DIR__ . '/../i18n/';
+    $version = substr(md5(
+        (string)@filemtime($dir . 'en.json') . ':' . (string)@filesize($dir . 'en.json') . ':'
+        . (string)@filemtime($dir . $lang . '.json') . ':' . (string)@filesize($dir . $lang . '.json')
+    ), 0, 12);
+    return 'i18n_js.php?lang=' . rawurlencode($lang) . '&v=' . $version;
+}
+
 function i18nGet($dict, $key) {
     if (!is_array($dict)) return null;
     $parts = explode('.', $key);

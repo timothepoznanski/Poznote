@@ -513,6 +513,10 @@ if ($center_note_content_enabled && $width_value !== '1' && $width_value !== 'tr
     <?php poznoteRenderToolbarIconColorsBootstrap(); ?>
     <!-- Editor/toolbar modules served as one concatenated deferred bundle
          (see index_js.php). The js/*.js files stay the source of truth. -->
+    <!-- The translation dictionary, ahead of every deferred bundle so that
+         window.t() answers in the account's language from their first line
+         (public/i18n_js.php) -->
+    <script defer src="<?php echo htmlspecialchars(poznoteI18nScriptUrl(getUserLanguage()), ENT_QUOTES); ?>"></script>
     <script defer src="index_js.php?group=head&v=<?php echo $v; ?>"></script>
     <script defer src="js/codemirror-dist/markdown-codemirror.iife.js?v=<?php echo $v; ?>"></script>
     <!-- Mermaid (2.7 MB) and KaTeX are loaded on demand by js/lazy-libs.js, only
@@ -1172,6 +1176,140 @@ $whats_new_preview_since = $whats_new_preview ? trim((string)@file_get_contents(
 
     <!-- RIGHT COLUMN -->
     <div id="right_pane">
+    <?php
+        // The tab bar as js/tabs.js will draw it, drawn here from the stored
+        // tabs so it is on screen at the first paint instead of appearing (and
+        // pushing the note down) once the deferred bundle runs. tabs.js replaces
+        // it with its own bar, same markup, at its first render
+        // (data-prerendered). The note named in the URL is resolved as
+        // _restoreTabs() does: its tab becomes the active one, or it takes over
+        // the active tab, so the server gives its title. Left to tabs.js
+        // whenever it would decide otherwise than plain stored state: a Kanban
+        // in the URL, a running search (tabs filtered by the sidebar), a note
+        // nobody can open, and a browser with nothing stored.
+        $tabsPrerenderNoteId = '';
+        $tabsPrerenderNoteTitle = '';
+        if ($note !== '' && $res_right && $missing_note === null) {
+            try {
+                $tabsTitleStmt = $con->prepare('SELECT heading FROM entries WHERE id = ?');
+                $tabsTitleStmt->execute([(int)$note]);
+                $tabsHeading = $tabsTitleStmt->fetchColumn();
+                if ($tabsHeading !== false) {
+                    $tabsPrerenderNoteId = (string)(int)$note;
+                    $tabsPrerenderNoteTitle = trim((string)$tabsHeading);
+                }
+            } catch (Throwable $e) {
+                $tabsPrerenderNoteId = '';
+            }
+        }
+        $tabsPrerenderConfig = [
+            'workspace' => $workspace_filter,
+            'noteId' => $tabsPrerenderNoteId,
+            'noteTitle' => $tabsPrerenderNoteTitle,
+            'skip' => !empty($is_search_mode) || !empty($_GET['kanban']) || ($note !== '' && $tabsPrerenderNoteId === ''),
+            'newNote' => t('index.note.new_note', [], 'New note'),
+            'kanban' => t('notes_list.folder_actions.kanban_view', [], 'Kanban view'),
+            'closeAllTabs' => t('tabs.close_all_tabs', [], 'Close all tabs'),
+            'closeAll' => t('tabs.context_menu.close_all', [], 'Close all'),
+        ];
+    ?>
+    <?php if (!$isRightColFragment): ?>
+    <script>
+    (function () {
+        try {
+            var cfg = <?php echo json_encode($tabsPrerenderConfig, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
+            if (cfg.skip || window.innerWidth <= 800) return;
+            var stored = JSON.parse(localStorage.getItem(window.__poznoteTabsStorageKey(cfg.workspace)) || 'null');
+            if (!stored || !Array.isArray(stored.tabs)) return;
+            var tabs = stored.tabs.filter(function (tab) {
+                if (!tab || !tab.id) return false;
+                return tab.type === 'kanban' ? !!tab.folderId : !!tab.noteId;
+            });
+            if (!tabs.length) return;
+            tabs = tabs.filter(function (t) { return t.pinned === true; })
+                .concat(tabs.filter(function (t) { return t.pinned !== true; }));
+            var activeId = stored.activeTabId;
+            if (!tabs.some(function (t) { return t.id === activeId; })) activeId = tabs[0].id;
+            var titleOf = function (tab) {
+                return tab.title || (tab.type === 'kanban' ? cfg.kanban : cfg.newNote);
+            };
+            if (cfg.noteId) {
+                var noteTitle = cfg.noteTitle || cfg.newNote;
+                var match = tabs.filter(function (t) { return t.type !== 'kanban' && String(t.noteId) === cfg.noteId; })[0];
+                if (match) {
+                    activeId = match.id;
+                } else if (new URLSearchParams(window.location.search).get('newtab') === '1') {
+                    tabs.push({ id: '__pending', noteId: cfg.noteId, title: noteTitle });
+                    activeId = '__pending';
+                } else {
+                    tabs = tabs.map(function (t) {
+                        return t.id === activeId ? { id: t.id, noteId: cfg.noteId, title: noteTitle, pinned: t.pinned } : t;
+                    });
+                }
+            }
+
+            var bar = document.createElement('div');
+            bar.id = 'app-tab-bar';
+            bar.setAttribute('data-prerendered', '1');
+            var scrollBtn = function (dir) {
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'app-tab-scroll-btn app-tab-scroll-' + dir;
+                btn.innerHTML = '<i class="lucide lucide-chevron-' + (dir === 'next' ? 'right' : 'left') + '"></i>';
+                return btn;
+            };
+            var strip = document.createElement('div');
+            strip.className = 'app-tab-strip';
+            bar.appendChild(scrollBtn('prev'));
+            bar.appendChild(strip);
+            bar.appendChild(scrollBtn('next'));
+            tabs.forEach(function (tab) {
+                var type = tab.type === 'kanban' ? 'kanban' : 'note';
+                var pinned = tab.pinned === true;
+                var el = document.createElement('div');
+                el.className = 'app-tab app-tab-' + type + (tab.id === activeId ? ' active' : '') + (pinned ? ' pinned' : '');
+                el.setAttribute('data-tab-id', tab.id);
+                el.setAttribute('data-tab-type', type);
+                if (pinned) {
+                    var pin = document.createElement('span');
+                    pin.className = 'app-tab-pin-icon';
+                    pin.setAttribute('aria-hidden', 'true');
+                    pin.innerHTML = '<i class="lucide lucide-pin"></i>';
+                    el.appendChild(pin);
+                }
+                var title = document.createElement('span');
+                title.className = 'app-tab-title';
+                title.textContent = titleOf(tab);
+                el.appendChild(title);
+                if (!pinned) {
+                    var close = document.createElement('button');
+                    close.className = 'app-tab-close';
+                    close.textContent = '×';
+                    el.appendChild(close);
+                }
+                strip.appendChild(el);
+            });
+            if (tabs.length > 1) {
+                var closeAllBtn = document.createElement('button');
+                closeAllBtn.type = 'button';
+                closeAllBtn.className = 'app-tab-close-all';
+                closeAllBtn.setAttribute('aria-label', cfg.closeAllTabs);
+                closeAllBtn.innerHTML = '<i class="lucide lucide-x"></i>';
+                var closeAllText = document.createElement('span');
+                closeAllText.className = 'app-tab-close-all-label';
+                closeAllText.textContent = cfg.closeAll;
+                closeAllBtn.appendChild(closeAllText);
+                bar.appendChild(closeAllBtn);
+            }
+            document.body.classList.add('has-internal-tabs');
+            var pane = document.getElementById('right_pane');
+            pane.insertBefore(bar, pane.firstChild);
+        } catch (_error) {
+            console.debug('index: tab bar prerender failed:', _error);
+        }
+    })();
+    </script>
+    <?php endif; ?>
     <?php if ($isRightColFragment): ?>
     <?php
         // From here to the end of #right_col the output is the fragment itself:
@@ -1214,7 +1352,7 @@ $whats_new_preview_since = $whats_new_preview ? trim((string)@file_get_contents(
     <!-- OUTLINE PANEL -->
     <div id="outline-panel">
         <div class="outline-header">
-            <h2 class="outline-title" data-i18n="common.outline.title">Outline</h2>
+            <h2 class="outline-title" data-i18n="common.outline.title"><?php echo t_h('common.outline.title', [], 'Outline'); ?></h2>
             <button type="button" class="outline-close-btn" aria-label="<?php echo t_h('common.close'); ?>" title="<?php echo t_h('common.close'); ?>">
                 <i class="lucide lucide-x"></i>
             </button>
@@ -1222,7 +1360,7 @@ $whats_new_preview_since = $whats_new_preview ? trim((string)@file_get_contents(
         <ul class="outline-nav" id="outline-nav">
             <div class="outline-empty">
                 <div class="outline-empty-icon">📄</div>
-                <p class="outline-empty-text" data-i18n="common.outline.no_headings">No headings in this note</p>
+                <p class="outline-empty-text" data-i18n="common.outline.no_headings"><?php echo t_h('common.outline.no_headings', [], 'No headings in this note'); ?></p>
             </div>
         </ul>
     </div>
