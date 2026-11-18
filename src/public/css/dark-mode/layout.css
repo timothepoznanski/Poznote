@@ -252,13 +252,18 @@ html[data-theme='dark'] .icon-sidebar-btn:focus-visible {
     background: var(--pz-surface-hover);
 }
 
-/* Current page. The light 12%-opacity blue washes out on a dark background, so
-   the selected icon gets a brighter tint to stand out from the merely-hovered
-   state above. */
+/* Current page. A grey a step lighter than the hover, not a tint of the
+   accent: on a dark ground a tinted square read as a second, muddier accent
+   next to the icon (discussion #1788). The icon carries the colour. */
 html[data-theme='dark'] .icon-sidebar-btn-active,
 html[data-theme='dark'] .icon-sidebar-btn-active:hover {
     color: var(--pz-accent-text);
-    background: rgba(var(--pz-accent-rgb), 0.30);
+    background: var(--pz-surface-sunken);
+}
+
+html[data-theme='dark'] .icon-sidebar-logo:hover,
+html[data-theme='dark'] .icon-sidebar-logo:focus-visible {
+    background: var(--pz-surface-hover);
 }
 
 html[data-theme='dark'] .icon-sidebar-btn-active .lucide {
@@ -287,7 +292,7 @@ html[data-theme='dark'] .icon-sidebar-overflow-item:focus-visible {
 }
 
 html[data-theme='dark'] .icon-sidebar-overflow-item-active {
-    background: rgba(var(--pz-accent-rgb), 0.30);
+    background: var(--pz-surface-sunken);
     color: var(--pz-accent-text);
 }
 

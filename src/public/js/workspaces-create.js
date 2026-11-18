@@ -263,36 +263,11 @@ function refreshLeftColumnForWorkspace(workspaceName) {
                     }
                 }
 
-                // Reinitialize components after workspace change
-                try {
-                    // Reinitialize workspace menus
-                    if (typeof initializeWorkspaceMenu === 'function') {
-                        initializeWorkspaceMenu();
-                    }
-
-                    // Reinitialize search manager
-                    if (window.searchManager) {
-                        window.searchManager.initializeSearch();
-                        // Ensure at least one button is active
-                        window.searchManager.ensureAtLeastOneButtonActive();
-                    }
-
-                    // Reinitialize other components that might depend on left column content
-                    if (typeof reinitializeClickableTagsAfterAjax === 'function') {
-                        reinitializeClickableTagsAfterAjax();
-                    }
-
-                    // Reinitialize note click handlers for mobile scroll functionality
-                    if (typeof window.initializeNoteClickHandlers === 'function') {
-                        window.initializeNoteClickHandlers();
-                    }
-
-                    // Reinitialize calendar
-                    if (window.MiniCalendar) {
-                        window.miniCalendar = new window.MiniCalendar();
-                    }
-                } catch (error) {
-                    console.error('Error reinitializing after workspace change:', error);
+                // Same rewiring as after a folder action (js/share.js), the
+                // folders' saved open/closed states included. The right
+                // column was cleared by the switch: no Kanban to refresh.
+                if (typeof window.reinitializeLeftColumn === 'function') {
+                    window.reinitializeLeftColumn({ skipKanbanViewRefresh: true });
                 }
 
                 // Re-highlight the currently active note in the sidebar

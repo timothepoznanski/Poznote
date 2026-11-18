@@ -4162,6 +4162,58 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /folders/tree-state:
+    put:
+      tags: [Folders]
+      summary: Remember folders as open or closed in the notes tree
+      description: >
+        The tree renders each folder in the state stored here, on every
+        device. Only the account's owner can write them: someone looking at
+        another account (a shared workspace, a granted account) gets a 403.
+        Ids that are not folders of the account are skipped.
+      parameters:
+        - $ref: '#/components/parameters/UserIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [states]
+              properties:
+                states:
+                  type: object
+                  description: Folder id => true (open), false (closed) or null (forget). 5000 at most.
+                  additionalProperties:
+                    type: boolean
+                    nullable: true
+                  example: {"12": true, "13": false}
+      responses:
+        '200':
+          description: States stored
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  updated:
+                    type: integer
+                    description: Folders whose row was written
+        '400':
+          description: Missing or invalid "states" object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not the account's owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /folders/{id}/offline:
     put:
       tags: [Folders]

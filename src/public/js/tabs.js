@@ -736,6 +736,14 @@
 
         var bar = document.getElementById('app-tab-bar');
 
+        // The bar index.php drew before the first paint from the stored tabs
+        // (data-prerendered): same markup, but none of the handlers below.
+        // Replaced by the real one in the same frame, so nothing moves.
+        if (bar && bar.hasAttribute('data-prerendered')) {
+            bar.remove();
+            bar = null;
+        }
+
         if (tabs.length === 0) {
             if (bar) bar.style.display = 'none';
             document.body.classList.remove('has-internal-tabs');

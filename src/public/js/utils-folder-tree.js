@@ -117,7 +117,7 @@ function setFolderOpenState(folderId, isOpen) {
             icon.classList.remove('lucide-folder');
             icon.classList.add('lucide-folder-open');
         }
-        localStorage.setItem('folder_' + folderId, 'open');
+        rememberFolderOpenState(folderId, true);
     } else {
         content.style.display = 'none';
         // show closed folder icon (only if not custom and not favorites)
@@ -125,7 +125,7 @@ function setFolderOpenState(folderId, isOpen) {
             icon.classList.remove('lucide-folder-open');
             icon.classList.add('lucide-folder');
         }
-        localStorage.setItem('folder_' + folderId, 'closed');
+        rememberFolderOpenState(folderId, false);
     }
 }
 
@@ -264,9 +264,10 @@ function scrollFolderHeaderIntoLeftColumn(header) {
 /**
  * Remember a folder and its ancestors as open, so what a move just dropped in
  * there is on screen once the tree is drawn again (issue #1441). Nothing
- * opens right away: restoreFolderStates() reads these keys on the next
- * render, so this has to run after persistFolderStatesFromDOM(), which would
- * otherwise write the closed state back over it.
+ * opens right away: the next render shows it (the server, or
+ * restoreFolderStates() until the server took it in), so this has to run
+ * after persistFolderStatesFromDOM(), whose closed state would otherwise
+ * win.
  * @param {string|number|null} folderId - Destination folder ID (null/'' for the root)
  */
 function markFolderPathOpen(folderId) {
@@ -276,11 +277,11 @@ function markFolderPathOpen(folderId) {
     var content = document.getElementById(domId);
 
     try {
-        localStorage.setItem('folder_' + domId, 'open');
+        rememberFolderOpenState(domId, true);
         // A destination nested in a closed folder would stay out of sight
         while (content && content.parentElement) {
             content = content.parentElement.closest('.folder-content');
-            if (content && content.id) localStorage.setItem('folder_' + content.id, 'open');
+            if (content && content.id) rememberFolderOpenState(content.id, true);
         }
     } catch (e) {
         console.debug('utils-folder-tree: markFolderPathOpen() failed:', e);
@@ -360,9 +361,198 @@ function findTreeRow(item) {
     return links.length ? links[0] : null;
 }
 
+// ========== Open/closed state of the folders ==========
+//
+// The account's own tree keeps each folder's state in its database
+// (folders.tree_open), so notes_list.php renders the tree the way its reader
+// left it, on every device, after a reload or a workspace switch. Someone
+// looking at another account (a shared workspace, a granted account) keeps
+// them in this browser under folder_<dom id>, as every tree did before:
+// their clicks must not fold the owner's tree. notes_list.php says which on
+// .notes-list-scrollable-content (data-folder-states).
+//
+// A change goes to the server at once and stays in a per-tab list
+// (sessionStorage) until the server has it, applied over every render
+// meanwhile: a tree redrawn before the write landed (a refresh fired right
+// after, a page reload) still shows it, and a failed write is sent again. A
+// page without the tree (create.php...) leaves its changes in that list for
+// the page it goes to. Favorites is not a folder of the database: its fold
+// stays in the browser in both modes.
+
+var FOLDER_STATES_PENDING_KEY = 'poznote_folder_states_pending';
+var FOLDER_STATES_HOLD_KEY = 'poznote_folder_states_hold';
+// A change the server never acknowledged is dropped after a day rather than
+// applied over what other devices did since.
+var FOLDER_STATES_PENDING_TTL = 24 * 3600 * 1000;
+// What persistFolderStatesFromDOM() holds is for the redraw that follows.
+var FOLDER_STATES_HOLD_TTL = 30 * 1000;
+var folderStatesFlushTimer = null;
+
+// 'account', 'browser', or '' on a page without the tree
+function folderStatesMode() {
+    var list = document.querySelector('#left_col .notes-list-scrollable-content[data-folder-states]');
+    return list ? list.getAttribute('data-folder-states') : '';
+}
+
+// Database folders only: "folder-12", not the Favorites section
+function folderDbIdFromDomId(domId) {
+    var match = /^folder-(\d+)$/.exec(String(domId || ''));
+    return match ? match[1] : null;
+}
+
+function readFolderStateMap(key, ttl) {
+    var raw;
+    try {
+        raw = JSON.parse(sessionStorage.getItem(key) || '{}');
+    } catch (e) {
+        return {};
+    }
+    if (!raw || typeof raw !== 'object') return {};
+    var now = Date.now();
+    var map = {};
+    Object.keys(raw).forEach(function (domId) {
+        var entry = raw[domId];
+        if (entry && typeof entry.open === 'boolean' && typeof entry.t === 'number' && now - entry.t < ttl) {
+            map[domId] = entry;
+        }
+    });
+    return map;
+}
+
+function writeFolderStateMap(key, map) {
+    try {
+        if (Object.keys(map).length) {
+            sessionStorage.setItem(key, JSON.stringify(map));
+        } else {
+            sessionStorage.removeItem(key);
+        }
+    } catch (e) {
+        console.debug('utils-folder-tree: folder states not kept for this tab:', e);
+    }
+}
+
 /**
- * Persist current folder open/closed states to localStorage
- * Useful before actions that reload the page (e.g., drag & drop moves)
+ * Remember a folder as opened or closed by hand, where this tree keeps it.
+ * The DOM is the caller's business (setFolderOpenState()).
+ * @param {string} domId - "folder-12"
+ * @param {boolean} open
+ */
+function rememberFolderOpenState(domId, open) {
+    if (!domId) return;
+    var mode = folderStatesMode();
+    if (mode === 'browser' || !folderDbIdFromDomId(domId)) {
+        try { localStorage.setItem('folder_' + domId, open ? 'open' : 'closed'); } catch (e) {
+            console.debug('utils-folder-tree: folder state not kept:', e);
+        }
+        return;
+    }
+    var pending = readFolderStateMap(FOLDER_STATES_PENDING_KEY, FOLDER_STATES_PENDING_TTL);
+    pending[domId] = { open: !!open, t: Date.now() };
+    writeFolderStateMap(FOLDER_STATES_PENDING_KEY, pending);
+    if (mode === 'account') scheduleFolderStatesFlush();
+}
+window.rememberFolderOpenState = rememberFolderOpenState;
+
+function scheduleFolderStatesFlush() {
+    if (folderStatesFlushTimer) return;
+    // One request for a burst ("Expand all folders", a path opened at once)
+    folderStatesFlushTimer = setTimeout(flushFolderStates, 0);
+}
+
+// The browser's own folder_* keys, taken over by the server (they predate
+// folders.tree_open), folder by folder as each one is on screen: the keys of
+// another workspace wait for that workspace. Only for folders the server has
+// no state for, a second device must not undo what the first one handed
+// over; a key for a folder that already has one is just dropped. The live
+// keys are those of the account on screen (js/other-accounts.js swaps them).
+function collectLegacyFolderStates() {
+    try {
+        var states = {};
+        var keys = [];
+        for (var i = 0; i < localStorage.length; i++) {
+            var key = localStorage.key(i);
+            if (!key || key.indexOf('folder_') !== 0) continue;
+            var domId = key.slice('folder_'.length);
+            var content = folderDbIdFromDomId(domId) ? document.getElementById(domId) : null;
+            if (!content || !content.classList.contains('folder-content')) continue;
+            keys.push(key);
+            var value = localStorage.getItem(key);
+            if ((value === 'open' || value === 'closed') && !content.hasAttribute('data-tree-open')) {
+                states[domId] = value === 'open';
+            }
+        }
+        return keys.length ? { states: states, keys: keys } : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function finishLegacyFolderStates(legacy) {
+    try {
+        legacy.keys.forEach(function (key) { localStorage.removeItem(key); });
+    } catch (e) {
+        console.debug('utils-folder-tree: legacy folder states not cleared:', e);
+    }
+}
+
+function flushFolderStates() {
+    folderStatesFlushTimer = null;
+    if (folderStatesMode() !== 'account') return Promise.resolve();
+
+    var pending = readFolderStateMap(FOLDER_STATES_PENDING_KEY, FOLDER_STATES_PENDING_TTL);
+    var legacy = collectLegacyFolderStates();
+    var states = {};
+    var sent = {};
+    if (legacy) {
+        Object.keys(legacy.states).forEach(function (domId) {
+            states[folderDbIdFromDomId(domId)] = legacy.states[domId];
+        });
+    }
+    // Over the legacy keys: this tab's changes are newer
+    Object.keys(pending).forEach(function (domId) {
+        var id = folderDbIdFromDomId(domId);
+        if (!id) return;
+        states[id] = pending[domId].open;
+        sent[domId] = pending[domId].t;
+    });
+
+    if (!Object.keys(states).length) {
+        if (legacy) finishLegacyFolderStates(legacy);
+        return Promise.resolve();
+    }
+
+    var forget = function () {
+        var current = readFolderStateMap(FOLDER_STATES_PENDING_KEY, FOLDER_STATES_PENDING_TTL);
+        Object.keys(sent).forEach(function (domId) {
+            // A newer click on the same folder waits for its own write
+            if (current[domId] && current[domId].t === sent[domId]) delete current[domId];
+        });
+        writeFolderStateMap(FOLDER_STATES_PENDING_KEY, current);
+        if (legacy) finishLegacyFolderStates(legacy);
+    };
+
+    return fetch('api/v1/folders/tree-state', {
+        method: 'PUT',
+        credentials: 'same-origin',
+        // A click right before a reload or a navigation still lands
+        keepalive: true,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ states: states })
+    }).then(function (response) {
+        // Refused for good (not the owner any more, bad data): retrying would
+        // never succeed. A server error or no network: kept for the next try.
+        if (response.ok || response.status === 400 || response.status === 403) forget();
+    }).catch(function (error) {
+        console.debug('utils-folder-tree: folder states not saved yet:', error);
+    });
+}
+
+/**
+ * Keep the open/closed states on screen for the tree about to be drawn again
+ * (a refresh of the list, a page reload after a drag & drop move), which
+ * would otherwise show the states the server picks for folders nobody
+ * touched. Not written to the account: a folder only a search or the note
+ * being created opened stays a guess.
  */
 function persistFolderStatesFromDOM() {
     const folderToggles = document.querySelectorAll('.folder-name[data-folder-dom-id]');
@@ -377,6 +567,10 @@ function persistFolderStatesFromDOM() {
         pendingCreateOpenFolders = [];
     }
 
+    const mode = folderStatesMode();
+    const hold = {};
+    const now = Date.now();
+
     folderToggles.forEach(function (toggleElement) {
         const folderDomId = toggleElement.getAttribute('data-folder-dom-id');
         const folderContent = folderDomId ? document.getElementById(folderDomId) : null;
@@ -385,55 +579,80 @@ function persistFolderStatesFromDOM() {
         const inlineDisplay = folderContent.style.display;
         const isOpen = pendingCreateOpenFolders.indexOf(folderDomId) !== -1
             || (inlineDisplay ? inlineDisplay !== 'none' : window.getComputedStyle(folderContent).display !== 'none');
-        localStorage.setItem('folder_' + folderDomId, isOpen ? 'open' : 'closed');
+        if (mode === 'account' && folderDbIdFromDomId(folderDomId)) {
+            hold[folderDomId] = { open: isOpen, t: now };
+        } else {
+            localStorage.setItem('folder_' + folderDomId, isOpen ? 'open' : 'closed');
+        }
     });
+
+    if (mode === 'account') writeFolderStateMap(FOLDER_STATES_HOLD_KEY, hold);
+}
+
+function paintFolderOpenState(folderContent, toggleElement, open) {
+    const folderToggle = toggleElement.closest('.folder-toggle');
+    const icon = folderToggle ? folderToggle.querySelector('.folder-icon') : null;
+    const folderHeader = toggleElement.closest('.folder-header');
+    const isFavoritesFolder = (folderHeader ? folderHeader.getAttribute('data-folder') : '') === 'Favorites';
+    const isCustomIcon = icon && icon.getAttribute('data-custom-icon') === 'true';
+
+    folderContent.style.display = open ? 'block' : 'none';
+    if (icon && !isFavoritesFolder && !isCustomIcon) {
+        icon.classList.toggle('lucide-folder-open', open);
+        icon.classList.toggle('lucide-folder', !open);
+    }
 }
 
 /**
- * Restore folder states from localStorage on page load
- * This preserves user preferences for which folders should stay open/closed
+ * Apply over the tree the server just rendered what it cannot know yet:
+ * - account mode: the states held by persistFolderStatesFromDOM() for this
+ *   redraw, then the changes not yet acknowledged by the server, plus, once,
+ *   the browser's own keys of the time before the database kept them;
+ * - browser mode: the folder_* keys, as before (only explicit choices, the
+ *   server's state stays for the folders never touched).
+ * Runs after every render of the tree: page load, and every swap of #left_col
+ * (reinitializeLeftColumn() of js/share.js).
  */
 function restoreFolderStates() {
-    // Get all folder name elements that control toggling
+    const mode = folderStatesMode();
     const folderToggles = document.querySelectorAll('.folder-name[data-folder-dom-id]');
+
+    let overlay = {};
+    let legacy = null;
+    if (mode === 'account') {
+        legacy = collectLegacyFolderStates();
+        if (legacy) overlay = Object.assign(overlay, legacy.states);
+        const hold = readFolderStateMap(FOLDER_STATES_HOLD_KEY, FOLDER_STATES_HOLD_TTL);
+        writeFolderStateMap(FOLDER_STATES_HOLD_KEY, {});
+        Object.keys(hold).forEach(function (domId) { overlay[domId] = hold[domId].open; });
+    }
+    const pending = readFolderStateMap(FOLDER_STATES_PENDING_KEY, FOLDER_STATES_PENDING_TTL);
+    if (mode === 'browser') {
+        // Left by a page without the tree, which could not tell the mode
+        Object.keys(pending).forEach(function (domId) {
+            try { localStorage.setItem('folder_' + domId, pending[domId].open ? 'open' : 'closed'); } catch (e) {
+                console.debug('utils-folder-tree: folder state not kept:', e);
+            }
+        });
+        writeFolderStateMap(FOLDER_STATES_PENDING_KEY, {});
+    } else if (mode === 'account') {
+        Object.keys(pending).forEach(function (domId) { overlay[domId] = pending[domId].open; });
+    }
 
     folderToggles.forEach(function (toggleElement) {
         const folderDomId = toggleElement.getAttribute('data-folder-dom-id');
         const folderContent = folderDomId ? document.getElementById(folderDomId) : null;
-        const folderToggle = toggleElement.closest('.folder-toggle');
-        const icon = folderToggle ? folderToggle.querySelector('.folder-icon') : null;
-
         if (!folderContent || !folderDomId) return;
 
-        // Get the folder name to check if it's Favorites
-        const folderHeader = toggleElement.closest('.folder-header');
-        const folderKey = folderHeader ? folderHeader.getAttribute('data-folder') : '';
-        const isFavoritesFolder = folderKey === 'Favorites';
-
-        // Check if icon is custom
-        const isCustomIcon = icon && icon.getAttribute('data-custom-icon') === 'true';
-
-        // Check localStorage for this folder's state
-        const savedState = localStorage.getItem('folder_' + folderDomId);
-
-        // Only override the PHP-determined state if user has explicitly set a preference
-        if (savedState === 'open') {
-            // User explicitly opened this folder - keep it open
-            folderContent.style.display = 'block';
-            if (icon && !isFavoritesFolder && !isCustomIcon) {
-                icon.classList.remove('lucide-folder');
-                icon.classList.add('lucide-folder-open');
-            }
-        } else if (savedState === 'closed') {
-            // User explicitly closed this folder - keep it closed
-            folderContent.style.display = 'none';
-            if (icon && !isFavoritesFolder && !isCustomIcon) {
-                icon.classList.remove('lucide-folder-open');
-                icon.classList.add('lucide-folder');
-            }
+        let open = null;
+        if (mode === 'account' && folderDbIdFromDomId(folderDomId)) {
+            if (Object.prototype.hasOwnProperty.call(overlay, folderDomId)) open = overlay[folderDomId];
+        } else {
+            // Browser mode, and the Favorites section in both modes
+            const savedState = localStorage.getItem('folder_' + folderDomId);
+            if (savedState === 'open' || savedState === 'closed') open = savedState === 'open';
         }
-        // If no saved state exists, leave the folder as it was set by PHP logic
-        // This preserves the smart PHP logic for determining initial folder states
+        if (open !== null) paintFolderOpenState(folderContent, toggleElement, open);
     });
 
     // Favorites are always visible; the old separator toggle is no longer rendered.
@@ -444,6 +663,8 @@ function restoreFolderStates() {
     }
 
     updateToggleAllFoldersButton();
+
+    if (mode === 'account' && (legacy || Object.keys(pending).length)) scheduleFolderStatesFlush();
 }
 
 function emptyFolder(folderId, folderName) {

@@ -90,9 +90,13 @@ if (!empty($search_combined)) {
     $search_in_tags_value = '1';
 }
 // Nothing selected yet: fall back to the default scope, notes and tags at once
+// (js/unified-search.js then prefers the scope stored by the browser, which the
+// inline script under the search field applies before the first paint)
+$search_scope_from_default = false;
 if ($search_in_notes_value !== '1' && $search_in_tags_value !== '1') {
     $search_in_notes_value = '1';
     $search_in_tags_value = '1';
+    $search_scope_from_default = true;
 }
 // Both scopes at once is what the backend calls combined mode
 $search_combined_value = ($search_in_notes_value === '1' && $search_in_tags_value === '1') ? '1' : '';
@@ -115,13 +119,59 @@ $search_combined_value = ($search_in_notes_value === '1' && $search_in_tags_valu
                 </div>
                 <?php $has_active_search = !empty($search) || !empty($tags_search) || $has_created_date_filter; ?>
                 <div class="searchbar-input-wrapper searchbar-has-date-toggle">
-                    <input autocomplete="off" autocapitalize="off" spellcheck="false" id="unified-search" type="text" name="unified_search" class="search form-control searchbar-input" placeholder="<?php echo t_h('search.placeholder_notes'); ?>"<?php
-                        // Several accounts in the list below: the search only covers the
-                        // active one, and its placeholder says which (js/unified-search.js).
-                        if (!empty($otherAccountProfiles) && !empty($activeAccountProfile['username'])) {
-                            echo ' data-account-name="' . htmlspecialchars((string)$activeAccountProfile['username'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '"';
+                    <input autocomplete="off" autocapitalize="off" spellcheck="false" id="unified-search" type="text" name="unified_search" class="search form-control searchbar-input"<?php
+                        // The placeholder js/unified-search.js would write, written here so
+                        // it does not change once the scripts run: the scope in force, or,
+                        // with several accounts in the list below, the active one, which is
+                        // all the search covers.
+                        $searchAccountName = (!empty($otherAccountProfiles) && !empty($activeAccountProfile['username'])) ? (string)$activeAccountProfile['username'] : '';
+                        $searchPlaceholders = [
+                            'notes' => t('search.placeholder_notes', [], 'Search for one or more words (use "quotes" for exact phrases)...'),
+                            'tags' => t('search.placeholder_tags', [], 'Search for one or more tags...'),
+                            'both' => t('search.placeholder_combined', [], 'Search in notes and tags...'),
+                        ];
+                        if ($searchAccountName !== '') {
+                            $searchPlaceholder = str_replace('{{account}}', $searchAccountName, t('search.placeholder_account', [], 'Search in {{account}}...'));
+                        } elseif ($search_combined_value === '1') {
+                            $searchPlaceholder = $searchPlaceholders['both'];
+                        } else {
+                            $searchPlaceholder = $search_in_tags_value === '1' ? $searchPlaceholders['tags'] : $searchPlaceholders['notes'];
+                        }
+                        echo ' placeholder="' . htmlspecialchars($searchPlaceholder, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '"';
+                        if ($searchAccountName !== '') {
+                            echo ' data-account-name="' . htmlspecialchars($searchAccountName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '"';
                         }
                     ?> value="<?php echo htmlspecialchars(($search ?: $tags_search) ?? '', ENT_QUOTES); ?>" />
+                    <?php if ($search_scope_from_default && $searchAccountName === ''): ?>
+                    <script>
+                    // Scope stored by this browser (js/unified-search.js, which takes over
+                    // later and reaches the same result): applied to the two scope icons and
+                    // the placeholder before they paint, rather than changed under the eye.
+                    // Only when nothing in the URL names a scope, the script's own order.
+                    (function () {
+                        try {
+                            var q = new URLSearchParams(window.location.search);
+                            var named = ['search_in_notes', 'search_in_tags', 'search_combined', 'preserve_notes', 'preserve_tags'].some(function (k) { return q.get(k) === '1'; })
+                                || (q.get('search') || '').trim() !== '' || (q.get('tags_search') || '').trim() !== '';
+                            if (named) return;
+                            var stored = localStorage.getItem('poznote_search_scope');
+                            if (!stored && localStorage.getItem('poznote_combined_search_mode') === '0') stored = 'notes';
+                            if (stored !== 'notes' && stored !== 'tags') return;
+                            var placeholders = <?php echo json_encode($searchPlaceholders, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
+                            var input = document.getElementById('unified-search');
+                            if (input) input.placeholder = placeholders[stored];
+                            ['notes', 'tags'].forEach(function (type) {
+                                var btn = document.getElementById('search-' + type + '-btn');
+                                if (!btn) return;
+                                btn.classList.toggle('active', type === stored);
+                                btn.setAttribute('aria-pressed', type === stored ? 'true' : 'false');
+                            });
+                        } catch (_error) {
+                            console.debug('notes_list: stored search scope failed:', _error);
+                        }
+                    })();
+                    </script>
+                    <?php endif; ?>
                     <button type="button" id="search-date-toggle" class="searchbar-date-toggle<?php echo $has_created_date_filter ? ' active' : ''; ?>" data-action="toggle-date-filter" title="<?php echo t_h('search.toggle_date_filter', [], 'Toggle date filter'); ?>" aria-label="<?php echo t_h('search.toggle_date_filter', [], 'Toggle date filter'); ?>" aria-controls="search-date-filter" aria-expanded="<?php echo $has_created_date_filter ? 'true' : 'false'; ?>">
                         <i class="lucide lucide-calendar"></i>
                     </button>
@@ -272,8 +322,11 @@ $renderOtherAccounts = static function (array $profiles): void {
     }
     echo '</div>';
 };
+// data-folder-states: where the folders' open/closed states live, "account"
+// (folders.tree_open, rendered below) or "browser" (localStorage, for someone
+// looking at another account), read by js/utils-folder-tree.js.
 ?>
-<div class="notes-list-scrollable-content">
+<div class="notes-list-scrollable-content" data-folder-states="<?php echo poznoteFolderTreeStatesStored() ? 'account' : 'browser'; ?>">
 <?php
 
 // The active account heads the list with the same collapsible row the other
@@ -610,7 +663,11 @@ function displayFolderRecursive($folderId, $folderData, $depth, $con, $is_search
         
         echo "</span>";
         echo "</div>";
-        echo "<div class='folder-content' id='$folderDomId' style='display: $folder_display;'>";
+        // data-tree-open: the state stored for the folder, if any (the
+        // one-time hand-over of states this browser kept, js/utils-folder-tree.js)
+        $storedOpenState = poznoteFolderStoredOpenState($folderData);
+        $treeOpenAttr = $storedOpenState === null ? '' : " data-tree-open='" . ($storedOpenState ? '1' : '0') . "'";
+        echo "<div class='folder-content' id='$folderDomId' style='display: $folder_display;'$treeOpenAttr>";
 
         // Favorite folders are listed first inside the Favorites section
         if ($hasFavoriteFolders) {
@@ -798,6 +855,72 @@ if ($showAccountRows) {
 $renderOtherAccounts($otherAccountProfiles);
 ?>
 </div><!-- End of notes-list-scrollable-content -->
+<?php
+// Folders opened or closed by hand, applied before the first paint. The server
+// opens the folders it thinks matter (shouldFolderBeOpen()), the browser keeps
+// the reader's own choice under folder_<dom id> and restoreFolderStates()
+// (js/utils-folder-tree.js) applied it once the bundles ran: the tree showed
+// the server's state, then folders snapped open or shut under the pointer.
+// Same rules as that function, which still runs and finds nothing to change,
+// plus the "Expand all folders" chevron that follows the result
+// (updateToggleAllFoldersButton()). Not in a fragment reloaded by fetch,
+// where inline scripts do not run and the JS does it as before.
+?>
+<script>
+(function () {
+    try {
+        var left = document.getElementById('left_col');
+        if (!left) return;
+        var names = left.querySelectorAll('.folder-name[data-folder-dom-id]');
+        for (var i = 0; i < names.length; i++) {
+            var domId = names[i].getAttribute('data-folder-dom-id');
+            var content = domId ? document.getElementById(domId) : null;
+            // A state the account keeps (folders.tree_open) is already in the
+            // markup and wins over whatever this browser remembers
+            if (!content || content.hasAttribute('data-tree-open')) continue;
+            var saved = localStorage.getItem('folder_' + domId);
+            if (saved !== 'open' && saved !== 'closed') continue;
+            var open = saved === 'open';
+            content.style.display = open ? 'block' : 'none';
+            var toggle = names[i].closest('.folder-toggle');
+            var icon = toggle ? toggle.querySelector('.folder-icon') : null;
+            var header = names[i].closest('.folder-header');
+            if (icon && icon.getAttribute('data-custom-icon') !== 'true' && !(header && header.getAttribute('data-folder') === 'Favorites')) {
+                icon.classList.toggle('lucide-folder-open', open);
+                icon.classList.toggle('lucide-folder', !open);
+            }
+        }
+        var contents = left.querySelectorAll('.folder-content[id]');
+        var hasFolders = false;
+        var anyClosed = false;
+        for (var j = 0; j < contents.length; j++) {
+            var parent = contents[j].parentElement;
+            if (parent && parent.classList.contains('folder-header') && parent.getAttribute('data-folder') === 'Favorites') continue;
+            hasFolders = true;
+            if ((contents[j].style.display || getComputedStyle(contents[j]).display) === 'none') anyClosed = true;
+        }
+        var expand = !hasFolders || anyClosed;
+        var title = expand
+            ? <?php echo json_encode(t('sidebar.expand_all_folders', [], 'Expand all folders'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>
+            : <?php echo json_encode(t('sidebar.collapse_all_folders', [], 'Collapse all folders'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>;
+        var buttons = document.querySelectorAll('[data-action="toggle-all-folders"]');
+        for (var k = 0; k < buttons.length; k++) {
+            var button = buttons[k];
+            button.setAttribute('aria-expanded', expand ? 'false' : 'true');
+            button.disabled = !hasFolders;
+            button.title = title;
+            button.setAttribute('aria-label', title);
+            var chevron = button.querySelector('.lucide');
+            if (chevron) {
+                chevron.classList.toggle('lucide-chevron-down', expand);
+                chevron.classList.toggle('lucide-chevron-up', !expand);
+            }
+        }
+    } catch (e) {
+        // js/utils-folder-tree.js applies the same states once loaded
+    }
+})();
+</script>
 
 <?php
 // Single shared dropdown for the per-folder three-dot toggles (position:fixed,

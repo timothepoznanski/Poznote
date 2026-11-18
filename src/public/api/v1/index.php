@@ -685,6 +685,11 @@ $router->post('/folders/move-files', function($params) use ($foldersController) 
     $foldersController->moveFiles();
 });
 
+// Open/closed state of folders in the notes tree, several at once
+$router->put('/folders/tree-state', function($params) use ($foldersController) {
+    $foldersController->updateTreeState();
+});
+
 // Reorder folders before/after a sibling
 $router->post('/folders/reorder', function($params) use ($foldersController) {
     $foldersController->reorder();

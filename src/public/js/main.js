@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initialize automatic update checking (once per day, for admin users only)
     checkForUpdatesAutomatic();
 
-    // Restore folder states from localStorage
+    // Folder states the server cannot know yet, or kept by this browser
     restoreFolderStates();
 
     // Restore open folders after returning from create.php
@@ -73,7 +73,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     var fc = document.getElementById(folderId);
                     if (!fc) return;
                     fc.style.display = 'block';
-                    localStorage.setItem('folder_' + folderId, 'open');
+                    if (typeof rememberFolderOpenState === 'function') {
+                        rememberFolderOpenState(folderId, true);
+                    } else {
+                        localStorage.setItem('folder_' + folderId, 'open');
+                    }
                     var nameEl = document.querySelector('.folder-name[data-folder-dom-id="' + folderId + '"]');
                     var toggleEl = nameEl ? nameEl.closest('.folder-toggle') : null;
                     var icon = toggleEl ? toggleEl.querySelector('.folder-icon') : null;

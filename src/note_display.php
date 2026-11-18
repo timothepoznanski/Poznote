@@ -407,6 +407,22 @@
 
                     // Forward navigation button (desktop only)
                     echo '<button type="button" id="note-history-forward" class="toolbar-btn btn-history-nav btn-history-forward history-disabled" title="' . t_h('editor.toolbar.go_forward', [], 'Go forward') . '" disabled><i class="lucide lucide-circle-chevron-right"></i></button>';
+                    // Back / Forward in their final state before the first
+                    // paint: the note history lives in sessionStorage, read by
+                    // js/note-history.js once the bundles ran, so Back
+                    // appeared a moment after the page. Same reading as its
+                    // loadState() + push() of the note on screen, without
+                    // writing anything (the script still does). Not run when
+                    // the note arrives by fetch, the script handles it then.
+                    echo '<script>(function(){try{'
+                        . 'var id=' . json_encode((string)$row['id']) . ',h=[],i=-1,raw=JSON.parse(sessionStorage.getItem("poznote_note_history_state")||"null");'
+                        . 'if(raw&&Array.isArray(raw.history)){h=raw.history.map(String).filter(function(n){return n&&n!=="-1"&&n!=="search";});'
+                        . 'if(h.length){i=parseInt(raw.currentIndex,10);if(isNaN(i))i=h.length-1;i=Math.max(0,Math.min(i,h.length-1));}}'
+                        . 'if(!(i>=0&&h[i]===id)){h=h.slice(0,i+1);h.push(id);if(h.length>50)h.shift();i=h.length-1;}'
+                        . 'var b=document.getElementById("note-history-back"),f=document.getElementById("note-history-forward");'
+                        . 'if(b){b.disabled=!(i>0);b.classList.toggle("history-disabled",!(i>0));}'
+                        . 'if(f){f.disabled=!(i<h.length-1);f.classList.toggle("history-disabled",!(i<h.length-1));}'
+                        . '}catch(e){}})();</script>';
 
                     echo '<button type="button" class="toolbar-btn btn-trash note-action-btn" data-action="delete-note" data-note-id="'.$row['id'].'" title="'.t_h('common.delete', [], 'Delete').'"><i class="lucide lucide-trash-2"></i></button>';
                     
@@ -540,8 +556,33 @@
                     echo '<span class="lucide lucide-tag icon_tag cursor-pointer" data-action="show-tag-edit-modal" data-note-id="'.$row['id'].'" title="'.t_h('tags.manage_note_tags', [], 'Manage note tags').'"></span>';
                     echo '</div>';
 
-                    echo '<span class="name_tags">'
-                        .'<input type="hidden" id="tags'.$row['id'].'" value="'.htmlspecialchars(str_replace(',', ' ', $row['tags'] ?? ''), ENT_QUOTES).'"/>'
+                    // The editable tags, drawn here with the markup
+                    // convertTagsToEditable() builds (js/clickable-tags.js),
+                    // which replaces them with its own, wired, the moment it
+                    // runs: drawn by the script alone, the row stayed empty at
+                    // the first paint and the title moved down when the tags
+                    // and their "Add tag..." field arrived.
+                    $tags_value = str_replace(',', ' ', $row['tags'] ?? '');
+                    $tags_list = array_values(array_filter(preg_split('/[,\s]+/', trim($tags_value)) ?: [], static fn($tag) => $tag !== ''));
+                    $tags_html = '<span class="tags-scroll-btn tags-scroll-prev" aria-hidden="true"><i class="lucide lucide-chevron-left"></i></span>'
+                        . '<div class="editable-tags-list">';
+                    $tag_remove_title = t_h('tags.action.remove', [], 'Remove tag');
+                    foreach ($tags_list as $tag_name) {
+                        // Same lookup as PoznoteTagActions.resolveHex() (js/tag-actions.js)
+                        $tag_hex = function_exists('resolveTagColorHex') ? (string)resolveTagColorHex($tag_name) : '';
+                        $tag_dot = $tag_hex !== '' ? '<span class="tag-color-dot" style="background: ' . htmlspecialchars($tag_hex, ENT_QUOTES) . ';"></span>' : '';
+                        $tags_html .= '<span class="clickable-tag-wrapper"><span class="clickable-tag" data-tag="' . htmlspecialchars($tag_name, ENT_QUOTES) . '">'
+                            . $tag_dot . htmlspecialchars($tag_name, ENT_QUOTES) . '</span>'
+                            . '<span class="tag-delete-button" title="' . $tag_remove_title . '">×</span></span>';
+                    }
+                    $tags_html .= '</div><span class="tags-scroll-btn tags-scroll-next" aria-hidden="true"><i class="lucide lucide-chevron-right"></i></span>';
+                    $tags_placeholder = !empty($tags_list)
+                        ? t_h('tags.add_single', [], 'Add tag...')
+                        : t_h('tags.add_multiple', [], 'Add tags...');
+                    $tags_html .= '<input class="tag-input" type="text" placeholder="' . $tags_placeholder . '" autocomplete="off" autocorrect="off" spellcheck="false">';
+                    echo '<span class="name_tags showing-editable-tags">'
+                        .'<input type="hidden" id="tags'.$row['id'].'" value="'.htmlspecialchars($tags_value, ENT_QUOTES).'"/>'
+                        .'<div class="editable-tags-container">' . $tags_html . '</div>'
                     .'</span>';
                     echo '</div>';
                 
@@ -637,6 +678,36 @@
                     if (isset($row['title_size']) && $row['title_size'] !== '') {
                         $titleSize = min(64, max(12, (int)$row['title_size']));
                         $titleHeadingAttrs .= ' data-title-size="' . $titleSize . '" style="--note-title-size: ' . $titleSize . 'px;"';
+                    }
+                    // Backlinks row, drawn with the note (lib/backlinks.php):
+                    // fetched by js/backlinks.js once the page was up, it
+                    // arrived after the first paint and pushed the title down.
+                    // Same request the script made (workspace of the page,
+                    // linking notes from every workspace unless confined to a
+                    // shared one, 'check' for the chevron); a failure leaves
+                    // the row to the script, as before.
+                    $backlinks_data = null;
+                    try {
+                        require_once __DIR__ . '/lib/backlinks.php';
+                        $backlinks_all_workspaces = !(function_exists('isSharedWorkspaceScopeActive') && isSharedWorkspaceScopeActive());
+                        $backlinks_data = poznoteCollectBacklinks($con, (int)$row['id'], (string)$workspace_filter, $backlinks_all_workspaces, 'check');
+                    } catch (Throwable $e) {
+                        error_log('note_display: backlinks failed: ' . $e->getMessage());
+                        $backlinks_data = null;
+                    }
+                    $backlinks_row_html = $backlinks_data !== null
+                        ? poznoteRenderBacklinksRow((int)$row['id'], $backlinks_data, $note_type === 'tasklist', (string)$workspace_filter)
+                        : '';
+                    if (empty($backlinks_at_bottom_setting)) {
+                        echo $backlinks_row_html;
+                    }
+                    // Attachment tiles right above the title, where
+                    // renderAttachmentPreviewsNow() (js/attachments.js) puts
+                    // them when it redraws them: printed between the title
+                    // and the note, they jumped above the title a moment
+                    // after the page.
+                    if ($attachment_previews_in_note_setting && !$attachments_at_bottom_setting) {
+                        echo poznoteRenderAttachmentPreviews($row['id'], $row['attachments'] ?? '', $workspace_filter, $entryfinal ?? '', !empty($attachments_show_inserted_images_setting));
                     }
                     echo '<h4 class="note-title-heading"'.$titleHeadingAttrs.'>'.$titleNoteIcon.'<input class="css-title" autocomplete="off" autocapitalize="off" spellcheck="false" id="inp'.$row['id'].'" type="text" placeholder="'.$titlePlaceholder.'" value="'.$titleValue.'"'.$titleReadonlyAttr.$titleInputStyle.'/>';
                     // Subline: a small line of metadata under the title, inside
@@ -773,9 +844,6 @@
                     if (isset($row['linked_note_id']) && $row['linked_note_id']) {
                         $linked_note_id_attr = ' data-linked-note-id="'.(int)$row['linked_note_id'].'"';
                     }
-                    if ($attachment_previews_in_note_setting && !$attachments_at_bottom_setting) {
-                        echo poznoteRenderAttachmentPreviews($row['id'], $row['attachments'] ?? '', $workspace_filter, $entryfinal ?? '', !empty($attachments_show_inserted_images_setting));
-                    }
                     $spellcheck_enabled = poznoteSettingEnabled($settings['spellcheck_html_notes'], false);
                     $spellcheck_attr = ($note_type === 'note' && $spellcheck_enabled) ? 'true' : 'false';
                     // Auto-capitalisation setting (discussion 1793), on by default
@@ -788,13 +856,27 @@
                     // the entry out of sight while it carries this class.
                     $entry_class = 'noteentry' . ($note_type === 'markdown' ? ' markdown-pending' : '');
                     echo '<div class="'.$entry_class.'" autocomplete="off" autocapitalize="'.$autocapitalize_attr.'" spellcheck="'.$spellcheck_attr.'"'.$lang_attr.' id="entry'.$row['id'].'" data-note-id="'.$row['id'].'" data-note-heading="'.htmlspecialchars($row['heading'] ?? '', ENT_QUOTES).'"'.$placeholder_attr.' contenteditable="'.$entry_editable.'" data-note-type="'.$note_type_attr.'"'.$data_attr.$excalidraw_attr.$linked_note_id_attr.'>'.$display_content.'</div>';
+                    // Under the note, the order the scripts leave once they
+                    // ran: tiles right under it (renderAttachmentPreviewsNow()
+                    // puts them there), then the backlinks, then the
+                    // attachment links row (renderPanel() in js/backlinks.js)
+                    $bottom_tiles_html = '';
+                    $bottom_links_html = '';
                     if ($attachments_at_bottom_setting) {
                         if ($attachment_previews_in_note_setting) {
-                            echo poznoteRenderAttachmentPreviews($row['id'], $row['attachments'] ?? '', $workspace_filter, $entryfinal ?? '', !empty($attachments_show_inserted_images_setting));
+                            $bottom_tiles_html = poznoteRenderAttachmentPreviews($row['id'], $row['attachments'] ?? '', $workspace_filter, $entryfinal ?? '', !empty($attachments_show_inserted_images_setting));
                         } else {
-                            echo $attachment_links_html;
+                            $bottom_links_html = $attachment_links_html;
                         }
                     }
+                    echo $bottom_tiles_html;
+                    if (!empty($backlinks_at_bottom_setting)) {
+                        echo $backlinks_row_html;
+                    }
+                    if ($backlinks_data !== null) {
+                        echo poznoteRenderBacklinksData((int)$row['id'], $backlinks_data);
+                    }
+                    echo $bottom_links_html;
                     echo '<div class="note-scroll-edge-controls">';
                     echo '<button type="button" class="note-scroll-edge-btn note-scroll-top-btn" data-action="scroll-note-top" data-note-id="'.$row['id'].'" title="'.t_h('common.scroll_top', [], 'Scroll to top').'" aria-label="'.t_h('common.scroll_top', [], 'Scroll to top').'" disabled><i class="lucide lucide-arrow-up"></i></button>';
                     echo '<button type="button" class="note-scroll-edge-btn note-scroll-bottom-btn" data-action="scroll-note-bottom" data-note-id="'.$row['id'].'" title="'.t_h('common.scroll_bottom', [], 'Scroll to bottom').'" aria-label="'.t_h('common.scroll_bottom', [], 'Scroll to bottom').'" disabled><i class="lucide lucide-arrow-down"></i></button>';

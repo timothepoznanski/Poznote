@@ -71,8 +71,10 @@
             '    cursor: default;',
             '}',
             '.note-lock-disabled {',
-            '    opacity: 0.45;',
             '    pointer-events: none !important;',
+            '}',
+            '.note-lock-disabled:not(.note-lock-quiet) {',
+            '    opacity: 0.45;',
             '}',
             '.note-lock-readonly {',
             '    cursor: not-allowed;',
@@ -159,7 +161,11 @@
         });
     }
 
-    function setTemporarilyDisabled(element, disabled) {
+    // quiet: blocked without looking greyed. Used while a freshly opened note
+    // waits for its lock status, a ~150 ms round trip that ends editable
+    // nearly every time: fading the whole toolbar, the tags and the task
+    // checkboxes for that long read as a flicker on every note open.
+    function setTemporarilyDisabled(element, disabled, quiet) {
         if (!element) {
             return;
         }
@@ -173,14 +179,17 @@
             element.dataset.noteLockPrevOpacity = element.style.opacity || '';
         }
 
-        if ('disabled' in element) {
+        // The browser greys a disabled checkbox or field on its own, so a
+        // quiet block keeps to pointer-events: nothing can be clicked meanwhile
+        if ('disabled' in element && !(disabled && quiet)) {
             element.disabled = !!disabled;
         }
 
         if (disabled) {
             element.style.pointerEvents = 'none';
-            element.style.opacity = '0.45';
+            element.style.opacity = quiet ? (element.dataset.noteLockPrevOpacity || '') : '0.45';
             element.classList.add('note-lock-disabled');
+            element.classList.toggle('note-lock-quiet', !!quiet);
             element.setAttribute('aria-disabled', 'true');
         } else {
             if (element.dataset.noteLockPrevDisabled !== '1' && 'disabled' in element) {
@@ -188,7 +197,7 @@
             }
             element.style.pointerEvents = element.dataset.noteLockPrevPointerEvents || '';
             element.style.opacity = element.dataset.noteLockPrevOpacity || '';
-            element.classList.remove('note-lock-disabled');
+            element.classList.remove('note-lock-disabled', 'note-lock-quiet');
             element.removeAttribute('aria-disabled');
             delete element.dataset.noteLockManaged;
             delete element.dataset.noteLockPrevDisabled;
@@ -252,7 +261,7 @@
         }
     }
 
-    function updateToolbarState(noteCard, locked) {
+    function updateToolbarState(noteCard, locked, quiet) {
         if (!noteCard) {
             return;
         }
@@ -283,7 +292,7 @@
             });
 
             if (!keepEnabled) {
-                setTemporarilyDisabled(button, locked);
+                setTemporarilyDisabled(button, locked, quiet);
             }
         });
 
@@ -291,7 +300,7 @@
             if (readOnlyShare && element.getAttribute('data-action') === 'show-attachment-dialog') {
                 return;
             }
-            setTemporarilyDisabled(element, locked);
+            setTemporarilyDisabled(element, locked, quiet);
         });
 
         noteCard.querySelectorAll('.mobile-toolbar-menu [data-action]').forEach(function (element) {
@@ -305,7 +314,7 @@
                 || selector === '.markdown-edit-btn'
                 || selector === '.markdown-preview-btn';
             if (!keepEnabled) {
-                setTemporarilyDisabled(element, locked);
+                setTemporarilyDisabled(element, locked, quiet);
             }
         });
     }
@@ -713,7 +722,7 @@
         if (noteCard) {
             noteCard.classList.add('note-edit-locked');
             clearLockBanner(noteCard);
-            updateToolbarState(noteCard, true);
+            updateToolbarState(noteCard, true, true);
         }
 
         if (titleInput) {
@@ -727,7 +736,7 @@
                 setContentEditableState(element, false);
             });
             entry.querySelectorAll('input, textarea, select, button').forEach(function (element) {
-                setTemporarilyDisabled(element, true);
+                setTemporarilyDisabled(element, true, true);
             });
             syncMarkdownEditorReadOnly(entry);
         }

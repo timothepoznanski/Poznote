@@ -143,7 +143,7 @@ function organizeNotesByFolder($stmt_left, $con, $workspace_filter, $sort_mode =
  * @return array Updated folders array including empty folders
  */
 function addEmptyFolders($con, $folders, $workspace_filter) {
-    $folders_sql = "SELECT id, name, icon, icon_color, title_color, kanban_enabled, created, display_order, favorite, offline FROM folders";
+    $folders_sql = "SELECT id, name, icon, icon_color, title_color, kanban_enabled, created, display_order, favorite, offline, tree_open FROM folders";
     $params = [];
     if (!empty($workspace_filter)) {
         $folders_sql .= " WHERE workspace = ?";
@@ -164,6 +164,7 @@ function addEmptyFolders($con, $folders, $workspace_filter) {
         $displayOrder = (int)($folder_row['display_order'] ?? 0);
         $isFavorite = (int)($folder_row['favorite'] ?? 0);
         $isOffline = (int)($folder_row['offline'] ?? 0);
+        $treeOpen = isset($folder_row['tree_open']) && $folder_row['tree_open'] !== null ? (int)$folder_row['tree_open'] : null;
 
         if (!isset($folders[$folderId])) {
             $folders[$folderId] = [
@@ -177,6 +178,7 @@ function addEmptyFolders($con, $folders, $workspace_filter) {
                 'display_order' => $displayOrder,
                 'favorite' => $isFavorite,
                 'offline' => $isOffline,
+                'tree_open' => $treeOpen,
                 'notes' => []
             ];
         } else {
@@ -189,6 +191,7 @@ function addEmptyFolders($con, $folders, $workspace_filter) {
             $folders[$folderId]['display_order'] = $displayOrder;
             $folders[$folderId]['favorite'] = $isFavorite;
             $folders[$folderId]['offline'] = $isOffline;
+            $folders[$folderId]['tree_open'] = $treeOpen;
         }
     }
 
@@ -256,6 +259,32 @@ function sortFolders($folders, $sort_mode = POZNOTE_NOTE_SORT_DEFAULT) {
 }
 
 /**
+ * Whether the open/closed states of the tree on screen are the account's own
+ * (folders.tree_open): only for its owner. Someone looking at another account
+ * (a shared workspace, a granted account) keeps them in the browser, as every
+ * tree did before, so their clicks never fold the owner's tree.
+ */
+function poznoteFolderTreeStatesStored(): bool {
+    return !function_exists('isActiveAccountOwnedByAuthenticatedUser') || isActiveAccountOwnedByAuthenticatedUser();
+}
+
+/**
+ * The state a folder was left in by hand, null when it never was or when the
+ * tree is not its owner's (poznoteFolderTreeStatesStored()).
+ *
+ * @param array $folderData Folder data array, 'tree_open' from addEmptyFolders()
+ */
+function poznoteFolderStoredOpenState(array $folderData): ?bool {
+    if (!array_key_exists('tree_open', $folderData) || $folderData['tree_open'] === null) {
+        return null;
+    }
+    if (!poznoteFolderTreeStatesStored()) {
+        return null;
+    }
+    return (int)$folderData['tree_open'] === 1;
+}
+
+/**
  * Determines if a folder should be open in the UI
  * Accepts the full folder data array
  * 
@@ -291,15 +320,28 @@ function shouldFolderBeOpen($con, $folderData, $is_search_mode, $folders_with_re
         }
     }
     
-    if($total_notes <= 3) {
-        // If we have very few notes (demo notes just created), open all folders
-        return true;
-    } else if($is_search_mode) {
-        // In search mode: open folders that have results (direct or in subfolders)
+    if ($is_search_mode) {
+        if ($total_notes <= 3) {
+            return true;
+        }
+        // In search mode: open folders that have results (direct or in
+        // subfolders), whatever state the folder was left in
         if (isset($folders_with_results[$folderName])) {
             return true;
         }
         return countNotesRecursively($folderData) > 0;
+    }
+
+    // Opened or closed by hand (folders.tree_open): the reader's choice wins
+    // over the guesses below
+    $storedOpen = poznoteFolderStoredOpenState($folderData);
+    if ($storedOpen !== null) {
+        return $storedOpen;
+    }
+
+    if($total_notes <= 3) {
+        // If we have very few notes (demo notes just created), open all folders
+        return true;
     } else if($note != '') {
         // If a note is selected: open the folder of the current note
         if ($folderName === $current_note_folder) {

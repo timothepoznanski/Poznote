@@ -46,7 +46,7 @@ $aiPanelSavedPrompts = poznoteAiSavedPrompts($con);
     <div id="ai-chat-panel">
         <div class="ai-chat-resize-handle" id="aiChatResizeHandle"></div>
         <div class="ai-chat-header">
-            <h2 class="ai-chat-title"><i class="lucide lucide-bot"></i> <span data-i18n="ai_chat.title">AI Assistant</span></h2>
+            <h2 class="ai-chat-title"><i class="lucide lucide-bot"></i> <span data-i18n="ai_chat.title"><?php echo t_h('ai_chat.title', [], 'AI Assistant'); ?></span></h2>
             <?php
             // Admins land on the instance configuration, everyone else on their
             // own page: custom instructions, plus their own provider when
@@ -78,12 +78,7 @@ $aiPanelSavedPrompts = poznoteAiSavedPrompts($con);
             <?php if ($aiPanelReadOnly): ?>
             <div class="ai-chat-empty"><?php echo t_h('ai_chat.empty_read_only', [], "Ask a question.\n\nThe assistant searches and reads the notes of every workspace shown on this dashboard, but changes nothing here.\n\nIt can also look at the images they contain."); ?></div>
             <?php else: ?>
-            <div class="ai-chat-empty" data-i18n="ai_chat.empty">Ask a question.
-
-The assistant can search, read, create, edit,
-organize and delete your notes.
-
-It can also look at the images they contain.</div>
+            <div class="ai-chat-empty" data-i18n="ai_chat.empty"><?php echo t_h('ai_chat.empty', [], "Ask a question.\n\nThe assistant can search, read, create, edit,\norganize and delete your notes.\n\nIt can also look at the images they contain."); ?></div>
             <?php endif; ?>
         </div>
         <!-- The last conversations of the workspace; js/ai-chat.js fills it and shows it in place of the messages -->

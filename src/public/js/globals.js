@@ -222,6 +222,21 @@ function escapeHtml(text) {
     };
 
     document.addEventListener('DOMContentLoaded', function () {
+        // index.php loads the dictionary as a deferred script ahead of the
+        // bundles (public/i18n_js.php), so window.t() already answers in the
+        // account's language: nothing to fetch. The DOM pass and the event
+        // still happen, as listeners wait for them, the event a tick later
+        // so that DOMContentLoaded handlers registered after this one can
+        // still subscribe to it, as they could while it came from a fetch.
+        if (window.POZNOTE_I18N && window.POZNOTE_I18N.preloaded) {
+            window.applyI18nToDom(document);
+            setTimeout(function () {
+                try { document.dispatchEvent(new CustomEvent('poznote:i18n:loaded', { detail: window.POZNOTE_I18N })); } catch (e) {
+                    console.debug('globals: i18n loaded event failed:', e);
+                }
+            }, 0);
+            return;
+        }
         window.loadPoznoteI18n();
     });
 })();
