@@ -1947,6 +1947,12 @@ html[data-theme='dark'] body:has(> .settings-shell.settings-subpage) {
         min-width: 0;
         justify-content: flex-start;
     }
+
+    /* On a line of its own, the list with icons is not held to the 55% it
+       shares with the title on one row, which cut "Rich text" short */
+    .settings-with-nav .settings-card-stacks .settings-icon-select-toggle {
+        max-width: 100%;
+    }
 }
 
 /* A line of explanation under the title and the control, across the row
@@ -2089,6 +2095,115 @@ html[data-theme='dark'] body:has(> .settings-shell.settings-subpage) {
     font-variant-numeric: tabular-nums;
     text-align: right;
     color: var(--pz-text-secondary);
+}
+
+/* A list whose options carry an icon (js/settings-icon-select.js): the
+   <select> keeps the value out of sight, a button with the look of the
+   inline lists shows the chosen option and opens a menu of them. Icons are
+   those of the view menu of a Markdown note. */
+.settings-icon-select-source {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    border: 0;
+    margin: -1px;
+    clip-path: inset(50%);
+    overflow: hidden;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.settings-icon-select-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    text-align: left;
+}
+
+.settings-icon-select-toggle:focus-visible {
+    outline: none;
+    border-color: var(--pz-accent);
+    box-shadow: 0 0 0 3px rgba(var(--pz-accent-rgb), 0.1);
+}
+
+.settings-icon-select-toggle > i,
+.settings-icon-select-item > i {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+    color: var(--pz-text-muted);
+}
+
+.settings-icon-select-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.settings-icon-select-toggle > .settings-icon-select-caret {
+    width: 13px;
+    height: 13px;
+    margin-left: auto;
+}
+
+.settings-icon-select-menu {
+    position: fixed;
+    z-index: 1000;
+    box-sizing: border-box;
+    padding: 6px 0;
+    background: var(--pz-bg);
+    border: 1px solid var(--pz-border);
+    border-radius: var(--pz-radius-lg);
+    box-shadow: 0 6px 18px rgba(var(--pz-shadow-rgb), 0.15);
+}
+
+.settings-icon-select-menu[hidden] {
+    display: none;
+}
+
+.settings-icon-select-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 14px;
+    margin: 0;
+    background: none;
+    border: none;
+    border-radius: 0;
+    color: var(--pz-text);
+    font: inherit;
+    font-size: calc(13px * var(--settings-font-scale, 1));
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.settings-icon-select-item:hover,
+.settings-icon-select-item:focus-visible {
+    background: var(--pz-surface-hover);
+    outline: none;
+}
+
+.settings-icon-select-item:hover > i,
+.settings-icon-select-item:focus-visible > i {
+    color: var(--pz-text);
+}
+
+/* The option the list is on, like the view the note is in */
+.settings-icon-select-item[aria-checked="true"],
+.settings-icon-select-item[aria-checked="true"] > i {
+    color: var(--pz-accent-text);
+}
+
+html[data-theme='dark'] .settings-icon-select-menu {
+    background: var(--pz-surface, var(--pz-bg));
+    border-color: rgba(var(--pz-highlight-rgb), 0.14);
+    box-shadow: 0 6px 18px rgba(var(--pz-shadow-rgb), 0.5);
 }
 
 html[data-theme='dark'] .settings-inline-select,

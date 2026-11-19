@@ -524,6 +524,9 @@ function poznoteCssManifest(): array
         'settings' => [
             'css/fonts.css',
             'css/lucide.css',
+            // The Markdown mark of the "Live preview" option in the lists of
+            // view modes (js/settings-icon-select.js)
+            'css/devicon.css',
             '@components',
             'css/modal-alerts.css',
             'css/home/base.css',

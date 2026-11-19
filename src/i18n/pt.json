@@ -491,7 +491,7 @@
       "language": "Altere o idioma da interface.",
       "main_font": "Escolha a fonte usada em todo o aplicativo.",
       "markdown_font": "Escolha a fonte usada no editor markdown.",
-      "markdown_default_view_mode": "Escolha se as notas markdown abrem em pré-visualização, edição ou vista dividida.",
+      "markdown_default_view_mode": "Escolha se as notas markdown abrem em pré-visualização, edição, pré-visualização em tempo real, texto formatado ou vista dividida.",
       "markdown_new_note_view_mode": "Escolha se uma nota markdown nova abre em vista dividida, em edição, em pré-visualização em tempo real ou em texto formatado. Com a pré-visualização em tempo real ou o texto formatado, as outras notas passam também para essa vista. No celular, uma nota nova nunca abre em vista dividida.",
       "font_size": "Ajuste o tamanho da fonte das notas, da barra lateral, dos blocos de código e da página de configurações.",
       "index_icon_scale": "Ajuste o tamanho dos ícones na lista de notas.",

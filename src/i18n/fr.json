@@ -490,7 +490,7 @@
       "language": "Changez la langue de l'interface.",
       "main_font": "Choisissez la police utilisée dans toute l'application.",
       "markdown_font": "Choisissez la police utilisée dans l'éditeur markdown.",
-      "markdown_default_view_mode": "Choisir si les notes markdown s'ouvrent en aperçu, en édition ou en vue partagée.",
+      "markdown_default_view_mode": "Choisir si les notes markdown s'ouvrent en aperçu, en édition, en aperçu en direct, en texte enrichi ou en vue partagée.",
       "markdown_new_note_view_mode": "Choisir si une nouvelle note markdown s'ouvre en vue partagée, en édition, en aperçu en direct ou en texte enrichi. Avec l'aperçu en direct ou le texte enrichi, les autres notes passent aussi dans cette vue. Sur téléphone, une nouvelle note ne s'ouvre jamais en vue partagée.",
       "font_size": "Ajustez la taille de police des notes, de la barre latérale, des blocs de code et de la page des paramètres.",
       "index_icon_scale": "Ajustez la taille des icônes dans la liste des notes.",
