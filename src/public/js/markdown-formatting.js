@@ -734,7 +734,7 @@
      * callout, empty for a plain blockquote. The selection is widened to whole
      * lines so a partial selection still quotes the paragraphs it touches.
      */
-    function applyMarkdownCallout(header) {
+    function applyMarkdownCallout(header, options) {
         var context = getCurrentMarkdownEditContext();
         var editor = context.editor;
         var offsets = context.offsets;
@@ -748,11 +748,165 @@
         var lineEnd = fullText.indexOf('\n', end);
         end = lineEnd === -1 ? fullText.length : lineEnd;
 
+        // Every touched line is already quoted: the quote changes type
+        // instead of being quoted again inside itself
+        var QUOTE_LINE = /^[ \t]{0,3}>/;
+        if (fullText.slice(start, end).split('\n').every(function (line) { return QUOTE_LINE.test(line); })) {
+            changeMarkdownQuoteType(editor, fullText, start, end, header, options || {});
+            return;
+        }
+
         var quoted = fullText.slice(start, end).split('\n').map(function (line) {
             return line ? '> ' + line : '>';
         }).join('\n');
         var replacement = (header ? '> ' + header + '\n' : '') + quoted;
 
+        replaceMarkdownRangeAndSelect(editor, start, end, replacement, start, start + replacement.length);
+    }
+
+    /**
+     * Give the quote holding lines start..end another type (header as in
+     * applyMarkdownCallout, empty for a plain blockquote). The whole quote is
+     * rewritten: its "[!Type] Title" line is replaced, added or dropped, a
+     * custom title and a fold marker are kept.
+     */
+    function changeMarkdownQuoteType(editor, fullText, start, end, header, options) {
+        var QUOTE_LINE = /^[ \t]{0,3}>/;
+        // Widen to the whole quote: the ">" lines around the selection
+        while (start > 0) {
+            var previousStart = fullText.lastIndexOf('\n', start - 2) + 1;
+            if (!QUOTE_LINE.test(fullText.slice(previousStart, start - 1))) break;
+            start = previousStart;
+        }
+        while (end < fullText.length) {
+            var nextEnd = fullText.indexOf('\n', end + 1);
+            if (nextEnd === -1) nextEnd = fullText.length;
+            if (!QUOTE_LINE.test(fullText.slice(end + 1, nextEnd))) break;
+            end = nextEnd;
+        }
+
+        var lines = fullText.slice(start, end).split('\n');
+        var indent = /^[ \t]*/.exec(lines[0])[0];
+        var firstText = lines[0].replace(/^[ \t]{0,3}>[ \t]?/, '');
+        var headerMatch = /^\s*\[!([A-Za-z][A-Za-z0-9_-]*)\]([+-])?\s*(.*)$/.exec(firstText);
+        var isDefaultTitle = typeof options.isDefaultTitle === 'function'
+            ? options.isDefaultTitle
+            : function (title) { return !String(title || '').trim(); };
+        var oldTitle = headerMatch ? headerMatch[3].trim() : '';
+        var customTitle = headerMatch && !isDefaultTitle(oldTitle) ? oldTitle : '';
+        var body = headerMatch ? lines.slice(1) : lines;
+
+        var newLines;
+        if (header) {
+            var newHeader = header.replace(/^(\[![^\]]+\])\s*(.*)$/, function (match, keyword, title) {
+                return keyword + (headerMatch && headerMatch[2] ? headerMatch[2] : '') + ' ' + (customTitle || title);
+            });
+            newLines = [indent + '> ' + newHeader].concat(body);
+        } else {
+            newLines = (customTitle ? [indent + '> ' + customTitle] : []).concat(body);
+        }
+        if (!newLines.length) newLines = [indent + '>'];
+
+        var replacement = newLines.join('\n');
+        replaceMarkdownRangeAndSelect(editor, start, end, replacement, start, start + replacement.length);
+    }
+
+    /**
+     * What the selected lines are, for the Quote menu: 'normal' (no line
+     * quoted), the callout type of their quote ('note', 'tip'...), 'plain' for
+     * a blockquote, or null when quoted and unquoted lines are mixed.
+     */
+    function getMarkdownSelectionQuoteType() {
+        var context = getCurrentMarkdownEditContext();
+        var editor = context.editor;
+        var offsets = context.offsets;
+        if (!editor || !offsets) return null;
+
+        var fullText = getMarkdownEditorValue(editor);
+        var start = fullText.lastIndexOf('\n', offsets.start - 1) + 1;
+        var end = offsets.end;
+        if (end > offsets.start && fullText.charAt(end - 1) === '\n') end -= 1;
+        var lineEnd = fullText.indexOf('\n', end);
+        end = lineEnd === -1 ? fullText.length : lineEnd;
+
+        var QUOTE_LINE = /^[ \t]{0,3}>/;
+        var touched = fullText.slice(start, end).split('\n');
+        var quoted = touched.filter(function (line) { return QUOTE_LINE.test(line); }).length;
+        if (!quoted) return 'normal';
+        if (quoted !== touched.length) return null;
+
+        // The first line of the quote says its type
+        while (start > 0) {
+            var previousStart = fullText.lastIndexOf('\n', start - 2) + 1;
+            if (!QUOTE_LINE.test(fullText.slice(previousStart, start - 1))) break;
+            start = previousStart;
+        }
+        var firstEnd = fullText.indexOf('\n', start);
+        var firstText = fullText.slice(start, firstEnd === -1 ? fullText.length : firstEnd).replace(/^[ \t]{0,3}>[ \t]?/, '');
+        var headerMatch = /^\s*\[!([A-Za-z][A-Za-z0-9_-]*)\]/.exec(firstText);
+        return headerMatch ? headerMatch[1].toLowerCase() : 'plain';
+    }
+
+    /**
+     * Back to normal text: one level of ">" goes from the quote under the
+     * selection. When every touched line is quoted the whole quote is taken
+     * out, otherwise only the touched quoted lines. Its "[!Type] Title" line
+     * goes too, a custom title stays as a plain line.
+     */
+    function removeMarkdownQuote(options) {
+        var context = getCurrentMarkdownEditContext();
+        var editor = context.editor;
+        var offsets = context.offsets;
+        if (!editor || !offsets) return;
+        options = options || {};
+
+        var fullText = getMarkdownEditorValue(editor);
+        var start = fullText.lastIndexOf('\n', offsets.start - 1) + 1;
+        var end = offsets.end;
+        if (end > offsets.start && fullText.charAt(end - 1) === '\n') end -= 1;
+        var lineEnd = fullText.indexOf('\n', end);
+        end = lineEnd === -1 ? fullText.length : lineEnd;
+
+        var QUOTE_LINE = /^[ \t]{0,3}>/;
+        var touched = fullText.slice(start, end).split('\n');
+        if (!touched.some(function (line) { return QUOTE_LINE.test(line); })) return;
+        if (touched.every(function (line) { return QUOTE_LINE.test(line); })) {
+            // Widen to the whole quote: the ">" lines around the selection
+            while (start > 0) {
+                var previousStart = fullText.lastIndexOf('\n', start - 2) + 1;
+                if (!QUOTE_LINE.test(fullText.slice(previousStart, start - 1))) break;
+                start = previousStart;
+            }
+            while (end < fullText.length) {
+                var nextEnd = fullText.indexOf('\n', end + 1);
+                if (nextEnd === -1) nextEnd = fullText.length;
+                if (!QUOTE_LINE.test(fullText.slice(end + 1, nextEnd))) break;
+                end = nextEnd;
+            }
+        }
+
+        var isDefaultTitle = typeof options.isDefaultTitle === 'function'
+            ? options.isDefaultTitle
+            : function (title) { return !String(title || '').trim(); };
+        var HEADER_LINE = /^\s*\[![A-Za-z][A-Za-z0-9_-]*\][+-]?\s*(.*)$/;
+        var newLines = [];
+        fullText.slice(start, end).split('\n').forEach(function (line) {
+            if (!QUOTE_LINE.test(line)) {
+                newLines.push(line);
+                return;
+            }
+            var indent = /^[ \t]*/.exec(line)[0];
+            var text = line.replace(/^[ \t]{0,3}>[ \t]?/, '');
+            var headerMatch = HEADER_LINE.exec(text);
+            if (headerMatch) {
+                var title = headerMatch[1].trim();
+                if (!isDefaultTitle(title)) newLines.push(indent + title);
+                return;
+            }
+            newLines.push(indent + text);
+        });
+
+        var replacement = newLines.join('\n');
         replaceMarkdownRangeAndSelect(editor, start, end, replacement, start, start + replacement.length);
     }
 
@@ -1371,6 +1525,8 @@
     window.applyMarkdownInlineCode = applyMarkdownInlineCode;
     window.applyMarkdownCodeBlock = applyMarkdownCodeBlock;
     window.applyMarkdownCallout = applyMarkdownCallout;
+    window.removeMarkdownQuote = removeMarkdownQuote;
+    window.getMarkdownSelectionQuoteType = getMarkdownSelectionQuoteType;
     window.applyMarkdownLink = applyMarkdownLink;
     window.applyMarkdownHeading = applyMarkdownHeading;
     window.applyMarkdownHeadingLevel = applyMarkdownHeadingLevel;

@@ -182,18 +182,30 @@
     background: var(--pz-surface);
 }
 
-/* Alignment picker (changeAlignment): icon then label, as wide as its text.
+/* Alignment and quote pickers (changeAlignment, changeQuote): icon then
+   label, as wide as their text.
    The script sets left, so the base right: 0 would stretch it. */
-.font-size-popup.align-popup {
+.font-size-popup.align-popup,
+.font-size-popup.quote-popup {
     right: auto;
     min-width: 0;
     gap: 2px;
 }
 
-.font-size-popup.align-popup .font-size-item {
+.font-size-popup.align-popup .font-size-item,
+.font-size-popup.quote-popup .font-size-item {
     justify-content: flex-start;
     gap: 10px;
     padding: 6px 12px 6px 10px;
+}
+
+/* The quote type the selection already has (changeQuote) */
+.font-size-popup.quote-popup .font-size-item.is-current {
+    background: rgba(var(--pz-accent-rgb), 0.08);
+}
+
+.font-size-popup.quote-popup .font-size-item.is-current .size-label {
+    color: var(--pz-accent-text);
 }
 
 .font-size-popup .style-normal {

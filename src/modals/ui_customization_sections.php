@@ -256,6 +256,7 @@ if (!function_exists('poznoteUiCustomizationSectionHeader')) {
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="toolbar:btn-task-remove" checked><span><?php echo t_h('editor.toolbar.remove_checklist', [], 'Remove checkboxes'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="toolbar:btn-text-height" checked><span><?php echo t_h('slash_menu.title', [], 'Title'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="toolbar:btn-align" checked><span><?php echo t_h('slash_menu.align', [], 'Align'); ?></span></label>
+    <label class="ui-custom-item"><input type="checkbox" data-ui-key="toolbar:btn-quote" checked><span><?php echo t_h('slash_menu.quote', [], 'Quote'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="toolbar:btn-code" checked><span><?php echo t_h('editor.toolbar.code_block', [], 'Code block'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="toolbar:btn-inline-code" checked><span><?php echo t_h('editor.toolbar.inline_code', [], 'Inline code'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="toolbar:btn-eraser" checked><span><?php echo t_h('editor.toolbar.clear_formatting', [], 'Clear formatting'); ?></span></label>
