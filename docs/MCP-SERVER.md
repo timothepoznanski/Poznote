@@ -159,6 +159,8 @@ The task tools address one task at a time: call `list_tasks` to get task IDs, th
 
 Most tools accept an optional `user_id` argument to target a specific user profile. When provided, the MCP server sends the `X-User-ID` header for that request, allowing you to create or read notes across different profiles without changing the global MCP environment. The exceptions are the system-level tools `get_system_info`, `list_backups`, `create_backup` and `delete_backup`, which do not take `user_id`. To change the default profile used when no `user_id` is passed, see [Default user profile](#default-user-profile).
 
+**Usage guide for agents.** The server also tells the agent how to use these tools, so the user does not have to explain it at each session: how notes are organised and addressed (`path`), which tool to use to read or edit a long note, what to do with the `note_locked`, `write_outcome_unknown` and `version_conflict` errors, and the safety net of the trash and the snapshots. The guide is sent as the server's MCP instructions, which clients such as Claude and VS Code Copilot put in the agent's context when they connect, and it is also the `poznote://guide` resource, for a client that ignores instructions or an agent that wants to read it again. It is written in English and costs about 1,100 tokens per session.
+
 ---
 
 ## Server Installation

@@ -159,6 +159,8 @@ Les eines de tasques treballen amb una tasca cada vegada: crideu `list_tasks` pe
 
 La majoria d'eines accepten un argument opcional `user_id` per adreçar-se a un perfil d'usuari concret. Quan s'indica, el servidor MCP envia la capçalera `X-User-ID` per a aquella sol·licitud, cosa que permet crear o llegir notes de perfils diferents sense canviar l'entorn MCP global. Les excepcions són les eines de sistema `get_system_info`, `list_backups`, `create_backup` i `delete_backup`, que no admeten `user_id`. Per canviar el perfil per defecte que es fa servir quan no es passa cap `user_id`, vegeu [Perfil d'usuari per defecte](#perfil-dusuari-per-defecte).
 
+**Guia d'ús per als agents.** El servidor també explica a l'agent com fer servir aquestes eines, perquè l'usuari no ho hagi de fer a cada sessió: com s'organitzen i es designen les notes (`path`), quina eina cal fer servir per llegir o editar una nota llarga, què cal fer amb els errors `note_locked`, `write_outcome_unknown` i `version_conflict`, i la xarxa de seguretat de la paperera i els snapshots. La guia s'envia com a instruccions MCP del servidor, que clients com Claude i VS Code Copilot posen al context de l'agent quan es connecten, i també és el recurs `poznote://guide`, per a un client que ignora les instruccions o un agent que la vol tornar a llegir. Està redactada en anglès i costa uns 1.100 tokens per sessió.
+
 ---
 
 ## Instal·lació del servidor

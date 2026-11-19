@@ -159,6 +159,8 @@ Die Aufgaben-Tools bearbeiten jeweils eine Aufgabe: Rufen Sie `list_tasks` auf, 
 
 Die meisten Tools akzeptieren ein optionales Argument `user_id`, um ein bestimmtes Benutzerprofil anzusprechen. Wird es angegeben, sendet der MCP-Server für diese Anfrage den Header `X-User-ID`, sodass Sie Notizen in verschiedenen Profilen erstellen oder lesen können, ohne die globale MCP-Umgebung zu ändern. Ausgenommen sind die Tools auf Systemebene `get_system_info`, `list_backups`, `create_backup` und `delete_backup`, die kein `user_id` entgegennehmen. Wie Sie das Standardprofil ändern, das ohne `user_id` verwendet wird, lesen Sie unter [Standard-Benutzerprofil](#standard-benutzerprofil).
 
+**Nutzungsleitfaden für Agenten.** Der Server erklärt dem Agenten außerdem, wie er diese Tools verwendet, damit der Benutzer es nicht in jeder Sitzung erklären muss: wie Notizen organisiert und adressiert werden (`path`), welches Tool zum Lesen oder Bearbeiten einer langen Notiz dient, was bei den Fehlern `note_locked`, `write_outcome_unknown` und `version_conflict` zu tun ist, und das Sicherheitsnetz aus Papierkorb und Snapshots. Der Leitfaden wird als MCP-Instructions des Servers gesendet, die Clients wie Claude und VS Code Copilot beim Verbinden in den Kontext des Agenten legen, und er ist zugleich die Ressource `poznote://guide`, für einen Client, der Instructions ignoriert, oder einen Agenten, der ihn erneut lesen will. Er ist auf Englisch verfasst und kostet etwa 1.100 Tokens pro Sitzung.
+
 ---
 
 ## Installation des Servers

@@ -159,6 +159,8 @@ As ferramentas de tarefas tratam de uma tarefa por vez: chame `list_tasks` para 
 
 A maioria das ferramentas aceita um argumento opcional `user_id` para direcionar a chamada a um perfil de usuário específico. Quando ele é informado, o servidor MCP envia o cabeçalho `X-User-ID` nessa requisição, o que permite criar ou ler notas em perfis diferentes sem alterar o ambiente MCP global. As exceções são as ferramentas de nível de sistema `get_system_info`, `list_backups`, `create_backup` e `delete_backup`, que não aceitam `user_id`. Para mudar o perfil padrão usado quando nenhum `user_id` é passado, veja [Perfil de usuário padrão](#perfil-de-usuário-padrão).
 
+**Guia de uso para agentes.** O servidor também explica ao agente como usar estas ferramentas, para que o usuário não precise fazê-lo a cada sessão: como as notas são organizadas e endereçadas (`path`), qual ferramenta usar para ler ou editar uma nota longa, o que fazer com os erros `note_locked`, `write_outcome_unknown` e `version_conflict`, e a rede de segurança da lixeira e dos snapshots. O guia é enviado como as instruções MCP do servidor, que clientes como Claude e VS Code Copilot colocam no contexto do agente ao se conectar, e também é o recurso `poznote://guide`, para um cliente que ignora instruções ou um agente que quer relê-lo. Ele é escrito em inglês e custa cerca de 1.100 tokens por sessão.
+
 ---
 
 ## Instalação do servidor
