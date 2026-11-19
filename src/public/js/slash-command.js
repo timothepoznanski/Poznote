@@ -1072,6 +1072,26 @@
         }
     }
 
+    // Turn the line under the caret back into an ordinary line (no heading
+    // level), the "Normal text" of the toolbar's heading menu and of the
+    // selection menu: formatBlock in a rich-text note, the heading marks of
+    // the caret's line removed in a Markdown note
+    function insertNormalTextLine() {
+        if (isCaretInHtmlNote()) {
+            if (typeof window.applyHtmlBlockStyle !== 'function') return;
+            dropSelectedSlashPlaceholder();
+            window.applyHtmlBlockStyle('normal');
+            notifyCaretNoteChanged();
+        } else if (typeof window.applyMarkdownHeadingLevel === 'function') {
+            window.applyMarkdownHeadingLevel('normal');
+        } else {
+            return;
+        }
+        if (window.outlinePanel && typeof window.outlinePanel.refresh === 'function') {
+            setTimeout(() => window.outlinePanel.refresh(), isCaretInHtmlNote() ? 50 : 350);
+        }
+    }
+
     // Inline code, a text colour or a highlight at the caret through the
     // toolbar's helpers, so Ctrl+Z follows (formatTypedCaretHolder). False when
     // the format has no such helper and the node has to be inserted directly.
@@ -3111,6 +3131,7 @@
                 icon: 'lucide-text-height',
                 label: t('slash_menu.title', null, 'Title'),
                 submenu: [
+                    { id: 'normal-text', label: t('slash_menu.normal_text', null, 'Normal text'), action: () => insertNormalTextLine() },
                     { id: 'h1', label: t('slash_menu.heading_1', null, 'Heading 1'), action: () => insertHeading(1) },
                     { id: 'h2', label: t('slash_menu.heading_2', null, 'Heading 2'), action: () => insertHeading(2) },
                     { id: 'h3', label: t('slash_menu.heading_3', null, 'Heading 3'), action: () => insertHeading(3) },
@@ -3474,6 +3495,7 @@
                 icon: 'lucide-text-height',
                 label: t('slash_menu.title', null, 'Title'),
                 submenu: [
+                    { id: 'normal-text', label: t('slash_menu.normal_text', null, 'Normal text'), action: () => insertNormalTextLine() },
                     { id: 'h1', label: t('slash_menu.heading_1', null, 'Heading 1'), action: () => insertMarkdownPrefixAtLineStart('# ') },
                     { id: 'h2', label: t('slash_menu.heading_2', null, 'Heading 2'), action: () => insertMarkdownPrefixAtLineStart('## ') },
                     { id: 'h3', label: t('slash_menu.heading_3', null, 'Heading 3'), action: () => insertMarkdownPrefixAtLineStart('### ') },
