@@ -1099,6 +1099,45 @@
         }
     }
 
+    // True when the caret's line is a heading: an hN (or a toggle title sized
+    // as one) in a rich-text note, a "#" line (or a sized <summary> line) in
+    // a Markdown note. "Normal text" in the Title submenu is only offered
+    // there, it has nothing to undo on an ordinary line.
+    function isSlashCaretOnHeadingLine() {
+        if (isCaretInHtmlNote()) {
+            let node = window.getSelection().getRangeAt(0).startContainer;
+            if (node && node.nodeType === 3) node = node.parentNode;
+            if (!node || !node.closest) return false;
+            if (node.closest('h1, h2, h3, h4, h5, h6')) return true;
+            const summary = node.closest('summary');
+            return !!(summary && /\btoggle-h[1-6]\b/.test(summary.className || ''));
+        }
+
+        const api = getMarkdownCodeMirrorApi();
+        let editor = null;
+        if (isMarkdownCodeMirrorEditor(codeMirrorSlashEditor)) editor = codeMirrorSlashEditor;
+        else if (isMarkdownCodeMirrorEditor(savedEditableElement)) editor = savedEditableElement;
+        else editor = getCodeMirrorEditorFromTarget(document.activeElement);
+
+        if (editor && api && typeof api.getValue === 'function') {
+            const text = String(api.getValue(editor) || '');
+            let pos = editor === codeMirrorSlashEditor ? codeMirrorSlashFrom : -1;
+            if (pos < 0 && typeof api.getSelectionOffsets === 'function') {
+                const offsets = api.getSelectionOffsets(editor);
+                pos = offsets ? Math.min(offsets.start, offsets.end) : -1;
+            }
+            if (pos < 0) return false;
+            pos = Math.min(pos, text.length);
+            const lineStart = text.lastIndexOf('\n', pos - 1) + 1;
+            let lineEnd = text.indexOf('\n', pos);
+            if (lineEnd === -1) lineEnd = text.length;
+            const line = text.slice(lineStart, lineEnd).replace(/^ {0,3}(?:>[ \t]?)*/, '');
+            return /^ {0,3}(?:(?:[-*+]|\d+[.)])[ \t]+)?#{1,6}(?:[ \t]|$)/.test(line)
+                || /^\s*<summary\b[^>]*\btoggle-h[1-6]\b/i.test(line);
+        }
+        return false;
+    }
+
     // Inline code, a text colour or a highlight at the caret through the
     // toolbar's helpers, so Ctrl+Z follows (formatTypedCaretHolder). False when
     // the format has no such helper and the node has to be inserted directly.
@@ -3452,7 +3491,7 @@
                 icon: 'lucide-text-height',
                 label: t('slash_menu.title', null, 'Title'),
                 submenu: [
-                    { id: 'normal-text', label: t('slash_menu.normal_text', null, 'Normal text'), action: () => insertNormalTextLine() },
+                    ...(isSlashCaretOnHeadingLine() ? [{ id: 'normal-text', label: t('slash_menu.normal_text', null, 'Normal text'), action: () => insertNormalTextLine() }] : []),
                     { id: 'h1', label: t('slash_menu.heading_1', null, 'Heading 1'), action: () => insertHeading(1) },
                     { id: 'h2', label: t('slash_menu.heading_2', null, 'Heading 2'), action: () => insertHeading(2) },
                     { id: 'h3', label: t('slash_menu.heading_3', null, 'Heading 3'), action: () => insertHeading(3) },
@@ -3816,7 +3855,7 @@
                 icon: 'lucide-text-height',
                 label: t('slash_menu.title', null, 'Title'),
                 submenu: [
-                    { id: 'normal-text', label: t('slash_menu.normal_text', null, 'Normal text'), action: () => insertNormalTextLine() },
+                    ...(isSlashCaretOnHeadingLine() ? [{ id: 'normal-text', label: t('slash_menu.normal_text', null, 'Normal text'), action: () => insertNormalTextLine() }] : []),
                     { id: 'h1', label: t('slash_menu.heading_1', null, 'Heading 1'), action: () => insertMarkdownPrefixAtLineStart('# ') },
                     { id: 'h2', label: t('slash_menu.heading_2', null, 'Heading 2'), action: () => insertMarkdownPrefixAtLineStart('## ') },
                     { id: 'h3', label: t('slash_menu.heading_3', null, 'Heading 3'), action: () => insertMarkdownPrefixAtLineStart('### ') },
