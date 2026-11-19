@@ -1486,6 +1486,35 @@
     }
 
     /**
+     * Show a folder's board the way Back / Forward show a note
+     * (js/note-history.js): a tab already holding this board is switched to,
+     * otherwise the board takes the place of the active tab (a pinned one
+     * keeps its content and the board opens in a new tab), as _onNoteLoaded()
+     * does for a note.
+     */
+    function showKanbanInActiveTab(folderId, folderName) {
+        folderId = String(folderId);
+        for (var i = 0; i < tabs.length; i++) {
+            if (_isKanbanTab(tabs[i]) && tabs[i].folderId === folderId) {
+                openKanbanTab(folderId, folderName);
+                return;
+            }
+        }
+
+        var tab = activeTabId !== null ? _findTabById(activeTabId) : null;
+        if (!tab || _isPinnedTab(tab)) {
+            openKanbanTab(folderId, folderName);
+            return;
+        }
+
+        tab.type = 'kanban';
+        tab.folderId = folderId;
+        delete tab.noteId;
+        tab.title = _formatKanbanTitle(folderId, folderName);
+        _loadKanbanTab(tab);
+    }
+
+    /**
      * Opens, or comes back to, the read-only view of a note of another account.
      */
     /**
@@ -2491,6 +2520,7 @@
     window.tabManager = {
         openInNewTab: openInNewTab,
         openKanbanTab: openKanbanTab,
+        showKanbanInActiveTab: showKanbanInActiveTab,
         switchToTab: switchToTab,
         closeTab: closeTab,
         closeActiveTab: closeActiveTab,

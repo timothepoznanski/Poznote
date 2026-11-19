@@ -159,6 +159,8 @@ De taaktools werken met één taak tegelijk: roep `list_tasks` aan om de taak-ID
 
 De meeste tools accepteren een optioneel argument `user_id` om een specifiek gebruikersprofiel aan te spreken. Als je het opgeeft, stuurt de MCP-server voor dat verzoek de header `X-User-ID` mee, zodat je notities in verschillende profielen kunt maken of lezen zonder de algemene MCP-omgeving te wijzigen. De uitzonderingen zijn de systeemtools `get_system_info`, `list_backups`, `create_backup` en `delete_backup`, die geen `user_id` accepteren. Om het standaardprofiel te wijzigen dat wordt gebruikt als er geen `user_id` wordt meegegeven, zie [Standaardgebruikersprofiel](#standaard-gebruikersprofiel).
 
+**Gebruiksgids voor agents.** De server legt de agent ook uit hoe deze tools werken, zodat de gebruiker dat niet elke sessie hoeft te doen: hoe notities georganiseerd en aangesproken worden (`path`), welke tool je gebruikt om een lange notitie te lezen of te bewerken, wat te doen bij de fouten `note_locked`, `write_outcome_unknown` en `version_conflict`, en het vangnet van de prullenbak en de snapshots. De gids wordt verstuurd als de MCP-instructies van de server, die clients zoals Claude en VS Code Copilot bij het verbinden in de context van de agent zetten, en is ook de resource `poznote://guide`, voor een client die instructies negeert of een agent die hem opnieuw wil lezen. Hij is in het Engels geschreven en kost ongeveer 1.100 tokens per sessie.
+
 ---
 
 ## Installatie van de server

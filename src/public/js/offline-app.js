@@ -731,6 +731,7 @@
         add(toolbarButton('btn-text-height ' + fmt, t('slash_menu.title', null, 'Title'), 'change-font-size', 'lucide-type-height'));
         if (type === 'note' || type === 'markdown') {
             add(toolbarButton('btn-align ' + fmt, t('slash_menu.align', null, 'Align'), 'change-alignment', 'lucide-align-center'));
+            add(toolbarButton('btn-quote ' + fmt, t('slash_menu.quote', null, 'Quote'), 'change-quote', 'lucide-quote'));
         }
         add(toolbarButton('btn-code ' + fmt, t('editor.toolbar.code_block', null, 'Code block'), 'toggle-code-block', 'lucide-code'));
         add(toolbarButton('btn-inline-code ' + fmt, t('editor.toolbar.inline_code', null, 'Inline code'), 'toggle-inline-code', 'lucide-terminal'));
@@ -1447,6 +1448,7 @@
             case 'toggle-yellow-highlight': call('toggleYellowHighlight', target); break;
             case 'change-font-size': call('changeFontSize'); break;
             case 'change-alignment': call('changeAlignment', target); break;
+            case 'change-quote': call('changeQuote', target); break;
             // An entry of the toolbar's overflow menu (js/toolbar-overflow.js)
             case 'trigger-mobile-action': call('triggerMobileToolbarAction', target, target.getAttribute('data-selector')); return;
             case 'toggle-code-block': call('toggleCodeBlock'); break;

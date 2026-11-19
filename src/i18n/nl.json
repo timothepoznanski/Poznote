@@ -134,7 +134,7 @@
       "language": "De taal van de interface wijzigen.",
       "main_font": "Kies het lettertype dat in de hele applicatie wordt gebruikt.",
       "markdown_font": "Kies het lettertype van de Markdown-editor.",
-      "markdown_default_view_mode": "Kies of Markdown-notities openen in voorbeeld-, bewerk- of gesplitste modus.",
+      "markdown_default_view_mode": "Kies of Markdown-notities openen in voorbeeld-, bewerk-, livevoorbeeld-, rich-text- of gesplitste modus.",
       "markdown_new_note_view_mode": "Kies of een nieuwe Markdown-notitie opent in gesplitste weergave, bewerkmodus, livevoorbeeld of rich text. Met livevoorbeeld of rich text schakelen de andere notities ook naar die weergave. Op een telefoon opent een nieuwe notitie nooit in gesplitste weergave.",
       "font_size": "De lettergrootte van notities, zijbalk, codeblokken en de instellingenpagina aanpassen.",
       "index_icon_scale": "De grootte van de pictogrammen in de notitielijst aanpassen.",

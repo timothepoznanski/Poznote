@@ -5,8 +5,12 @@
     padding-top: 15px !important;
 }
 
+/* Wide enough for the four buttons of a folder on one line in every
+   language (Dutch, Russian and Catalan are the longest, ~810px), with room
+   left for wider system fonts; a narrower window wraps the row rather than
+   overflow. */
 .folder-icon-modal-content {
-    max-width: 600px;
+    max-width: 860px;
     width: 90%;
     margin: 15px auto !important;
 }
@@ -117,6 +121,10 @@
     display: flex;
     justify-content: space-between;
     gap: 12px;
+}
+
+.folder-icon-modal-content .modal-buttons button {
+    white-space: nowrap;
 }
 
 .folder-icon-modal-content .modal-buttons .btn-secondary {

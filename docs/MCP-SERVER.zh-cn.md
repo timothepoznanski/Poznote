@@ -159,6 +159,8 @@ MCP 服务器充当 AI 助手与您的 Poznote 实例之间的桥梁。
 
 大多数工具接受可选的 `user_id` 参数，用于指定特定的用户资料。提供该参数时，MCP 服务器会为该请求发送 `X-User-ID` 标头，让您无需更改全局 MCP 环境即可在不同用户资料之间创建或读取笔记。例外的是系统级工具 `get_system_info`、`list_backups`、`create_backup` 和 `delete_backup`，它们不接受 `user_id`。要更改未传入 `user_id` 时使用的默认用户资料，请参阅[默认用户资料](#默认用户资料)。
 
+**面向代理的使用指南。** 服务器还会告诉代理如何使用这些工具，用户无需在每次会话中重复说明：笔记如何组织和定位（`path`），读取或编辑长笔记时该用哪个工具，如何处理 `note_locked`、`write_outcome_unknown` 和 `version_conflict` 错误，以及回收站和快照构成的安全网。该指南作为服务器的 MCP instructions 发送，Claude 和 VS Code Copilot 等客户端在连接时会将其放入代理的上下文；它同时也是 `poznote://guide` 资源，供忽略 instructions 的客户端或想要重新阅读的代理使用。指南以英文撰写，每次会话大约消耗 1,100 个 token。
+
 ---
 
 ## 服务器安装

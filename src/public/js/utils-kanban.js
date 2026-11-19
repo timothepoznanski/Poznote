@@ -162,6 +162,13 @@ function loadKanbanViewInline(folderId, folderName, options) {
 
             activateKanbanViewState(folderId);
 
+            // The board is a step of the Back / Forward history, as a note
+            // is (js/note-history.js); its header carries the two buttons
+            if (typeof NoteHistory !== 'undefined') {
+                if (NoteHistory.pushKanban) NoteHistory.pushKanban(folderId);
+                if (NoteHistory.updateButtons) NoteHistory.updateButtons();
+            }
+
             // Remove selection from any notes in the sidebar
             document.querySelectorAll('.links_arbo_left.selected-note').forEach(function (el) {
                 el.classList.remove('selected-note');

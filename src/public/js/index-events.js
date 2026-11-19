@@ -728,6 +728,11 @@
                     changeAlignment(target);
                 }
                 break;
+            case 'change-quote':
+                if (typeof changeQuote === 'function') {
+                    changeQuote(target);
+                }
+                break;
             case 'toggle-code-block':
                 if (typeof toggleCodeBlock === 'function') {
                     toggleCodeBlock();

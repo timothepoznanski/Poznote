@@ -121,6 +121,8 @@
             'markdown_default_view_mode',
             'markdown_new_note_view_mode',
             'markdown_view_cycle',
+            'markdown_live_editing',
+            'markdown_live_show_syntax',
             'markdown_colored',
             'markdown_colored_custom',
             'code_block_word_wrap',
@@ -437,6 +439,11 @@
             Array.prototype.forEach.call(control.options, function (option) {
                 option.toggleAttribute('selected', option.value === control.value);
             });
+            // A list drawn with icons (js/settings-icon-select.js) shows
+            // the value set by script too
+            if (control.poznoteIconSelect && window.poznoteSettingsIconSelect) {
+                window.poznoteSettingsIconSelect.sync(control);
+            }
         } else {
             control.setAttribute('value', control.value);
         }
@@ -511,6 +518,13 @@
     }
 
     function focusInlineControl(control) {
+        if (control.poznoteIconSelect && window.poznoteSettingsIconSelect) {
+            control.poznoteIconSelect.toggle.focus();
+            // Once the click that got here has reached the document, whose
+            // click listener closes the menu
+            setTimeout(function () { window.poznoteSettingsIconSelect.open(control); }, 0);
+            return;
+        }
         control.focus();
         if (control.tagName === 'SELECT' && typeof control.showPicker === 'function') {
             try { control.showPicker(); } catch (e) { /* not allowed here, focus is enough */ }
@@ -534,6 +548,37 @@
         return function (done) {
             getSetting(key, function (value) {
                 done(normalize ? normalize(value) : value);
+            });
+        };
+    }
+
+    // The two view mode lists of the Markdown section. Never chosen, notes
+    // open in the split view, unless the account's notes are in one of the
+    // live views, which they then open in (index.php leaves the attribute
+    // empty, js/markdown-view-modes.js decides): the list shows that view
+    // rather than a split view the notes do not open in.
+    // The list carries data-unset meanwhile, so picking the option it shows
+    // still saves it (js/settings-icon-select.js).
+    function loadMarkdownViewModeValue(key, normalize, controlId) {
+        return function (done) {
+            getSetting(key, function (value) {
+                var control = document.getElementById(controlId);
+                var unset = value === null || value === undefined || String(value).trim() === '';
+                if (control) control.toggleAttribute('data-unset', unset);
+                if (!unset) {
+                    done(normalize(String(value).trim()));
+                    return;
+                }
+                getSetting('markdown_live_editing', function (live) {
+                    if (['1', 'true', 'on', 'yes'].indexOf(String(live || '').trim().toLowerCase()) === -1) {
+                        done('split');
+                        return;
+                    }
+                    getSetting('markdown_live_show_syntax', function (syntax) {
+                        var hidden = ['0', 'false', 'off', 'no'].indexOf(String(syntax || '').trim().toLowerCase()) !== -1;
+                        done(hidden ? 'rich' : 'live');
+                    });
+                });
             });
         };
     }
@@ -816,14 +861,14 @@
         });
 
         initInlineControl('markdown-default-view-mode-select', {
-            load: loadSettingValue('markdown_default_view_mode', normalizeMarkdownDefaultViewMode),
+            load: loadMarkdownViewModeValue('markdown_default_view_mode', normalizeMarkdownDefaultViewMode, 'markdown-default-view-mode-select'),
             save: saveSettingValue('markdown_default_view_mode')
         });
 
         initInlineControl('markdown-new-note-view-mode-select', {
-            load: loadSettingValue('markdown_new_note_view_mode', function (value) {
+            load: loadMarkdownViewModeValue('markdown_new_note_view_mode', function (value) {
                 return ['edit', 'live', 'rich'].indexOf(value) !== -1 ? value : 'split';
-            }),
+            }, 'markdown-new-note-view-mode-select'),
             save: saveSettingValue('markdown_new_note_view_mode')
         });
 
@@ -1488,7 +1533,7 @@
     }
 
     function normalizeMarkdownDefaultViewMode(value) {
-        return ['preview', 'edit', 'split', 'last'].indexOf(value) !== -1 ? value : 'preview';
+        return ['preview', 'edit', 'live', 'rich', 'split', 'last'].indexOf(value) !== -1 ? value : 'split';
     }
 
     function refreshDateTimeFormatBadge() {

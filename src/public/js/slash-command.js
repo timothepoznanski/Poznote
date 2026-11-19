@@ -124,6 +124,13 @@
         { id: 'caution', icon: 'lucide-alert-octagon', iconColor: 'var(--pz-danger-hover)', labelKey: 'slash_menu.callout_caution', fallback: 'Caution' }
     ];
 
+    // What a selection can be turned into (toolbar Quote button, Quote entry
+    // of the selection menu): normal text, i.e. out of the quote, then the
+    // quote types. Inserting an empty quote only offers CALLOUT_TYPES.
+    var QUOTE_CHOICES = [
+        { id: 'normal', icon: 'lucide-pilcrow', labelKey: 'slash_menu.normal_text', fallback: 'Normal text' }
+    ].concat(CALLOUT_TYPES);
+
     // Mermaid diagram starters for Markdown notes (discussion #1404). Each one
     // is a small working example, so the syntax does not have to be remembered.
     var MERMAID_DIAGRAMS = [
@@ -1072,6 +1079,65 @@
         }
     }
 
+    // Turn the line under the caret back into an ordinary line (no heading
+    // level), the "Normal text" of the toolbar's heading menu and of the
+    // selection menu: formatBlock in a rich-text note, the heading marks of
+    // the caret's line removed in a Markdown note
+    function insertNormalTextLine() {
+        if (isCaretInHtmlNote()) {
+            if (typeof window.applyHtmlBlockStyle !== 'function') return;
+            dropSelectedSlashPlaceholder();
+            window.applyHtmlBlockStyle('normal');
+            notifyCaretNoteChanged();
+        } else if (typeof window.applyMarkdownHeadingLevel === 'function') {
+            window.applyMarkdownHeadingLevel('normal');
+        } else {
+            return;
+        }
+        if (window.outlinePanel && typeof window.outlinePanel.refresh === 'function') {
+            setTimeout(() => window.outlinePanel.refresh(), isCaretInHtmlNote() ? 50 : 350);
+        }
+    }
+
+    // True when the caret's line is a heading: an hN (or a toggle title sized
+    // as one) in a rich-text note, a "#" line (or a sized <summary> line) in
+    // a Markdown note. "Normal text" in the Title submenu is only offered
+    // there, it has nothing to undo on an ordinary line.
+    function isSlashCaretOnHeadingLine() {
+        if (isCaretInHtmlNote()) {
+            let node = window.getSelection().getRangeAt(0).startContainer;
+            if (node && node.nodeType === 3) node = node.parentNode;
+            if (!node || !node.closest) return false;
+            if (node.closest('h1, h2, h3, h4, h5, h6')) return true;
+            const summary = node.closest('summary');
+            return !!(summary && /\btoggle-h[1-6]\b/.test(summary.className || ''));
+        }
+
+        const api = getMarkdownCodeMirrorApi();
+        let editor = null;
+        if (isMarkdownCodeMirrorEditor(codeMirrorSlashEditor)) editor = codeMirrorSlashEditor;
+        else if (isMarkdownCodeMirrorEditor(savedEditableElement)) editor = savedEditableElement;
+        else editor = getCodeMirrorEditorFromTarget(document.activeElement);
+
+        if (editor && api && typeof api.getValue === 'function') {
+            const text = String(api.getValue(editor) || '');
+            let pos = editor === codeMirrorSlashEditor ? codeMirrorSlashFrom : -1;
+            if (pos < 0 && typeof api.getSelectionOffsets === 'function') {
+                const offsets = api.getSelectionOffsets(editor);
+                pos = offsets ? Math.min(offsets.start, offsets.end) : -1;
+            }
+            if (pos < 0) return false;
+            pos = Math.min(pos, text.length);
+            const lineStart = text.lastIndexOf('\n', pos - 1) + 1;
+            let lineEnd = text.indexOf('\n', pos);
+            if (lineEnd === -1) lineEnd = text.length;
+            const line = text.slice(lineStart, lineEnd).replace(/^ {0,3}(?:>[ \t]?)*/, '');
+            return /^ {0,3}(?:(?:[-*+]|\d+[.)])[ \t]+)?#{1,6}(?:[ \t]|$)/.test(line)
+                || /^\s*<summary\b[^>]*\btoggle-h[1-6]\b/i.test(line);
+        }
+        return false;
+    }
+
     // Inline code, a text colour or a highlight at the caret through the
     // toolbar's helpers, so Ctrl+Z follows (formatTypedCaretHolder). False when
     // the format has no such helper and the node has to be inserted directly.
@@ -1546,6 +1612,14 @@
         const noteEntry = editable ? editable.closest('.noteentry') : null;
         if (!noteEntry) return;
 
+        // Already in a quote or a callout: that block changes type, it is
+        // not quoted a second time inside itself
+        const existingQuote = common.closest('aside.callout, blockquote');
+        if (existingQuote && existingQuote !== editable && editable.contains(existingQuote)) {
+            changeHtmlQuoteType(existingQuote, type, noteEntry);
+            return;
+        }
+
         const container = common.closest('.callout-body, blockquote, li, td, th, .toggle-content, [contenteditable="true"]');
         if (!container || !editable.contains(container)) return;
 
@@ -1577,6 +1651,12 @@
         }
         if (!moved.length || moved[moved.length - 1] !== last) return;
 
+        // A selection that covers one whole quote or callout (triple-click)
+        if (moved.length === 1 && moved[0].nodeType === 1 && moved[0].matches('aside.callout, blockquote')) {
+            changeHtmlQuoteType(moved[0], type, noteEntry);
+            return;
+        }
+
         // Inline content sitting directly in the container ends with a <br>:
         // the callout is a block of its own, that break would add a blank line
         const lastMoved = moved[moved.length - 1];
@@ -1588,17 +1668,317 @@
         const element = buildCalloutElement(type);
         const body = getCalloutBody(element);
         body.textContent = '';
-        container.insertBefore(element, first);
-        moved.forEach(function (node) { body.appendChild(node); });
-        if (trailingBreak) trailingBreak.remove();
 
-        const newRange = document.createRange();
-        newRange.selectNodeContents(body);
-        newRange.collapse(false);
-        selection.removeAllRanges();
-        selection.addRange(newRange);
+        performHtmlUndoableStep(noteEntry, function apply() {
+            container.insertBefore(element, moved[0]);
+            moved.forEach(function (node) { body.appendChild(node); });
+            if (trailingBreak) trailingBreak.remove();
 
+            const newRange = document.createRange();
+            newRange.selectNodeContents(body);
+            newRange.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+        }, function revert() {
+            moved.forEach(function (node) { container.insertBefore(node, element); });
+            if (trailingBreak) container.insertBefore(trailingBreak, element);
+            element.remove();
+
+            const newRange = document.createRange();
+            newRange.setStartBefore(moved[0]);
+            newRange.setEndAfter(moved[moved.length - 1]);
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+        });
+    }
+
+    // Ctrl+Z / Ctrl+Y for the edits of an HTML note made on the DOM itself
+    // (quote wrap, quote type change). An HTML note relies on the browser's
+    // undo history, which never sees such an edit, and the insertHTML route
+    // is no way out here: Chrome merges the last selected block with the
+    // next one and nests the new block in the quote it should replace. So
+    // these steps keep their own history: apply() and revert() move the very
+    // same nodes back and forth, which leaves the browser's own steps on
+    // either side working. A step is only taken back while the note reads
+    // exactly as the step left it: anything typed since is undone first by
+    // the browser, then the step comes next.
+    const HTML_UNDO_LIMIT = 50;
+    const htmlUndoHistories = new WeakMap();
+
+    function performHtmlUndoableStep(noteEntry, apply, revert) {
+        const step = { apply: apply, revert: revert, before: noteEntry.innerHTML, after: '' };
+        apply();
+        step.after = noteEntry.innerHTML;
+        let history = htmlUndoHistories.get(noteEntry);
+        if (!history) {
+            history = { undo: [], redo: [] };
+            htmlUndoHistories.set(noteEntry, history);
+        }
+        history.undo.push(step);
+        if (history.undo.length > HTML_UNDO_LIMIT) history.undo.shift();
+        history.redo = [];
         noteEntry.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    // Takes back (or replays) the latest step of this note when the note is
+    // in the state that step expects; true when it did
+    function runHtmlUndoStep(noteEntry, isUndo) {
+        const history = htmlUndoHistories.get(noteEntry);
+        if (!history) return false;
+        const from = isUndo ? history.undo : history.redo;
+        const step = from[from.length - 1];
+        if (!step || noteEntry.innerHTML !== (isUndo ? step.after : step.before)) return false;
+        from.pop();
+        if (isUndo) {
+            step.revert();
+            history.redo.push(step);
+        } else {
+            step.apply();
+            history.undo.push(step);
+        }
+        noteEntry.dispatchEvent(new Event('input', { bubbles: true }));
+        return true;
+    }
+
+    function htmlUndoTarget(target) {
+        const noteEntry = target && target.closest ? target.closest('.noteentry') : null;
+        return noteEntry && noteEntry.getAttribute('contenteditable') === 'true' ? noteEntry : null;
+    }
+
+    function handleHtmlUndoKeydown(e) {
+        if (e.defaultPrevented || !(e.ctrlKey || e.metaKey) || e.altKey) return;
+        const key = typeof window.poznoteShortcutKey === 'function' ? window.poznoteShortcutKey(e) : String(e.key || '').toLowerCase();
+        const isUndo = key === 'z' && !e.shiftKey;
+        const isRedo = (key === 'y' && !e.shiftKey) || (key === 'z' && e.shiftKey);
+        if (!isUndo && !isRedo) return;
+        const noteEntry = htmlUndoTarget(e.target);
+        if (noteEntry && runHtmlUndoStep(noteEntry, isUndo)) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }
+
+    // The Undo / Redo of the browser's context menu, or of a phone keyboard
+    function handleHtmlUndoBeforeInput(e) {
+        if (e.inputType !== 'historyUndo' && e.inputType !== 'historyRedo') return;
+        const noteEntry = htmlUndoTarget(e.target);
+        if (noteEntry && runHtmlUndoStep(noteEntry, e.inputType === 'historyUndo')) {
+            e.preventDefault();
+        }
+    }
+
+    // The default titles of the callouts, translated and English: a title
+    // that is one of them follows the type, any other is the user's own
+    function isDefaultCalloutTitle(text) {
+        const value = String(text || '').trim().toLowerCase();
+        if (!value) return true;
+        return CALLOUT_TYPES.some(function (c) {
+            if (c.id === 'plain') return false;
+            const label = window.t ? window.t(c.labelKey, null, c.fallback) : c.fallback;
+            return value === String(label).trim().toLowerCase() || value === c.fallback.toLowerCase();
+        });
+    }
+
+    function calloutTypeOf(element) {
+        if (!element.matches('aside.callout')) return 'plain';
+        const match = /(?:^|\s)callout-(?!title|body)([\w-]+)/.exec(element.className);
+        return match ? match[1] : 'note';
+    }
+
+    // Give an existing blockquote or callout another type: its content moves
+    // into a new block of that type, a custom callout title is kept (as the
+    // first paragraph of a plain blockquote)
+    function changeHtmlQuoteType(existing, type, noteEntry) {
+        const targetType = type || 'plain';
+        const oldType = calloutTypeOf(existing);
+        const selection = window.getSelection();
+        // The content stays selected, so another type can be picked right away
+        const selectBody = function (block) {
+            const newRange = document.createRange();
+            newRange.selectNodeContents(getCalloutBody(block));
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+        };
+        if (oldType === targetType) {
+            selectBody(existing);
+            return;
+        }
+
+        const isCallout = oldType !== 'plain';
+        const oldBody = isCallout ? existing.querySelector(':scope > .callout-body') : existing;
+        const oldTitleEl = isCallout ? existing.querySelector(':scope > .callout-title .callout-title-text') : null;
+        const customTitle = oldTitleEl && !isDefaultCalloutTitle(oldTitleEl.textContent) ? oldTitleEl.textContent.trim() : '';
+
+        const element = buildCalloutElement(targetType);
+        const body = getCalloutBody(element);
+        body.textContent = '';
+        if (customTitle) {
+            const newTitleEl = element.querySelector('.callout-title-text');
+            if (newTitleEl) {
+                newTitleEl.textContent = customTitle;
+            } else {
+                const titleParagraph = document.createElement('p');
+                titleParagraph.textContent = customTitle;
+                body.appendChild(titleParagraph);
+            }
+        }
+        // The very nodes move between the two blocks, both ways, so the
+        // browser's own undo steps around this one still find them
+        const kids = oldBody ? Array.prototype.slice.call(oldBody.childNodes) : [];
+        if (!kids.length) body.appendChild(document.createTextNode('\u200B'));
+
+        performHtmlUndoableStep(noteEntry, function apply() {
+            kids.forEach(function (node) { body.appendChild(node); });
+            existing.replaceWith(element);
+            selectBody(element);
+        }, function revert() {
+            element.replaceWith(existing);
+            if (oldBody) kids.forEach(function (node) { oldBody.appendChild(node); });
+            selectBody(existing);
+        });
+    }
+
+    // The quote or callout holding the selection of an HTML note (the
+    // innermost one), or one the selection covers whole (triple-click)
+    function getHtmlSelectionQuote() {
+        const selection = window.getSelection();
+        if (!selection || !selection.rangeCount) return null;
+        const range = selection.getRangeAt(0);
+        let common = range.commonAncestorContainer;
+        if (common.nodeType === 3) common = common.parentNode;
+        const editable = common && common.closest ? common.closest('[contenteditable="true"]') : null;
+        if (!editable || !editable.closest('.noteentry')) return null;
+        let quote = common.closest('aside.callout, blockquote');
+        if (quote && quote !== editable && editable.contains(quote)) return quote;
+        const node = range.startContainer.childNodes ? range.startContainer.childNodes[range.startOffset] : null;
+        quote = node && node.nodeType === 1 && node.matches('aside.callout, blockquote') && range.intersectsNode(node) ? node : null;
+        return quote && editable.contains(quote) ? quote : null;
+    }
+
+    // What the selection is, in the terms of the Quote menu: 'normal', 'plain'
+    // (a blockquote) or a callout type, null when it cannot be told (Markdown
+    // lines partly quoted). Lights the toolbar's Quote button and marks the
+    // current choice in its menu.
+    function getSelectionQuoteType(isMarkdown) {
+        if (isMarkdown) {
+            return typeof window.getMarkdownSelectionQuoteType === 'function' ? window.getMarkdownSelectionQuoteType() : null;
+        }
+        const quote = getHtmlSelectionQuote();
+        return quote ? calloutTypeOf(quote) : 'normal';
+    }
+
+    // Back to normal text: the quote or callout holding the selection (the
+    // innermost one) is taken apart, its content goes back in its place. A
+    // custom callout title is kept as the first line. Loose inline content
+    // (a blockquote typed into directly) becomes a line of its own, a <div>
+    // like the lines typed in the editor. Undoable like the other quote edits.
+    function unwrapHtmlSelectionQuote() {
+        const selection = window.getSelection();
+        if (!selection || !selection.rangeCount) return;
+        const existing = getHtmlSelectionQuote();
+        if (!existing) return;
+        const noteEntry = existing.closest('.noteentry');
+        if (!noteEntry) return;
+
+        const isCallout = calloutTypeOf(existing) !== 'plain';
+        const oldBody = isCallout ? existing.querySelector(':scope > .callout-body') : existing;
+        const oldTitleEl = isCallout ? existing.querySelector(':scope > .callout-title .callout-title-text') : null;
+        const customTitle = oldTitleEl && !isDefaultCalloutTitle(oldTitleEl.textContent) ? oldTitleEl.textContent.trim() : '';
+        const kids = oldBody ? Array.prototype.slice.call(oldBody.childNodes) : [];
+        const isBlockNode = function (node) {
+            return node.nodeType === 1 && /^(DIV|P|H[1-6]|UL|OL|BLOCKQUOTE|PRE|TABLE|ASIDE|DETAILS|HR|FIGURE)$/.test(node.tagName);
+        };
+
+        // The pieces put in the quote's place: its blocks, and a new line
+        // for each run of inline nodes (a <br> ends a run)
+        const units = [];
+        if (customTitle) {
+            const titleLine = document.createElement('div');
+            titleLine.textContent = customTitle;
+            units.push({ node: titleLine, inline: [] });
+        }
+        let run = null;
+        kids.forEach(function (node) {
+            if (isBlockNode(node)) {
+                run = null;
+                units.push({ node: node, inline: null });
+                return;
+            }
+            if (!run) {
+                run = { node: document.createElement('div'), inline: [] };
+                units.push(run);
+            }
+            run.inline.push(node);
+            if (node.nodeName === 'BR') run = null;
+        });
+        // A run that is only a zero-width space or blank text is no line
+        const isEmptyRun = function (unit) {
+            return unit.inline && unit.inline.length && unit.inline.every(function (node) {
+                return node.nodeType === 3 && !node.textContent.replace(/[\u200B\s]/g, '');
+            });
+        };
+        const kept = units.filter(function (unit) { return !isEmptyRun(unit); });
+        if (!kept.length) {
+            const emptyLine = document.createElement('div');
+            emptyLine.appendChild(document.createElement('br'));
+            kept.push({ node: emptyLine, inline: [] });
+        }
+
+        const parent = existing.parentNode;
+        performHtmlUndoableStep(noteEntry, function apply() {
+            kept.forEach(function (unit) {
+                if (unit.inline) unit.inline.forEach(function (node) { unit.node.appendChild(node); });
+                // A trailing <br> ends the line, the <div> does that already
+                const lastInline = unit.inline && unit.inline[unit.inline.length - 1];
+                if (lastInline && lastInline.nodeName === 'BR' && unit.inline.length > 1) lastInline.remove();
+                parent.insertBefore(unit.node, existing);
+            });
+            existing.remove();
+
+            const newRange = document.createRange();
+            newRange.setStartBefore(kept[0].node);
+            newRange.setEndAfter(kept[kept.length - 1].node);
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+        }, function revert() {
+            parent.insertBefore(existing, kept[0].node);
+            // Every original child goes back, in its order, wrappers emptied
+            if (oldBody) kids.forEach(function (node) { oldBody.appendChild(node); });
+            kept.forEach(function (unit) { if (unit.node.parentNode === parent) unit.node.remove(); });
+
+            const newRange = document.createRange();
+            newRange.selectNodeContents(oldBody || existing);
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+        });
+    }
+
+    // Turn the selection into a blockquote or a callout of type `typeId` (an
+    // id of CALLOUT_TYPES): the selection menu's Quote entries and the
+    // toolbar's Quote button (js/toolbar-format.js changeQuote) both come here
+    function applyQuoteToSelection(typeId, isMarkdown) {
+        if (typeId === 'normal') {
+            if (isMarkdown) {
+                if (typeof window.removeMarkdownQuote === 'function') {
+                    window.removeMarkdownQuote({ isDefaultTitle: isDefaultCalloutTitle });
+                }
+            } else {
+                unwrapHtmlSelectionQuote();
+            }
+            return;
+        }
+        const type = CALLOUT_TYPES.find(function (c) { return c.id === typeId; }) || CALLOUT_TYPES[0];
+        if (isMarkdown) {
+            // The bracket keyword stays English for the parser, the title is translated
+            if (typeof window.applyMarkdownCallout === 'function') {
+                const label = window.t ? window.t(type.labelKey, null, type.fallback) : type.fallback;
+                window.applyMarkdownCallout(type.id === 'plain' ? '' : '[!' + type.fallback + '] ' + label, {
+                    isDefaultTitle: isDefaultCalloutTitle
+                });
+            }
+        } else {
+            wrapHtmlSelectionInCallout(type.id);
+        }
     }
 
     // Insert a toggle block (js/toggle-block.js): closed and empty, the
@@ -3111,6 +3491,7 @@
                 icon: 'lucide-text-height',
                 label: t('slash_menu.title', null, 'Title'),
                 submenu: [
+                    ...(isSlashCaretOnHeadingLine() ? [{ id: 'normal-text', label: t('slash_menu.normal_text', null, 'Normal text'), action: () => insertNormalTextLine() }] : []),
                     { id: 'h1', label: t('slash_menu.heading_1', null, 'Heading 1'), action: () => insertHeading(1) },
                     { id: 'h2', label: t('slash_menu.heading_2', null, 'Heading 2'), action: () => insertHeading(2) },
                     { id: 'h3', label: t('slash_menu.heading_3', null, 'Heading 3'), action: () => insertHeading(3) },
@@ -3474,6 +3855,7 @@
                 icon: 'lucide-text-height',
                 label: t('slash_menu.title', null, 'Title'),
                 submenu: [
+                    ...(isSlashCaretOnHeadingLine() ? [{ id: 'normal-text', label: t('slash_menu.normal_text', null, 'Normal text'), action: () => insertNormalTextLine() }] : []),
                     { id: 'h1', label: t('slash_menu.heading_1', null, 'Heading 1'), action: () => insertMarkdownPrefixAtLineStart('# ') },
                     { id: 'h2', label: t('slash_menu.heading_2', null, 'Heading 2'), action: () => insertMarkdownPrefixAtLineStart('## ') },
                     { id: 'h3', label: t('slash_menu.heading_3', null, 'Heading 3'), action: () => insertMarkdownPrefixAtLineStart('### ') },
@@ -3911,22 +4293,16 @@
             id: 'quote',
             icon: 'lucide-info-circle',
             label: t('slash_menu.quote', null, 'Quote'),
-            submenu: CALLOUT_TYPES.map(function (c) {
+            submenu: QUOTE_CHOICES.map(function (c) {
                 const label = t(c.labelKey, null, c.fallback);
                 return {
-                    id: c.id,
+                    // "normal" is already the key of Clear formatting at cursor
+                    id: c.id === 'normal' ? 'quote-normal' : c.id,
                     icon: c.icon,
                     iconColor: c.iconColor,
                     label: label,
                     action: function () {
-                        if (isMarkdown) {
-                            // The bracket keyword stays English for the parser, the title is translated
-                            if (typeof window.applyMarkdownCallout === 'function') {
-                                window.applyMarkdownCallout(c.id === 'plain' ? '' : '[!' + c.fallback + '] ' + label);
-                            }
-                        } else {
-                            wrapHtmlSelectionInCallout(c.id);
-                        }
+                        applyQuoteToSelection(c.id, isMarkdown);
                     }
                 };
             })
@@ -6396,6 +6772,12 @@
         // visibility (js/hide-element-menu.js), not to the commands of the note
         if (e.target && e.target.closest && e.target.closest(CODE_BLOCK_CONTROLS_SELECTOR)) return;
 
+        // A link under the pointer: its "Manage link" dialog (js/toolbar-links.js)
+        if (typeof window.openLinkModalFromContextMenu === 'function' && window.openLinkModalFromContextMenu(e)) {
+            e.preventDefault();
+            return;
+        }
+
         const pointer = { left: e.clientX, right: e.clientX, top: e.clientY, bottom: e.clientY, width: 0, height: 0 };
         if (showSlashMenuForSelection(e.target, pointer)) {
             e.preventDefault();
@@ -6524,6 +6906,8 @@
         document.addEventListener('contextmenu', handleSelectionContextMenu);
         document.addEventListener('keydown', handleAltSlashShortcut, true);
         document.addEventListener('keydown', handleKeydown, true);
+        document.addEventListener('keydown', handleHtmlUndoKeydown, true);
+        document.addEventListener('beforeinput', handleHtmlUndoBeforeInput, true);
         document.addEventListener('mousedown', handleClickOutside, true);
         window.addEventListener('resize', handleSlashMenuViewportResize);
 
@@ -7121,6 +7505,9 @@
 
     // Expose hideSlashMenu globally
     window.hideSlashMenu = hideSlashMenu;
+    window.POZNOTE_QUOTE_CHOICES = QUOTE_CHOICES;
+    window.applyQuoteToSelection = applyQuoteToSelection;
+    window.getSelectionQuoteType = getSelectionQuoteType;
 
     // Opens the menu from a button instead of a typed '/' (mobile editor bar):
     // the formatting menu on a selection, the insert menu at a bare caret. The

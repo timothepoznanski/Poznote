@@ -292,6 +292,10 @@ function _mdIsLiveEditing() {
 
 function _mdGetDefaultViewMode() {
     var mode = _mdGetConfiguredViewMode();
+    // No split view on a phone: the note opens like a preview would, so in
+    // the live view when the account works in one (it opened in the classic
+    // preview with the pencil, while the view button said rich text)
+    if (mode === 'split' && _mdIsMobileViewport()) mode = 'preview';
     return mode === 'preview' && _mdIsLiveEditing() ? 'edit' : mode;
 }
 
@@ -302,6 +306,12 @@ function _mdGetConfiguredViewMode() {
     } catch (e) {
         setting = '';
     }
+    // Never chosen in Settings (index.php leaves the attribute empty): the
+    // split view, unless the account's notes are in one of the live views,
+    // which they keep (the split view's editor shows the Markdown source)
+    if (setting === '') {
+        return _mdIsLiveEditing() ? 'edit' : 'split';
+    }
     if (setting === 'last') {
         var last = null;
         try {
@@ -309,9 +319,12 @@ function _mdGetConfiguredViewMode() {
         } catch (e) {
             console.warn('Could not read view mode from localStorage:', e);
         }
-        return _MD_VIEW_MODES.indexOf(last) !== -1 ? last : 'preview';
+        return _MD_VIEW_MODES.indexOf(last) !== -1 ? last : 'split';
     }
-    return _MD_VIEW_MODES.indexOf(setting) !== -1 ? setting : 'preview';
+    // 'live' and 'rich' are the two live views: the note opens in the editor
+    // with live rendering, which initializeMarkdownNote() turns on
+    if (setting === 'live' || setting === 'rich') return setting;
+    return _MD_VIEW_MODES.indexOf(setting) !== -1 ? setting : 'split';
 }
 
 function _mdRememberViewMode(mode) {
@@ -480,6 +493,13 @@ function initializeMarkdownNote(noteId) {
             _mdSetLiveSyntax(mobileNewNoteMode === 'live');
             _mdSetLiveEditing(true);
         }
+        startInEditMode = true;
+    } else if (defaultMode === 'live' || defaultMode === 'rich') {
+        // Default view mode set to one of the live views: live rendering is
+        // turned on (it is the account's, like the menu of the view button
+        // does), so a note left in another view comes back in this one
+        _mdSetLiveSyntax(defaultMode === 'live');
+        _mdSetLiveEditing(true);
         startInEditMode = true;
     } else if (defaultMode === 'split' && !isMobileViewportCheck) {
         startInSplitMode = true;
@@ -1384,6 +1404,12 @@ function _mdGetViewCycle() {
 function getMarkdownViewState(noteId) {
     var noteEntry = document.getElementById('entry' + noteId);
     if (noteEntry && noteEntry.classList.contains('markdown-split-mode')) return 'split';
+    // The classic preview shown while the account works in a live view (a
+    // search result, ?view=preview): the note is in the classic view, the
+    // pencil leads back to the live one. Read on the preview pane itself,
+    // whose display the switches set before they refresh the buttons.
+    var previewDiv = noteEntry ? noteEntry.querySelector('.markdown-preview') : null;
+    if (previewDiv && previewDiv.style.getPropertyValue('display') === 'block') return 'classic';
     return _mdIsLiveEditing() ? (_mdIsRichText() ? 'rich' : 'live') : 'classic';
 }
 

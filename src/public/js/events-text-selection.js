@@ -12,7 +12,7 @@ function initTextSelectionHandlers() {
     // Room kept under the caret once it is brought above the keyboard
     var MOBILE_CARET_REVEAL_MARGIN = 24;
     var pendingKeyboardCloseBlurTimer = null;
-    var plainCodeBlockedButtonClasses = ['btn-link', 'btn-text-height', 'btn-inline-code', 'btn-code'];
+    var plainCodeBlockedButtonClasses = ['btn-link', 'btn-text-height', 'btn-quote', 'btn-inline-code', 'btn-code'];
 
     function getSelectionOffsetsWithinMarkdownEditor(editor, range) {
         if (!editor || !range) return null;
@@ -623,10 +623,17 @@ function initTextSelectionHandlers() {
         var titleBarButton = document.querySelector('#mobileEditorBar [data-action="change-font-size"]');
         if (titleBtn) titleBtn.classList.toggle('is-format-active', inHeading);
         if (titleBarButton) titleBarButton.classList.toggle('is-format-active', inHeading && isMobileFormattingViewport());
+
+        // The Quote button, lit in a quote or a callout
+        var quoteBtn = document.querySelector('.btn-quote.show-on-selection');
+        if (quoteBtn) {
+            var quoteType = typeof window.getSelectionQuoteType === 'function' ? window.getSelectionQuoteType(isMarkdown) : null;
+            quoteBtn.classList.toggle('is-format-active', !!quoteType && quoteType !== 'normal');
+        }
     }
 
     function clearFormatActiveStates() {
-        document.querySelectorAll('.btn-bold, .btn-italic, .btn-underline, .btn-strikethrough, .btn-inline-code, .btn-highlight, .btn-color, .btn-text-height, #mobileEditorBar .is-format-active')
+        document.querySelectorAll('.btn-bold, .btn-italic, .btn-underline, .btn-strikethrough, .btn-inline-code, .btn-highlight, .btn-color, .btn-text-height, .btn-quote, #mobileEditorBar .is-format-active')
             .forEach(function (btn) { btn.classList.remove('is-format-active'); });
     }
 

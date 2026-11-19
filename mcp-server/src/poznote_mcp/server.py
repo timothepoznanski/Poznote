@@ -59,6 +59,7 @@ from starlette.middleware import Middleware
 
 from .client import PoznoteClient
 from . import note_sections, note_text
+from .guide import GUIDE, GUIDE_RESOURCE_NAME, GUIDE_URI
 from fastmcp.server.auth import AuthContext
 from fastmcp.server.middleware import AuthMiddleware
 
@@ -402,6 +403,11 @@ _external_auth_provider = build_external_auth_provider()
 # the HTTP app at construction time, so it is decided here from the env.
 mcp = FastMCP(
     "poznote-mcp",
+    # The usage guide (issue #1800): clients put the server's instructions in
+    # the agent's context on connect, so the agent knows how the tools fit
+    # together without the user explaining it each session. It is also the
+    # poznote://guide resource, registered below.
+    instructions=GUIDE,
     # Per-caller auth takes precedence when configured: an operator who has
     # just set the provider means it, and leaving the old single token in
     # force would silently 401 every caller. The conflict is logged.
@@ -739,12 +745,32 @@ def _caller_scope_check(ctx: AuthContext) -> bool:
     levels = [s for s in (token.scopes if token else []) if s in SCOPE_LEVELS]
     if not levels:
         return True
-    required = TOOL_SCOPES.get(getattr(ctx.component, "name", ""))
+    name = getattr(ctx.component, "name", "")
+    required = TOOL_SCOPES.get(name) or RESOURCE_SCOPES.get(name)
     return required is not None and _scope_allows(levels[0], required)
 
 
 # Filters tools/list and refuses tools/call for tools above the caller's level.
 mcp.add_middleware(AuthMiddleware(auth=_caller_scope_check))
+
+
+# Resources are held to the same levels as tools; one missing here is refused
+# to any caller whose token carries a level.
+RESOURCE_SCOPES: dict[str, str] = {
+    GUIDE_RESOURCE_NAME: "read",
+}
+
+
+@mcp.resource(
+    GUIDE_URI,
+    name=GUIDE_RESOURCE_NAME,
+    description="How to use the Poznote tools: finding and addressing notes, "
+    "editing long notes, task lists, errors and the safety net.",
+    mime_type="text/markdown",
+)
+def poznote_guide() -> str:
+    """The same text as the server instructions (issue #1800)."""
+    return GUIDE
 
 
 # =============================================================================

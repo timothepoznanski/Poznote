@@ -856,6 +856,92 @@
     gap: 12px;
 }
 
+/* The scroll arrows frame the folder name; a hidden arrow keeps its place
+   (visibility, below), so the name does not move as the board scrolls. */
+.kanban-title-group {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+
+/* Back / Forward (js/note-history.js), desktop only (css/toolbar.css
+   .btn-history-nav): exactly where a note shows them, so they do not jump
+   between a note and a board. A note's Back sits 1% (.notecard margin) + 2%
+   of 99% (.innernote padding) of the column, plus 10px (.note-header) and
+   2px, from its left edge; its Forward clears the floating stack (the
+   .innernote right padding of css/notes/noteentry.css), 10px of header, 2px
+   and the 10px scrollbar gutter a note reserves; both 11px from the top.
+   The header keeps the same room on both sides for them (more when Forward
+   shows), so the arrows and the folder name stay in the middle of the bar,
+   whatever the width of the buttons on the right: three columns, the outer
+   two of equal width. */
+@media (min-width: 801px) {
+    .kanban-inline-header {
+        position: relative;
+        display: grid;
+        /* --kanban-actions-width (js/kanban.js) gives the left column the
+           width of the buttons on the right, so the middle stays centred
+           and a long name is cut instead */
+        grid-template-columns:
+            minmax(var(--kanban-actions-width, max-content), 1fr)
+            minmax(0, auto)
+            minmax(var(--kanban-actions-width, max-content), 1fr);
+        --kanban-history-back-left: calc(2.98% + 12px);
+        --kanban-history-forward-right: calc(var(--pz-edge-btn-size, 32px) + 38px);
+        padding-left: calc(var(--kanban-history-back-left) + 40px);
+        padding-right: calc(var(--kanban-history-back-left) + 40px);
+    }
+
+    .kanban-inline-header:has(> .btn-history-forward:not(.history-disabled)) {
+        padding-left: max(calc(var(--kanban-history-back-left) + 40px), calc(var(--kanban-history-forward-right) + 40px));
+        padding-right: max(calc(var(--kanban-history-back-left) + 40px), calc(var(--kanban-history-forward-right) + 40px));
+    }
+
+    .kanban-inline-header .kanban-title-group {
+        grid-column: 2;
+    }
+
+    .kanban-inline-header .kanban-header-actions {
+        grid-column: 3;
+        justify-self: end;
+    }
+
+    .kanban-inline-header .btn-history-nav {
+        top: 11px;
+        transform: none;
+    }
+
+    .kanban-inline-header .btn-history-back {
+        left: var(--kanban-history-back-left);
+    }
+
+    .kanban-inline-header .btn-history-forward {
+        right: var(--kanban-history-forward-right);
+    }
+
+    /* A long name is cut rather than pushing the bar out of centre */
+    .kanban-inline-header .kanban-title-group,
+    .kanban-inline-header .kanban-title {
+        min-width: 0;
+    }
+
+    .kanban-inline-header .kanban-folder-name {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.kanban-history-btn {
+    color: var(--pz-text-muted);
+}
+
+.kanban-history-btn:hover {
+    color: var(--pz-text-strong);
+}
+
 .kanban-scroll-btn-header {
     width: 28px;
     height: 28px;
@@ -1034,6 +1120,10 @@ html[data-theme='dark'] .kanban-inline-header {
     }
 
     .kanban-scroll-btn-header {
+        display: none !important;
+    }
+
+    .kanban-history-btn {
         display: none !important;
     }
 

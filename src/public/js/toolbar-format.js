@@ -220,6 +220,86 @@ function changeAlignment(triggerButton) {
   });
 }
 
+// Quote picker: the selected lines or blocks go back to normal text, or
+// become a blockquote or one of the callouts (Note, Tip, Important, Warning,
+// Caution), the choices of the selection menu's Quote submenu (QUOTE_CHOICES
+// in js/slash-command.js), with the same look as the alignment picker above
+function changeQuote(triggerButton) {
+  const existingPopup = document.querySelector('.quote-popup');
+  if (existingPopup) {
+    if (existingPopup._close) existingPopup._close();
+    else existingPopup.remove();
+    return;
+  }
+
+  const types = window.POZNOTE_QUOTE_CHOICES;
+  if (!Array.isArray(types) || typeof window.applyQuoteToSelection !== 'function') return;
+
+  const selection = window.getSelection();
+  const savedRange = selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
+  const editor = savedRange ? getEditorFromRange(savedRange) : null;
+  const button = (triggerButton && triggerButton.closest ? triggerButton.closest('.btn-quote') : null)
+    || document.querySelector('.btn-quote');
+  if (!editor || !button) return;
+  const isMarkdown = typeof isInMarkdownEditor === 'function' && isInMarkdownEditor();
+  // An HTML note wraps whole blocks around a selection, a bare caret has none
+  if (!isMarkdown && savedRange.collapsed) return;
+
+  const t = window.t || ((key, params, fallback) => fallback);
+  // What the selection already is: that choice is marked in the menu
+  const currentType = typeof window.getSelectionQuoteType === 'function' ? window.getSelectionQuoteType(isMarkdown) : null;
+  const popup = document.createElement('div');
+  popup.className = 'font-size-popup quote-popup';
+  popup.setAttribute('role', 'menu');
+  types.forEach(type => {
+    const item = document.createElement('div');
+    item.className = 'font-size-item';
+    item.dataset.quote = type.id;
+    item.setAttribute('role', 'menuitemradio');
+    const isCurrent = type.id === currentType;
+    item.setAttribute('aria-checked', isCurrent ? 'true' : 'false');
+    if (isCurrent) item.classList.add('is-current');
+    const icon = document.createElement('i');
+    icon.className = 'lucide ' + type.icon;
+    // The colour the callout itself is painted with, as in the slash menu
+    if (type.iconColor) icon.style.color = type.iconColor;
+    const label = document.createElement('span');
+    label.className = 'size-label';
+    label.textContent = t(type.labelKey, null, type.fallback);
+    item.appendChild(icon);
+    item.appendChild(label);
+    popup.appendChild(item);
+  });
+
+  // Fixed, under the button (or the menu listing it): the toolbar clips
+  document.body.appendChild(popup);
+  popup.style.position = 'fixed';
+  const btnRect = typeof window.getToolbarButtonRect === 'function' ? window.getToolbarButtonRect(button) : button.getBoundingClientRect();
+  popup.style.left = Math.max(8, btnRect.right - (popup.offsetWidth || 180)) + 'px';
+  popup.style.top = (btnRect.bottom + 8) + 'px';
+  clampToViewport(popup, 8);
+  if (typeof window.placePopupAboveMobileEditorBar === 'function') {
+    window.placePopupAboveMobileEditorBar(popup, button);
+  }
+  setTimeout(() => popup.classList.add('show'), 10);
+
+  const close = setupPopupDismiss(popup, '.btn-quote');
+  popup._close = close;
+  popup.addEventListener('click', (e) => {
+    const item = e.target.closest('.font-size-item');
+    if (!item) return;
+    e.stopPropagation();
+    const scrollState = captureScrollState(editor);
+    focusEditorWithoutScroll(editor, scrollState);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(savedRange);
+    window.applyQuoteToSelection(item.dataset.quote, isMarkdown);
+    requestAnimationFrame(() => restoreScrollState(scrollState));
+    close();
+  });
+}
+
 function toggleCodeBlock() {
   // Check if we're in markdown mode
   if (typeof isInMarkdownEditor === 'function' && isInMarkdownEditor()) {

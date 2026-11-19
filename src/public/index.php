@@ -337,7 +337,7 @@ $settings = [
     'note_autocapitalize' => '1',
     'highlight_current_folder_tree' => '0',
     'folder_tree_dim_level' => '',
-    'markdown_default_view_mode' => 'preview',
+    'markdown_default_view_mode' => 'split',
     'markdown_new_note_view_mode' => 'split',
     'markdown_live_show_syntax' => '1',
     'markdown_view_cycle' => 'live,rich,split',
@@ -353,6 +353,9 @@ try {
         $settings[$row['key']] = $row['value'];
         if ($row['key'] === 'markdown_new_note_view_mode') {
             $markdown_new_note_view_mode_chosen = true;
+        }
+        if ($row['key'] === 'markdown_default_view_mode') {
+            $markdown_default_view_mode_chosen = true;
         }
     }
 } catch (Exception $e) {
@@ -657,8 +660,14 @@ if (poznoteSettingEnabled($settings['note_virtual_space'], true)) {
 // it from <body data-markdown-default-mode>). 'last' follows the mode last
 // used on any note, which is how every note opened before this setting.
 $markdown_default_view_mode = trim((string)$settings['markdown_default_view_mode']);
-if (!in_array($markdown_default_view_mode, ['preview', 'edit', 'split', 'last'], true)) {
-    $markdown_default_view_mode = 'preview';
+if (!in_array($markdown_default_view_mode, ['preview', 'edit', 'live', 'rich', 'split', 'last'], true)) {
+    $markdown_default_view_mode = 'split';
+}
+// Never chosen in Settings: the attribute is left empty and the notes open in
+// the split view, unless the account's notes are in one of the live views,
+// which they then open in (js/markdown-view-modes.js), as for a new note
+if (empty($markdown_default_view_mode_chosen)) {
+    $markdown_default_view_mode = '';
 }
 // Mode a new, empty markdown note opens in: split view, the editor, or one
 // of the two live views, which is then turned on (a phone has no split view

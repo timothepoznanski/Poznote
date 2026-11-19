@@ -159,6 +159,8 @@ Các công cụ quản lý task thao tác trên từng task một: gọi `list_t
 
 Hầu hết các công cụ chấp nhận tham số tùy chọn `user_id` để nhắm tới một hồ sơ người dùng cụ thể. Khi được cung cấp, MCP server gửi header `X-User-ID` cho yêu cầu đó, cho phép bạn tạo hoặc đọc ghi chú qua lại giữa các hồ sơ khác nhau mà không cần đổi cấu hình môi trường toàn cục của MCP. Ngoại lệ là các công cụ cấp hệ thống `get_system_info`, `list_backups`, `create_backup` và `delete_backup`, vốn không nhận `user_id`. Để đổi hồ sơ mặc định dùng khi không truyền `user_id`, hãy xem [Hồ sơ người dùng mặc định](#hồ-sơ-người-dùng-mặc-định).
 
+**Hướng dẫn sử dụng cho agent.** Server cũng cho agent biết cách dùng các công cụ này, để người dùng không phải giải thích lại ở mỗi phiên: cách ghi chú được tổ chức và xác định (`path`), công cụ nào dùng để đọc hoặc sửa một ghi chú dài, cách xử lý các lỗi `note_locked`, `write_outcome_unknown` và `version_conflict`, và lưới an toàn của thùng rác và các snapshot. Hướng dẫn được gửi dưới dạng MCP instructions của server, mà các client như Claude và VS Code Copilot đưa vào ngữ cảnh của agent khi kết nối, và nó cũng là resource `poznote://guide`, cho client bỏ qua instructions hoặc agent muốn đọc lại. Hướng dẫn được viết bằng tiếng Anh và tốn khoảng 1.100 token mỗi phiên.
+
 ---
 
 ## Cài đặt Server

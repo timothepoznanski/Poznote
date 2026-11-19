@@ -242,3 +242,135 @@ function addLinkToNote() {
     console.error('Error in addLinkToNote:', err);
   }
 }
+
+// Right-click on a link in a note: the "Manage link" dialog for that link,
+// in place of the insert menu (js/slash-command.js calls this before opening
+// its menu). Returns true when the dialog opened, false to leave the event to
+// the menu that would have had it.
+//
+// Not for: a link that is not the note's editable text (attachment card,
+// widget, locked or read-only note, task list, Markdown preview), a link in
+// a rich text table cell (the table menu takes the cell, in capture), and a
+// selection that reaches beyond the link (the selection's formatting menu).
+function openLinkModalFromContextMenu(event) {
+  const target = event && event.target;
+  if (!target || !target.closest) return false;
+
+  const cmApi = window.PoznoteMarkdownCodeMirror;
+  const markdownEditor = target.closest('.markdown-editor');
+  if (markdownEditor && cmApi && typeof cmApi.isCodeMirrorEditor === 'function' && cmApi.isCodeMirrorEditor(markdownEditor)) {
+    return openMarkdownLinkModalAtPoint(markdownEditor, target, event.clientX, event.clientY);
+  }
+
+  const anchor = target.closest('a[href]');
+  if (!anchor) return false;
+  return openHtmlLinkModal(anchor);
+}
+window.openLinkModalFromContextMenu = openLinkModalFromContextMenu;
+
+function openMarkdownLinkModalAtPoint(markdownEditor, target, x, y) {
+  const cmApi = window.PoznoteMarkdownCodeMirror;
+  if (typeof cmApi.getPosAtCoords !== 'function') return false;
+  if (markdownEditor.classList.contains('markdown-editor-readonly')) return false;
+  const notecard = markdownEditor.closest('.notecard');
+  if (notecard && notecard.getAttribute('data-note-locked') === '1') return false;
+  // The text of a line only: a widget drawn in place of a line (media,
+  // attachment card, table, diagram) has its own menu or none. The nearest
+  // editing host decides: the editor's content, or a widget's
+  // contenteditable="false" (the host around the editor is "false" too)
+  const host = target.closest('[contenteditable]');
+  if (!target.closest('.cm-line') || !host || host.getAttribute('contenteditable') !== 'true') return false;
+
+  const pos = cmApi.getPosAtCoords(markdownEditor, x, y);
+  if (typeof pos !== 'number') return false;
+  const link = findMarkdownLinkAround(markdownEditor, { start: pos, end: pos });
+  if (!link) return false;
+
+  const selection = cmApi.getSelectionOffsets(markdownEditor);
+  if (selection && selection.start !== selection.end) {
+    const from = Math.min(selection.start, selection.end);
+    const to = Math.max(selection.start, selection.end);
+    if (from < link.start || to > link.end) return false;
+  }
+
+  const tr = window.t || function (key, params, fallback) { return fallback; };
+  showLinkModal(link.url, link.text, function (url, text) {
+    if (url === null) {
+      replaceMarkdownRangeByOffsets(markdownEditor, link.start, link.end, link.text);
+      return;
+    }
+    if (!url) return;
+    const linkMarkdown = buildSafeMarkdownLink(text || link.text || url, url);
+    if (!linkMarkdown) {
+      if (typeof showNotificationPopup === 'function') showNotificationPopup(tr('slash_menu.invalid_url', null, 'Invalid URL'), 'error');
+      return;
+    }
+    // (the source as it was when the dialog opened: nothing changed it since,
+    // or the offsets no longer hold the link and nothing is written)
+    const current = findMarkdownLinkAround(markdownEditor, { start: link.start, end: link.start });
+    if (!current || current.start !== link.start || current.end !== link.end) return;
+    replaceMarkdownRangeByOffsets(markdownEditor, link.start, link.end, linkMarkdown);
+  });
+  return true;
+}
+
+function openHtmlLinkModal(anchor) {
+  const noteEntry = anchor.closest('.noteentry');
+  if (!noteEntry || noteEntry.getAttribute('contenteditable') !== 'true') return false;
+  if (noteEntry.getAttribute('data-note-type') === 'tasklist') return false;
+  // The nearest editing host decides: a card or a widget is not text
+  const host = anchor.closest('[contenteditable]');
+  if (!host || host.getAttribute('contenteditable') !== 'true') return false;
+  if (anchor.querySelector('img, video, audio, iframe, figure')) return false;
+
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+    const range = sel.getRangeAt(0);
+    if (!anchor.contains(range.startContainer) || !anchor.contains(range.endContainer)) return false;
+  }
+
+  const noteId = String(noteEntry.id || '').replace(/^entry/, '');
+  const oldHref = anchor.getAttribute('href') || '';
+  const oldText = anchor.textContent;
+  const tr = window.t || function (key, params, fallback) { return fallback; };
+
+  const save = function () {
+    // (the note may not have had the focus: window.noteid is -1 until then)
+    if (noteId) window.noteid = noteId;
+    if (typeof window.markNoteAsModified === 'function') window.markNoteAsModified();
+    if (typeof window.saveNoteImmediately === 'function') window.saveNoteImmediately();
+  };
+
+  showLinkModal(oldHref, oldText, function (url, text) {
+    if (!anchor.isConnected) return;
+    if (url === null) {
+      anchor.parentNode.replaceChild(document.createTextNode(anchor.textContent), anchor);
+      save();
+      return;
+    }
+    if (!url) return;
+    const trimmed = String(url).trim();
+    if (typeof normalizeMarkdownLinkDestination === 'function' && !normalizeMarkdownLinkDestination(trimmed)) {
+      if (typeof showNotificationPopup === 'function') showNotificationPopup(tr('slash_menu.invalid_url', null, 'Invalid URL'), 'error');
+      return;
+    }
+
+    let changed = false;
+    if (trimmed !== oldHref) {
+      anchor.setAttribute('href', trimmed);
+      // A link to a note named its note: another address is another target
+      anchor.removeAttribute('data-note-id');
+      anchor.removeAttribute('data-note-reference');
+      anchor.classList.remove('note-internal-link');
+      changed = true;
+    }
+    // Only a new text replaces the old one: rewriting the same text would
+    // flatten the formatting inside the link
+    if (text && text !== oldText.trim()) {
+      anchor.textContent = text;
+      changed = true;
+    }
+    if (changed) save();
+  });
+  return true;
+}

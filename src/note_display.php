@@ -216,6 +216,7 @@
                     echo '<button type="button" class="toolbar-btn btn-text-height text-format-btn" title="' . t_h('slash_menu.title', [], 'Title') . '" data-action="change-font-size"><i class="lucide lucide-type-height"></i></button>';
                     if ($note_type === 'note' || $note_type === 'markdown') {
                         echo '<button type="button" class="toolbar-btn btn-align text-format-btn" title="' . t_h('slash_menu.align', [], 'Align') . '" data-action="change-alignment"><i class="lucide lucide-align-center"></i></button>';
+                        echo '<button type="button" class="toolbar-btn btn-quote text-format-btn" title="' . t_h('slash_menu.quote', [], 'Quote') . '" data-action="change-quote"><i class="lucide lucide-quote"></i></button>';
                     }
                     echo '<button type="button" class="toolbar-btn btn-code text-format-btn" title="' . t_h('editor.toolbar.code_block') . '" data-action="toggle-code-block"><i class="lucide lucide-code"></i></button>';
                     echo '<button type="button" class="toolbar-btn btn-inline-code text-format-btn" title="' . t_h('editor.toolbar.inline_code') . '" data-action="toggle-inline-code"><i class="lucide lucide-terminal"></i></button>';

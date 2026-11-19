@@ -134,7 +134,7 @@
       "language": "Change the language of the interface.",
       "main_font": "Choose the font used throughout the application.",
       "markdown_font": "Choose the font used in the markdown editor.",
-      "markdown_default_view_mode": "Choose whether markdown notes open in preview, edit or split mode.",
+      "markdown_default_view_mode": "Choose whether markdown notes open in preview, edit, live preview, rich text or split mode.",
       "markdown_new_note_view_mode": "Choose whether a new markdown note opens in split, edit, live preview or rich text mode. With live preview or rich text, the other notes switch to that view too. On a phone a new note never opens in split mode.",
       "font_size": "Adjust the font size of notes, sidebar, code blocks and the settings page.",
       "index_icon_scale": "Adjust the size of the icons in the note list.",

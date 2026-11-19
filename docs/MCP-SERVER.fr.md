@@ -159,6 +159,8 @@ Les outils de tâches agissent sur une seule tâche à la fois : appelez `list_t
 
 La plupart des outils acceptent un argument facultatif `user_id` pour cibler un profil utilisateur précis. Lorsqu'il est fourni, le serveur MCP envoie l'en-tête `X-User-ID` pour cette requête, ce qui vous permet de créer ou de lire des notes dans différents profils sans modifier l'environnement MCP global. Les exceptions sont les outils système `get_system_info`, `list_backups`, `create_backup` et `delete_backup`, qui ne prennent pas `user_id`. Pour changer le profil utilisé par défaut lorsqu'aucun `user_id` n'est passé, voir [Profil utilisateur par défaut](#profil-utilisateur-par-défaut).
 
+**Guide d'utilisation pour les agents.** Le serveur explique aussi à l'agent comment se servir de ces outils, pour que l'utilisateur n'ait pas à le faire à chaque session : comment les notes sont organisées et désignées (`path`), quel outil prendre pour lire ou modifier une note longue, que faire des erreurs `note_locked`, `write_outcome_unknown` et `version_conflict`, et le filet de sécurité de la corbeille et des snapshots. Le guide est envoyé comme instructions MCP du serveur, que des clients comme Claude et VS Code Copilot placent dans le contexte de l'agent à la connexion, et il est aussi la ressource `poznote://guide`, pour un client qui ignore les instructions ou un agent qui veut le relire. Il est rédigé en anglais et coûte environ 1 100 tokens par session.
+
 ---
 
 ## Installation du serveur
