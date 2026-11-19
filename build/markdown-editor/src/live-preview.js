@@ -1782,7 +1782,11 @@ function buildLivePreviewDecorations(view, armedPair, pendingFormat) {
             // "~~~~" being typed is not a code block yet
             if (emptyPair && doc.lineAt(node.from).number === emptyPair.line) return false
             // A Mermaid block is drawn as its diagram while the caret is away
-            // (renderedBlocksField); its source needs no frame of its own then
+            // (renderedBlocksField); its source needs no frame of its own then.
+            // Framed, the diagram sat in the block's wrapper, which with "Code
+            // block word wrap" off is a max-content grid: a diagram as wide
+            // as its column left that column 2px wide, and drew nothing (#1799)
+            if (isMermaidBlockDrawn(state, node.from)) return false
             decorateFencedCode(node)
             return false
 
@@ -3130,6 +3134,18 @@ export function moveTableCell(view, backward) {
     view.dispatch({ changes: { from: at.from, to: at.to, insert: (formatted || lines).join('\n') }, userEvent: 'input' })
   }
   return focusTableCell(view, at.startLine, rowIndex, cellIndex, true)
+}
+
+// Whether the fenced block starting at pos is a Mermaid block shown as its
+// diagram right now: the rule of buildRenderedBlockDecorations() below, which
+// draws a block while no selection range touches it
+function isMermaidBlockDrawn(state, pos) {
+  if (typeof window.parseMarkdown !== 'function') return false
+  const doc = state.doc
+  const lineFrom = doc.lineAt(pos).from
+  const block = getRenderedBlocks(doc).find(candidate => candidate.from === lineFrom)
+  if (!block || block.kind !== 'mermaid') return false
+  return !state.selection.ranges.some(range => range.from <= block.to && range.to >= block.from)
 }
 
 function buildRenderedBlockDecorations(state) {
