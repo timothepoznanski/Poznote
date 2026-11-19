@@ -6418,6 +6418,12 @@
         // visibility (js/hide-element-menu.js), not to the commands of the note
         if (e.target && e.target.closest && e.target.closest(CODE_BLOCK_CONTROLS_SELECTOR)) return;
 
+        // A link under the pointer: its "Manage link" dialog (js/toolbar-links.js)
+        if (typeof window.openLinkModalFromContextMenu === 'function' && window.openLinkModalFromContextMenu(e)) {
+            e.preventDefault();
+            return;
+        }
+
         const pointer = { left: e.clientX, right: e.clientX, top: e.clientY, bottom: e.clientY, width: 0, height: 0 };
         if (showSlashMenuForSelection(e.target, pointer)) {
             e.preventDefault();
