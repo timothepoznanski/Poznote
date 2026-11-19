@@ -667,6 +667,10 @@ try {
     <div id="kanban-view-container" class="kanban-inline-view<?php echo $kanbanBackgroundUrl !== null ? ' has-kanban-background' : ''; ?>" data-folder-id="<?php echo $folder_id; ?>">
         <!-- Kanban Header -->
         <div class="kanban-inline-header">
+            <?php // Back / Forward through the notes and boards opened (js/note-history.js), as in a note's toolbar ?>
+            <button type="button" class="toolbar-btn btn-history-nav btn-history-back kanban-history-btn history-disabled" data-history-nav="back" title="<?php echo t_h('editor.toolbar.go_back', [], 'Go back'); ?>" aria-label="<?php echo t_h('editor.toolbar.go_back', [], 'Go back'); ?>" disabled><i class="lucide lucide-circle-chevron-left"></i></button>
+            <?php // The scroll arrows frame the folder name (js/kanban.js hides the one with nothing to reach) ?>
+            <div class="kanban-title-group">
             <button class="kanban-scroll-btn-header left" id="kanbanScrollLeft" title="<?php echo t_h('common.scroll_left', [], 'Scroll Left'); ?>">
                 <i class="lucide lucide-chevron-left"></i>
             </button>
@@ -690,10 +694,11 @@ try {
                       class="kanban-folder-name<?php echo $pNameAttrs['class']; ?>"
                       style="cursor: pointer; <?php echo $pNameAttrs['style']; ?>"><?php echo htmlspecialchars($parentFolder['name'], ENT_QUOTES); ?></span>
             </h1>
+            <button class="kanban-scroll-btn-header right" id="kanbanScrollRight" title="<?php echo t_h('common.scroll_right', [], 'Scroll Right'); ?>">
+                <i class="lucide lucide-chevron-right"></i>
+            </button>
+            </div>
             <div class="kanban-header-actions">
-                <button class="kanban-scroll-btn-header right" id="kanbanScrollRight" title="<?php echo t_h('common.scroll_right', [], 'Scroll Right'); ?>">
-                    <i class="lucide lucide-chevron-right"></i>
-                </button>
                 <?php // The ids are the Element visibility keys (card:kanbanSortBtn...), right-click "Hide" included ?>
                 <button class="kanban-sort-toggle"
                         id="kanbanSortBtn"
@@ -735,6 +740,7 @@ try {
                     <i class="lucide lucide-plus-circle"></i>
                 </button>
             </div>
+            <button type="button" class="toolbar-btn btn-history-nav btn-history-forward kanban-history-btn history-disabled" data-history-nav="forward" title="<?php echo t_h('editor.toolbar.go_forward', [], 'Go forward'); ?>" aria-label="<?php echo t_h('editor.toolbar.go_forward', [], 'Go forward'); ?>" disabled><i class="lucide lucide-circle-chevron-right"></i></button>
         </div>
 
         <!-- Kanban Board Wrapper -->

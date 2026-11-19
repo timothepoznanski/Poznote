@@ -15,6 +15,8 @@
     let touchDrag = null;
     let trackedKanbanBoard = null;
     let kanbanScrollResizeObserver = null;
+    let trackedKanbanActions = null;
+    let kanbanActionsResizeObserver = null;
 
     function isReadOnly() {
         return !!(document.body && document.body.classList.contains('shared-workspace-readonly'));
@@ -972,6 +974,10 @@
             requestAnimationFrame(syncKanbanScrollButtons);
         });
 
+        // The mouse wheel scrolls the board sideways, except over something
+        // that scrolls up and down itself (a column taller than its space)
+        document.addEventListener('wheel', handleKanbanWheel, { passive: false });
+
         // Kanban Add Card Button
         document.addEventListener('click', (e) => {
             const btn = e.target.closest('[data-action="create-kanban-note"]');
@@ -1100,6 +1106,61 @@
         }
     }
 
+    // Where a run of wheel notches is taking the board, so that notches
+    // arriving during the smooth scroll add up instead of restarting it
+    let kanbanWheelTarget = null;
+    let kanbanWheelTimer = null;
+
+    // Something between the pointer and the board that scrolls vertically
+    // on its own: the wheel is left to it, even at its end.
+    function hasVerticalScrollerBetween(el, stop) {
+        for (let node = el; node && node !== stop; node = node.parentElement) {
+            if (node.scrollHeight > node.clientHeight + 1) {
+                const overflowY = getComputedStyle(node).overflowY;
+                if (overflowY === 'auto' || overflowY === 'scroll') return true;
+            }
+        }
+        return false;
+    }
+
+    function handleKanbanWheel(e) {
+        // Zoom, horizontal gestures (trackpad, Shift + wheel) keep the
+        // browser's behaviour
+        if (e.ctrlKey || e.metaKey || e.shiftKey || e.defaultPrevented) return;
+        if (!e.deltaY || Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
+
+        const target = e.target instanceof Element ? e.target : e.target && e.target.parentElement;
+        const container = target && target.closest('#kanban-view-container');
+        if (!container) return;
+
+        const board = container.querySelector('.kanban-board');
+        if (!board || board.scrollWidth <= board.clientWidth + 1) return;
+        if (hasVerticalScrollerBetween(target, container)) return;
+
+        let delta = e.deltaY;
+        if (e.deltaMode === 1) delta *= 40; // lines
+        else if (e.deltaMode === 2) delta *= board.clientWidth; // pages
+
+        const maxScroll = board.scrollWidth - board.clientWidth;
+        const from = kanbanWheelTarget === null ? board.scrollLeft : kanbanWheelTarget;
+        const to = Math.max(0, Math.min(maxScroll, from + delta));
+        if (to === from && (to === 0 || to === maxScroll)) return;
+
+        e.preventDefault();
+
+        // A trackpad sends many small deltas: follow them as they come;
+        // a mouse wheel sends notches: glide, as a vertical scroll does
+        if (e.deltaMode === 0 && Math.abs(e.deltaY) < 40) {
+            kanbanWheelTarget = null;
+            board.scrollBy({ left: to - board.scrollLeft, behavior: 'instant' });
+        } else {
+            kanbanWheelTarget = to;
+            board.scrollTo({ left: to, behavior: 'smooth' });
+            clearTimeout(kanbanWheelTimer);
+            kanbanWheelTimer = setTimeout(() => { kanbanWheelTarget = null; }, 250);
+        }
+    }
+
     function setKanbanScrollButtonState(button, isAvailable) {
         if (!button) return;
 
@@ -1134,7 +1195,33 @@
         setKanbanScrollButtonState(rightButton, canScrollRight);
     }
 
+    // The header centres the arrows and the folder name (css/kanban.css): its
+    // left column is as wide as the buttons on the right
+    function syncKanbanHeaderBalance() {
+        const header = document.querySelector('.kanban-inline-header');
+        const actions = header && header.querySelector('.kanban-header-actions');
+        if (!actions) return;
+        header.style.setProperty('--kanban-actions-width', Math.ceil(actions.getBoundingClientRect().width) + 'px');
+    }
+
+    function bindKanbanHeaderBalance() {
+        const actions = document.querySelector('.kanban-inline-header .kanban-header-actions');
+        if (trackedKanbanActions === actions) return;
+        if (kanbanActionsResizeObserver) {
+            kanbanActionsResizeObserver.disconnect();
+            kanbanActionsResizeObserver = null;
+        }
+        trackedKanbanActions = actions;
+        if (!actions) return;
+        if (typeof ResizeObserver === 'function') {
+            kanbanActionsResizeObserver = new ResizeObserver(syncKanbanHeaderBalance);
+            kanbanActionsResizeObserver.observe(actions);
+        }
+        syncKanbanHeaderBalance();
+    }
+
     function bindKanbanScrollButtons() {
+        bindKanbanHeaderBalance();
         const board = document.getElementById('kanbanBoard');
 
         if (trackedKanbanBoard === board) {

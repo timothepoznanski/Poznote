@@ -1,8 +1,9 @@
 /**
  * Note Navigation History
  * 
- * Tracks visited notes and provides back/forward navigation,
- * similar to browser history but scoped to note navigation only.
+ * Tracks visited notes and Kanban boards and provides back/forward
+ * navigation, similar to browser history but scoped to the right pane.
+ * An entry is a note id ("12") or a board ("kanban:7", KANBAN_PREFIX).
  * 
  * External Dependencies:
  * - window.noteid - current note ID
@@ -16,6 +17,11 @@ var NoteHistory = (function () {
     var history = [];    // Array of note IDs
     var currentIndex = -1;
     var navigating = false; // Flag to prevent recording during back/forward
+    var KANBAN_PREFIX = 'kanban:';
+    var BUTTON_SELECTOR = {
+        back: '#note-history-back, [data-history-nav="back"]',
+        forward: '#note-history-forward, [data-history-nav="forward"]'
+    };
 
     function getStorage() {
         try {
@@ -129,10 +135,27 @@ var NoteHistory = (function () {
     }
 
     /**
-     * Load the note at the given history position.
+     * Record a folder's Kanban board (js/utils-kanban.js, once it is on screen).
+     */
+    function pushKanban(folderId) {
+        if (folderId === null || folderId === undefined || folderId === '') return;
+        push(KANBAN_PREFIX + folderId);
+    }
+
+    function kanbanFolderOf(entry) {
+        return entry.indexOf(KANBAN_PREFIX) === 0 ? entry.slice(KANBAN_PREFIX.length) : null;
+    }
+
+    /**
+     * Load the note or the board at the given history position.
      */
     function navigateTo(noteId) {
         navigating = true;
+        var kanbanFolderId = kanbanFolderOf(noteId);
+        if (kanbanFolderId !== null) {
+            navigateToKanban(kanbanFolderId);
+            return;
+        }
         var workspace = (typeof selectedWorkspace !== 'undefined' && selectedWorkspace)
             ? selectedWorkspace
             : (typeof getSelectedWorkspace === 'function' ? getSelectedWorkspace() : '');
@@ -146,7 +169,29 @@ var NoteHistory = (function () {
             window.location.href = url;
         }
 
-        // Reset navigating flag after a short delay to allow the load to complete
+        releaseNavigating();
+    }
+
+    // A board takes the place of the active tab, as a note does
+    // (tabManager.showKanbanInActiveTab()); without tabs (mobile) it is loaded
+    // in the right column directly.
+    function navigateToKanban(folderId) {
+        var tabs = window.tabManager;
+        if (tabs && typeof tabs.showKanbanInActiveTab === 'function' && window.innerWidth > 800 &&
+            (typeof tabs.isInitialized !== 'function' || tabs.isInitialized())) {
+            tabs.showKanbanInActiveTab(folderId, null);
+        } else if (typeof window.openKanbanView === 'function') {
+            window.openKanbanView(parseInt(folderId, 10), null, { skipTabManager: true });
+        } else {
+            window.location.href = 'index.php?kanban=' + encodeURIComponent(folderId);
+        }
+        releaseNavigating();
+    }
+
+    // Reset the navigating flag after a short delay to allow the load to
+    // complete. A load slower than that pushes its entry once the flag is
+    // down, which is harmless: the entry is the current one, push() skips it.
+    function releaseNavigating() {
         setTimeout(function () {
             navigating = false;
             updateButtons();
@@ -157,17 +202,17 @@ var NoteHistory = (function () {
      * Update the disabled/enabled state of the back/forward buttons.
      */
     function updateButtons() {
-        var backBtn = document.getElementById('note-history-back');
-        var forwardBtn = document.getElementById('note-history-forward');
+        var back = canGoBack();
+        var forward = canGoForward();
 
-        if (backBtn) {
-            backBtn.disabled = !canGoBack();
-            backBtn.classList.toggle('history-disabled', !canGoBack());
-        }
-        if (forwardBtn) {
-            forwardBtn.disabled = !canGoForward();
-            forwardBtn.classList.toggle('history-disabled', !canGoForward());
-        }
+        document.querySelectorAll(BUTTON_SELECTOR.back).forEach(function (btn) {
+            btn.disabled = !back;
+            btn.classList.toggle('history-disabled', !back);
+        });
+        document.querySelectorAll(BUTTON_SELECTOR.forward).forEach(function (btn) {
+            btn.disabled = !forward;
+            btn.classList.toggle('history-disabled', !forward);
+        });
     }
 
     /**
@@ -191,14 +236,14 @@ var NoteHistory = (function () {
 
         // Bind click events via delegation (buttons may be re-rendered via AJAX)
         document.addEventListener('click', function (e) {
-            var btn = e.target.closest('#note-history-back');
+            var btn = e.target.closest(BUTTON_SELECTOR.back);
             if (btn) {
                 e.preventDefault();
                 e.stopPropagation();
                 goBack();
                 return;
             }
-            btn = e.target.closest('#note-history-forward');
+            btn = e.target.closest(BUTTON_SELECTOR.forward);
             if (btn) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -213,6 +258,7 @@ var NoteHistory = (function () {
     // Public API
     return {
         push: push,
+        pushKanban: pushKanban,
         goBack: goBack,
         goForward: goForward,
         canGoBack: canGoBack,
