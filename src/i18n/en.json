@@ -2085,7 +2085,10 @@
       "split_width": "Split view width",
       "split_resize": "Drag to resize the panes",
       "convert_to_markdown": "Convert to Markdown",
-      "share_note": "Share"
+      "share_note": "Share",
+      "copy_as_markdown": "Copy as Markdown",
+      "copied_as_markdown": "Copied as Markdown",
+      "copy_as_markdown_failed": "The note could not be copied"
     },
     "share_modal": {
       "description": "A shared URL creates a public link to this note. Once the URL is created, you will be able to add more options, such as protecting the note with a password or customizing the share URL.",

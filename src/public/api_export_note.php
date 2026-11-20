@@ -9,6 +9,9 @@
  * - format: Export format - 'html' or 'markdown' (default: 'html')
  *   Note: HTML export is only available for 'note' and 'tasklist' types, not for 'markdown' notes
  * - disposition: 'attachment' (download, default) or 'inline' (render in browser)
+ * - format=markdown_text: the note as plain Markdown, "# Title" then the
+ *   content, without front matter, returned as text for "Copy as Markdown"
+ *   (#1805). Task lists and Markdown notes only.
  * 
  * Returns:
  * - HTML: Styled HTML document for download (note and tasklist types only)
@@ -50,10 +53,10 @@ if (!$noteId) {
     exit;
 }
 
-if (!in_array($format, ['html', 'markdown', 'json', 'html_embedded', 'html_public'], true)) {
+if (!in_array($format, ['html', 'markdown', 'json', 'html_embedded', 'html_public', 'markdown_text'], true)) {
     header('Content-Type: application/json');
     http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Invalid format. Use "html", "markdown", "json", "html_embedded" or "html_public"']);
+    echo json_encode(['success' => false, 'error' => 'Invalid format. Use "html", "markdown", "json", "html_embedded", "html_public" or "markdown_text"']);
     exit;
 }
 
@@ -137,6 +140,31 @@ try {
         }
 
         exportAsJson($raw, $note['heading']);
+    }
+
+    // Copy as Markdown (#1805): the text of the note, to paste somewhere
+    // else (an AI agent, a chat), so no front matter and no file: the title
+    // as a heading, then the tasks or the Markdown source as they are
+    if ($format === 'markdown_text') {
+        if ($noteType !== 'tasklist' && $noteType !== 'markdown') {
+            header('Content-Type: application/json');
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Markdown text is only available for task lists and Markdown notes']);
+            exit;
+        }
+        $body = $noteType === 'tasklist'
+            ? convertTasklistToMarkdown($content)
+            : preg_replace('/^\xEF\xBB\xBF/', '', $content);
+        $title = trim((string)($note['heading'] ?? ''));
+        $body = rtrim((string)$body);
+        $text = implode("\n\n", array_filter([$title !== '' ? '# ' . $title : '', $body], 'strlen')) . "\n";
+
+        header('Content-Type: text/plain; charset=utf-8');
+        header('Cache-Control: no-store');
+        header('X-Content-Type-Options: nosniff');
+        poznoteEndOutputBuffers();
+        echo $text;
+        exit;
     }
 
     // Check format and export accordingly

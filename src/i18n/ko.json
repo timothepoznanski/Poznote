@@ -2085,7 +2085,10 @@
       "split_width": "분할 뷰 너비",
       "split_resize": "창 크기를 조정하려면 드래그하세요.",
       "convert_to_markdown": "마크다운으로 변환",
-      "share_note": "공유"
+      "share_note": "공유",
+      "copy_as_markdown": "Markdown으로 복사",
+      "copied_as_markdown": "Markdown으로 복사했습니다",
+      "copy_as_markdown_failed": "노트를 복사할 수 없습니다"
     },
     "share_modal": {
       "description": "공유 URL은 이 노트에 대한 공개 링크를 생성합니다. URL이 생성되면 비밀번호로 노트를 보호하거나 공유 URL을 사용자 지정하는 등 더 많은 옵션을 추가할 수 있습니다.",

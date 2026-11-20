@@ -193,15 +193,41 @@ function convertMarkdownCheckboxListToTasklistJson($markdownContent) {
         return json_encode([], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
-    $tasks = [];
-    $lines = explode("\n", $markdownContent);
+    // First pass: the checkbox items with their raw text. A line indented
+    // under an item that is not a checkbox continues its text (a task written
+    // on several lines, as convertTasklistToMarkdown() exports it); empty
+    // lines in between are kept, a line back at the margin ends the item.
+    $items = [];
     // Indentation of the task the next indented lines belong to
     $parentIndent = null;
+    // The item the next continuation line belongs to: [task index, subtask index or null, indent]
+    $current = null;
+    $pendingBlankLines = 0;
 
-    foreach ($lines as $line) {
+    foreach (explode("\n", $markdownContent) as $line) {
         if (!preg_match('/^(\s*)[-*+]\s+\[([ xX])\]\s+(.*)$/u', $line, $matches)) {
+            if ($current === null) {
+                continue;
+            }
+            if (trim($line) === '') {
+                $pendingBlankLines++;
+                continue;
+            }
+            preg_match('/^\s*/', $line, $lead);
+            if (strlen(str_replace("\t", '    ', $lead[0])) > $current[2]) {
+                $continuation = str_repeat("\n", $pendingBlankLines + 1) . trim($line);
+                if ($current[1] === null) {
+                    $items[$current[0]]['text'] .= $continuation;
+                } else {
+                    $items[$current[0]]['subtasks'][$current[1]]['text'] .= $continuation;
+                }
+            } else {
+                $current = null;
+            }
+            $pendingBlankLines = 0;
             continue;
         }
+        $pendingBlankLines = 0;
 
         $indent = strlen(str_replace("\t", '    ', $matches[1]));
         $text = trim($matches[3]);
@@ -209,26 +235,47 @@ function convertMarkdownCheckboxListToTasklistJson($markdownContent) {
 
         // A checkbox indented under a task is one of its subtasks (one level:
         // deeper lines join the same task)
-        if ($parentIndent !== null && $indent > $parentIndent && !empty($tasks)) {
-            if ($text !== '') {
-                $tasks[count($tasks) - 1]['subtasks'][] = [
-                    'id' => generateImportedTaskId(),
-                    'text' => $text,
-                    'completed' => $completed,
-                ];
-            }
+        if ($parentIndent !== null && $indent > $parentIndent && !empty($items)) {
+            $taskIndex = count($items) - 1;
+            $items[$taskIndex]['subtasks'][] = [
+                'id' => generateImportedTaskId(),
+                'text' => $text,
+                'completed' => $completed,
+            ];
+            $current = [$taskIndex, count($items[$taskIndex]['subtasks']) - 1, $indent];
             continue;
         }
 
+        $parentIndent = $indent;
+        $items[] = ['text' => $text, 'completed' => $completed, 'subtasks' => []];
+        $current = [count($items) - 1, null, $indent];
+    }
+
+    // Second pass: the markers at the end of a task, then its text
+    $tasks = [];
+    foreach ($items as $item) {
+        $text = trim($item['text']);
+
+        // Due date (Obsidian Tasks): " 📅 2026-11-25", " 14:30" after it
+        // when the task has a time, as convertTasklistToMarkdown() writes it
+        $dueAt = null;
+        if (preg_match('/\s*📅\s*(\d{4}-\d{2}-\d{2})(?:[ T](\d{2}:\d{2}))?\s*$/u', $text, $dueMatch)
+            && checkdate((int) substr($dueMatch[1], 5, 2), (int) substr($dueMatch[1], 8, 2), (int) substr($dueMatch[1], 0, 4))) {
+            $dueAt = $dueMatch[1] . (!empty($dueMatch[2]) ? 'T' . $dueMatch[2] : '');
+            $text = substr($text, 0, -strlen($dueMatch[0]));
+        }
+
         // Priority (#1730): a trailing ⭐ is high, as Poznote exports it
-        // (bold text); the Obsidian Tasks markers are read too: ⏫ or 🔺
-        // high, 🔼 medium, 🔽 or ⏬ low
+        // (bold text, each line on its own); the Obsidian Tasks markers are
+        // read too: ⏫ or 🔺 high, 🔼 medium, 🔽 or ⏬ low
         $priority = null;
         if (preg_match('/\s+(⭐|⏫|🔺|🔼|🔽|⏬)\s*$/u', $text, $priorityMatch)) {
             $priority = ['⭐' => 'high', '⏫' => 'high', '🔺' => 'high', '🔼' => 'medium', '🔽' => 'low', '⏬' => 'low'][$priorityMatch[1]];
             $text = preg_replace('/\s+(⭐|⏫|🔺|🔼|🔽|⏬)\s*$/u', '', $text);
             if ($priorityMatch[1] === '⭐') {
-                $text = preg_replace('/^\*\*(.*)\*\*$/us', '$1', trim($text));
+                $text = implode("\n", array_map(function ($line) {
+                    return preg_replace('/^\*\*(.*)\*\*$/u', '$1', trim($line));
+                }, explode("\n", trim($text))));
             }
         }
 
@@ -237,14 +284,26 @@ function convertMarkdownCheckboxListToTasklistJson($markdownContent) {
             continue;
         }
 
-        $parentIndent = $indent;
-        $tasks[] = setTasklistTaskPriority([
+        $task = [
             'id' => generateImportedTaskId(),
             'text' => $text,
-            'completed' => $completed,
+            'completed' => $item['completed'],
             'noteId' => '',
             'important' => false,
-        ], $priority);
+        ];
+        $subtasks = array_values(array_filter($item['subtasks'], function ($subtask) {
+            return trim($subtask['text']) !== '';
+        }));
+        if ($subtasks !== []) {
+            $task['subtasks'] = array_map(function ($subtask) {
+                $subtask['text'] = trim($subtask['text']);
+                return $subtask;
+            }, $subtasks);
+        }
+        if ($dueAt !== null) {
+            $task['dueAt'] = $dueAt;
+        }
+        $tasks[] = setTasklistTaskPriority($task, $priority);
     }
 
     if (empty($tasks)) {

@@ -42,6 +42,7 @@
         'btn-clear-completed': ['clear-completed-tasks'],
         'btn-uncheck-all': ['uncheck-all-tasks'],
         'btn-print': ['print-note'],
+        'btn-copy-markdown': ['copy-note-markdown'],
         'btn-archive': ['archive-note'],
         'btn-speed-dial': ['toggle-speed-dial'],
         'btn-open-tasks-page': ['open-tasks-page']

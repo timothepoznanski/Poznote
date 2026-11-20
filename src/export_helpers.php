@@ -216,6 +216,35 @@ function addDownloadAttributesToAttachmentLinks($html, $downloadNames) {
 }
 
 /**
+ * The due date of a task in Markdown: " 📅 2026-11-25", the Obsidian Tasks
+ * marker, with " 14:30" after it when the task has a time. '' without a
+ * valid date. Read back by convertMarkdownCheckboxListToTasklistJson().
+ *
+ * @param mixed $dueAt Stored dueAt ('Y-m-d' or 'Y-m-d\TH:i').
+ */
+function tasklistDueMarkdownMarker($dueAt): string {
+    if (!is_string($dueAt) || !preg_match('/^(\d{4}-\d{2}-\d{2})(?:[T ](\d{2}:\d{2}))?/', trim($dueAt), $parts)) {
+        return '';
+    }
+    return ' 📅 ' . $parts[1] . (isset($parts[2]) ? ' ' . $parts[2] : '');
+}
+
+/**
+ * One checkbox item of a task list in Markdown. A text written on several
+ * lines (Shift+Enter) keeps its line breaks: each following line is indented
+ * under the checkbox, so it stays in the item instead of ending the list, and
+ * the import joins it back. Empty lines stay empty.
+ */
+function tasklistMarkdownItem(string $indent, string $checkbox, string $text): string {
+    $lines = explode("\n", str_replace(["\r\n", "\r"], "\n", $text));
+    $out = $indent . '- ' . $checkbox . ' ' . array_shift($lines) . "\n";
+    foreach ($lines as $line) {
+        $out .= (trim($line) === '' ? '' : $indent . '  ' . $line) . "\n";
+    }
+    return $out;
+}
+
+/**
  * Convert tasklist JSON to Markdown checkbox format
  */
 function convertTasklistToMarkdown($jsonContent) {
@@ -230,11 +259,11 @@ function convertTasklistToMarkdown($jsonContent) {
     $markdown = '';
 
     foreach ($tasks as $task) {
-        $text = isset($task['text']) ? trim($task['text']) : '';
+        $text = isset($task['text']) && is_scalar($task['text']) ? trim((string) $task['text']) : '';
         $completed = !empty($task['completed']);
         $priority = getTasklistTaskPriority($task);
 
-        if (empty($text)) {
+        if ($text === '') {
             continue;
         }
 
@@ -242,21 +271,24 @@ function convertTasklistToMarkdown($jsonContent) {
 
         // Priority (#1730): high keeps the bold text and ⭐ of the important
         // star, medium and low take the Obsidian Tasks markers; the import
-        // (convertMarkdownCheckboxListToTasklistJson) reads all three back
+        // (convertMarkdownCheckboxListToTasklistJson) reads all three back.
+        // Bold goes round each line: ** does not span a line break.
         if ($priority === 'high') {
-            $markdown .= '- ' . $checkbox . ' **' . $text . '** ⭐' . "\n";
-        } elseif ($priority === 'medium') {
-            $markdown .= '- ' . $checkbox . ' ' . $text . ' 🔼' . "\n";
-        } elseif ($priority === 'low') {
-            $markdown .= '- ' . $checkbox . ' ' . $text . ' 🔽' . "\n";
-        } else {
-            $markdown .= '- ' . $checkbox . ' ' . $text . "\n";
+            $text = implode("\n", array_map(function ($line) {
+                return trim($line) === '' ? $line : '**' . trim($line) . '**';
+            }, explode("\n", $text)));
         }
+        $suffix = $priority === null ? '' : (['high' => ' ⭐', 'medium' => ' 🔼', 'low' => ' 🔽'][$priority] ?? '');
+
+        // Due date, after the priority as Obsidian Tasks writes them
+        $suffix .= tasklistDueMarkdownMarker($task['dueAt'] ?? null);
+
+        $markdown .= tasklistMarkdownItem('', $checkbox, $text . $suffix);
 
         // Subtasks: checkbox lines indented under their task, which is what
         // convertMarkdownCheckboxListToTasklistJson() reads back on import
         foreach (getTasklistSubtasks($task) as $subtask) {
-            $markdown .= '    - ' . ($subtask['completed'] ? '[x]' : '[ ]') . ' ' . $subtask['text'] . "\n";
+            $markdown .= tasklistMarkdownItem('    ', $subtask['completed'] ? '[x]' : '[ ]', $subtask['text']);
         }
     }
 
