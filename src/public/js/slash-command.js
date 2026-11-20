@@ -5504,17 +5504,6 @@
         hideSubmenu();
         filteredCommands = getFilteredCommands(filterText);
 
-        // A typed "/" followed by letters that match no command was text, not
-        // a command: the menu steps aside and the typing goes on. Not when the
-        // menu was opened on a selection or by a right-click / the Insert
-        // button: there the letters only search the menu (they are hidden, or
-        // kept out of the note), and "No results" says so.
-        if (filterText && !filteredCommands.length && !selectionSlashContext && !slashInsertedByButton) {
-            hideSlashMenu();
-            savedNoteEntry = null;
-            return;
-        }
-
         selectedIndex = Math.min(selectedIndex, Math.max(0, filteredCommands.length - 1));
         slashMenuElement.innerHTML = buildMenuHTML();
         fitMenuToWindow();
