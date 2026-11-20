@@ -137,7 +137,8 @@
         'menu-insert-audio-file': 'btn-audio',
         'menu-clear-completed-tasks': 'btn-clear-completed',
         'menu-uncheck-all-tasks': 'btn-uncheck-all',
-        'menu-print-note': 'btn-print'
+        'menu-print-note': 'btn-print',
+        'menu-copy-note-markdown': 'btn-copy-markdown'
     };
 
     // The UI Customization key that hides a toolbar button, '' when the

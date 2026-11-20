@@ -72,6 +72,99 @@ function exportNoteAsFormat(noteId, format, noteType) {
     document.body.removeChild(link);
 }
 
+// Copy as Markdown (#1805): the text of a task list or a Markdown note, to
+// paste into an AI agent or a chat without going through a downloaded file.
+// The server writes it (api_export_note.php, format=markdown_text), with the
+// same converter as the download, so the two always agree.
+function copyNoteAsMarkdown(noteId) {
+    var tr = function (key, fallback) {
+        return window.t ? window.t(key, null, fallback) : fallback;
+    };
+    var toast = function (text, warning) {
+        if (typeof window.poznoteShowToast === 'function') {
+            window.poznoteShowToast(text, warning ? { variant: 'warning' } : undefined);
+        }
+    };
+    var copied = function () { toast(tr('index.toolbar.copied_as_markdown', 'Copied as Markdown')); };
+    var failed = function (error) {
+        console.debug('copyNoteAsMarkdown:', error);
+        toast(tr('index.toolbar.copy_as_markdown_failed', 'The note could not be copied'), true);
+    };
+
+    // Changes not saved yet would be missing from what the server sends:
+    // save first, and go on after a moment anyway, since a refused save never
+    // calls back (same rule as the AI panel)
+    var saved = new Promise(function (resolve) {
+        if (typeof window.hasUnsavedChangesOnScreen !== 'function'
+            || typeof window.saveNoteImmediately !== 'function'
+            || !window.hasUnsavedChangesOnScreen(noteId)) {
+            resolve();
+            return;
+        }
+        var timer = setTimeout(resolve, 2500);
+        try {
+            window.saveNoteImmediately({ onSaved: function () { clearTimeout(timer); resolve(); } });
+        } catch (e) {
+            clearTimeout(timer);
+            resolve();
+        }
+    });
+
+    var text = saved.then(function () {
+        return fetch('api_export_note.php?id=' + encodeURIComponent(noteId) + '&format=markdown_text', {
+            credentials: 'same-origin',
+            cache: 'no-store'
+        });
+    }).then(function (response) {
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        return response.text();
+    });
+
+    // The textarea copy: no Clipboard API on a page served over plain HTTP
+    var copyWithTextarea = function (value) {
+        var area = document.createElement('textarea');
+        area.value = value;
+        area.setAttribute('readonly', '');
+        area.style.position = 'fixed';
+        area.style.top = '-1000px';
+        document.body.appendChild(area);
+        area.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+        document.body.removeChild(area);
+        if (!ok) throw new Error('execCommand copy refused');
+    };
+    var copyText = function (value) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(value).catch(function () { copyWithTextarea(value); });
+        }
+        copyWithTextarea(value);
+        return Promise.resolve();
+    };
+
+    // The clipboard write has to start inside the click: Safari refuses one
+    // that only begins once the request is back. A ClipboardItem takes the
+    // text still on its way; where that is refused, copy once it arrives.
+    if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+        var item;
+        try {
+            item = new ClipboardItem({
+                'text/plain': text.then(function (value) { return new Blob([value], { type: 'text/plain' }); })
+            });
+        } catch (e) {
+            item = null;
+        }
+        if (item) {
+            navigator.clipboard.write([item]).then(copied, function () {
+                text.then(copyText).then(copied, failed);
+            });
+            text.catch(function () { /* reported by the write above */ });
+            return;
+        }
+    }
+    text.then(copyText).then(copied, failed);
+}
+
 // Export note using browser's native print dialog
 function exportNoteToPrint(noteId, noteType) {
     // Open the export URL directly so relative assets resolve correctly,

@@ -2085,7 +2085,10 @@
       "split_width": "Breedte van de gesplitste weergave",
       "split_resize": "Sleep om de panelen te vergroten of verkleinen",
       "convert_to_markdown": "Converteren naar Markdown",
-      "share_note": "Delen"
+      "share_note": "Delen",
+      "copy_as_markdown": "Kopiëren als Markdown",
+      "copied_as_markdown": "Gekopieerd als Markdown",
+      "copy_as_markdown_failed": "De notitie kon niet worden gekopieerd"
     },
     "share_modal": {
       "description": "Een gedeelde URL maakt een openbare link naar deze notitie. Zodra de URL is aangemaakt, kun je meer opties toevoegen, zoals de notitie beveiligen met een wachtwoord of de deel-URL aanpassen.",

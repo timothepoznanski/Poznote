@@ -2627,7 +2627,10 @@
       "split_width": "Breite der geteilten Ansicht",
       "split_resize": "Ziehen, um die Bereiche anzupassen",
       "convert_to_markdown": "In Markdown konvertieren",
-      "share_note": "Teilen"
+      "share_note": "Teilen",
+      "copy_as_markdown": "Als Markdown kopieren",
+      "copied_as_markdown": "Als Markdown kopiert",
+      "copy_as_markdown_failed": "Die Notiz konnte nicht kopiert werden"
     },
     "share_modal": {
       "description": "Eine geteilte URL erstellt einen öffentlichen Link zu dieser Notiz. Sobald die URL erstellt wurde, stehen weitere Optionen zur Verfügung, zum Beispiel ein Passwortschutz für die Notiz oder eine Anpassung der Freigabe-URL.",

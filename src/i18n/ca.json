@@ -2085,7 +2085,10 @@
       "split_width": "Amplada de la visualització dividida",
       "split_resize": "Arrossegueu per canviar la mida de les subfinestres",
       "convert_to_markdown": "Converteix a Markdown",
-      "share_note": "Comparteix"
+      "share_note": "Comparteix",
+      "copy_as_markdown": "Copia com a Markdown",
+      "copied_as_markdown": "Copiat com a Markdown",
+      "copy_as_markdown_failed": "No s'ha pogut copiar la nota"
     },
     "share_modal": {
       "description": "Un URL compartit crea un enllaç públic a aquesta nota. Un cop creat l'URL, hi podreu afegir més opcions, com ara protegir la nota amb una contrasenya o personalitzar l'URL de compartició.",

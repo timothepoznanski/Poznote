@@ -2633,7 +2633,10 @@
       "split_width": "Largeur de la vue divisée",
       "split_resize": "Faites glisser pour redimensionner les volets",
       "convert_to_markdown": "Convertir en Markdown",
-      "share_note": "Partager la note"
+      "share_note": "Partager la note",
+      "copy_as_markdown": "Copier en Markdown",
+      "copied_as_markdown": "Copié en Markdown",
+      "copy_as_markdown_failed": "La note n'a pas pu être copiée"
     },
     "share_modal": {
       "description": "Une URL de partage crée un lien public vers cette note. Une fois l'URL créée, d'autres options seront proposées, comme protéger la note par mot de passe ou personnaliser l'URL de partage.",

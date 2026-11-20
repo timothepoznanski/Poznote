@@ -996,6 +996,14 @@
                     exportNoteToPrint(noteId, target.dataset.noteType);
                 }
                 break;
+            case 'copy-note-markdown':
+                if (noteId && typeof copyNoteAsMarkdown === 'function') {
+                    var toolbarElForCopy = target.closest('.note-edit-toolbar');
+                    var menuElForCopy = toolbarElForCopy ? toolbarElForCopy.querySelector('.mobile-toolbar-menu') : null;
+                    if (menuElForCopy) menuElForCopy.hidden = true;
+                    copyNoteAsMarkdown(noteId);
+                }
+                break;
             case 'show-convert-modal':
                 if (noteId && typeof showConvertNoteModal === 'function') {
                     const convertTo = target.dataset.convertTo;

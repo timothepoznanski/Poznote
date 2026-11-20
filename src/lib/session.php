@@ -192,9 +192,89 @@ function poznoteStartSession(): void {
         session_save_path($sessionSavePath);
     }
 
+    $openedWithoutCookie = empty($_COOKIE[$sessionName]);
+
     session_start();
+
+    if ($openedWithoutCookie && session_status() === PHP_SESSION_ACTIVE) {
+        poznoteDiscardSessionIfLeftEmpty(session_id());
+    }
 
     // An already signed-in session gets its lasting cookie back on every
     // request; a fresh login gets it from setAuthenticatedIdentity().
     poznoteRefreshSessionCookie();
+}
+
+/** File that holds a session, in the directory PHP is currently using. */
+function poznoteSessionFilePath(string $sessionId): string {
+    $savePath = (string)session_save_path();
+    return rtrim($savePath !== '' ? $savePath : sys_get_temp_dir(), '/') . '/sess_' . $sessionId;
+}
+
+/**
+ * Take back the Set-Cookie header that would hand out the session id, keeping
+ * every other cookie the response sets. Does nothing once headers are sent.
+ */
+function poznoteWithdrawSessionCookieHeader(): void {
+    if (headers_sent()) {
+        return;
+    }
+    $cookieName = session_name();
+    $kept = [];
+    foreach (headers_list() as $header) {
+        if (stripos($header, 'Set-Cookie:') === 0
+            && !str_starts_with(ltrim(substr($header, strlen('Set-Cookie:'))), $cookieName . '=')) {
+            $kept[] = $header;
+        }
+    }
+    header_remove('Set-Cookie');
+    foreach ($kept as $header) {
+        header($header, false);
+    }
+}
+
+/**
+ * Delete, at the end of the request, the session a cookie-less request opened
+ * if the request stored nothing in it.
+ *
+ * Every request without a cookie gets a session file, and most of them never
+ * write to it: an uptime monitor or a bot calling the home page (redirected to
+ * the login page), an API call refused with a 401, a visitor of a public share.
+ * Kept, those empty files piled up for the whole session lifetime (7 days
+ * since the lifetime stopped being PHP's 24 minutes), hundreds of thousands
+ * of them on an instance polled every few seconds.
+ *
+ * Only a session this request created is touched, and only while its cookie
+ * can still be taken back out of the response: nobody then ever learns the
+ * id, so no other request can be holding the file. A response whose headers
+ * already left (output is not buffered by PHP itself) keeps its file, which
+ * the idle sweep of lib/session-sweep.php removes later. A request that
+ * signed in, regenerated the id or wrote anything keeps its session.
+ */
+function poznoteDiscardSessionIfLeftEmpty(string $sessionId): void {
+    static $registered = false;
+    if ($registered || $sessionId === '') {
+        return;
+    }
+    $registered = true;
+
+    register_shutdown_function(static function () use ($sessionId): void {
+        if (headers_sent()) {
+            return;
+        }
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            if (session_id() !== $sessionId || !empty($_SESSION)) {
+                return;
+            }
+            // Not written: PHP would otherwise store the empty session, or
+            // touch the file, right after this function.
+            session_abort();
+        }
+        $file = poznoteSessionFilePath($sessionId);
+        clearstatcache(true, $file);
+        if (is_file($file) && filesize($file) === 0) {
+            @unlink($file);
+            poznoteWithdrawSessionCookieHeader();
+        }
+    });
 }

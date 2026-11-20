@@ -2085,7 +2085,10 @@
       "split_width": "分割表示の幅",
       "split_resize": "ドラッグしてペインのサイズを変更",
       "convert_to_markdown": "Markdownに変換",
-      "share_note": "共有"
+      "share_note": "共有",
+      "copy_as_markdown": "Markdown としてコピー",
+      "copied_as_markdown": "Markdown としてコピーしました",
+      "copy_as_markdown_failed": "ノートをコピーできませんでした"
     },
     "share_modal": {
       "description": "共有URLを作成すると、このノートへの公開リンクができます。URLの作成後に、パスワードによる保護や共有URLのカスタマイズなどのオプションを追加できます。",

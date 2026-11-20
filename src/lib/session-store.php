@@ -105,21 +105,25 @@ function poznoteMeasureSerializedValue(string $raw, int $offset): ?int {
  * anything that does not parse, so a file being written right now is skipped
  * instead of guessed at. Only the keys in $wanted are unserialized; the others
  * are measured and stepped over, objects never being instantiated.
+ *
+ * $complete tells whether the whole file was read: false when decoding stopped
+ * on something it could not measure, keys past that point being unknown.
  */
-function poznoteDecodeSessionFile(string $raw, array $wanted): array {
+function poznoteDecodeSessionFile(string $raw, array $wanted, ?bool &$complete = null): array {
     $out = [];
     $cursor = 0;
     $length = strlen($raw);
+    $complete = false;
     while ($cursor < $length) {
         $separator = strpos($raw, '|', $cursor);
         if ($separator === false || $separator === $cursor) {
-            break;
+            return $out;
         }
         $key = substr($raw, $cursor, $separator - $cursor);
         $valueAt = $separator + 1;
         $size = poznoteMeasureSerializedValue($raw, $valueAt);
         if ($size === null) {
-            break;
+            return $out;
         }
         if (in_array($key, $wanted, true)) {
             $value = @unserialize(substr($raw, $valueAt, $size), ['allowed_classes' => false]);
@@ -129,6 +133,7 @@ function poznoteDecodeSessionFile(string $raw, array $wanted): array {
         }
         $cursor = $valueAt + $size;
     }
+    $complete = true;
     return $out;
 }
 

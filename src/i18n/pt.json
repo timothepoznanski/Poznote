@@ -2627,7 +2627,10 @@
       "split_width": "Largura da vista dividida",
       "split_resize": "Arraste para redimensionar os painéis",
       "convert_to_markdown": "Converter para Markdown",
-      "share_note": "Compartilhar"
+      "share_note": "Compartilhar",
+      "copy_as_markdown": "Copiar como Markdown",
+      "copied_as_markdown": "Copiado como Markdown",
+      "copy_as_markdown_failed": "Não foi possível copiar a nota"
     },
     "share_modal": {
       "description": "Uma URL compartilhada cria um link público para esta nota. Depois que a URL for criada, outras opções serão oferecidas, como proteger a nota com senha ou personalizar a URL de compartilhamento.",

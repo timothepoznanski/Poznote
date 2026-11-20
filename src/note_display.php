@@ -489,6 +489,11 @@
                         echo '<button type="button" class="dropdown-item mobile-toolbar-item" role="menuitem" data-action="archive-note" data-note-id="'.$row['id'].'" data-note-title="'.htmlspecialchars($title_safe, ENT_QUOTES).'"><i class="lucide lucide-archive"></i> '.t_h('archive.menu_item', [], 'Archive note').'</button>';
                     }
                     echo '<button type="button" class="dropdown-item mobile-toolbar-item" role="menuitem" data-action="trigger-mobile-action" data-selector=".btn-download"><i class="lucide lucide-download"></i> '.t_h('common.download', [], 'Download').'</button>';
+                    // Copy as Markdown (#1805): the text to paste into an AI
+                    // agent or a chat, without going through a downloaded file
+                    if ($note_type === 'tasklist' || $note_type === 'markdown') {
+                        echo '<button type="button" class="dropdown-item mobile-toolbar-item" role="menuitem" data-action="copy-note-markdown" data-note-id="'.$row['id'].'"><i class="lucide lucide-clipboard-copy"></i> '.t_h('index.toolbar.copy_as_markdown', [], 'Copy as Markdown').'</button>';
+                    }
                     echo '<button type="button" class="dropdown-item mobile-toolbar-item" role="menuitem" data-action="print-note" data-note-id="'.$row['id'].'" data-note-type="'.$note_type_attr.'"><i class="lucide lucide-printer"></i> '.t_h('common.print', [], 'Print').'</button>';
 
                     // Convert button (only for markdown and note types, with appropriate icon)

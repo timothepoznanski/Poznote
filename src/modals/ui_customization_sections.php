@@ -275,6 +275,7 @@ if (!function_exists('poznoteUiCustomizationSectionHeader')) {
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="toolbar:btn-speed-dial" checked><span><?php echo t_h('speed_dial.add', [], 'Add to speed dial'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="toolbar:btn-create-linked-note" checked><span><?php echo t_h('editor.toolbar.create_linked_note', [], 'Create linked note'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="toolbar:btn-download" checked><span><?php echo t_h('common.download', [], 'Download'); ?></span></label>
+    <label class="ui-custom-item"><input type="checkbox" data-ui-key="toolbar:btn-copy-markdown" checked><span><?php echo t_h('index.toolbar.copy_as_markdown', [], 'Copy as Markdown'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="toolbar:btn-print" checked><span><?php echo t_h('common.print', [], 'Print'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="toolbar:btn-convert" checked><span><?php echo t_h('modals.convert.title', [], 'Convert'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="toolbar:btn-audio" checked><span><?php echo t_h('slash_menu.audio', [], 'Audio'); ?></span></label>

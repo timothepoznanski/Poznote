@@ -2625,7 +2625,10 @@
       "split_width": "分屏视图宽度",
       "split_resize": "拖动以调整分栏宽度",
       "convert_to_markdown": "转换为 Markdown",
-      "share_note": "共享笔记"
+      "share_note": "共享笔记",
+      "copy_as_markdown": "复制为 Markdown",
+      "copied_as_markdown": "已复制为 Markdown",
+      "copy_as_markdown_failed": "无法复制笔记"
     },
     "share_modal": {
       "description": "共享 URL 会为这条笔记创建一个公开链接。创建后，你还可以使用更多选项，例如为笔记设置密码，或自定义共享 URL。",
