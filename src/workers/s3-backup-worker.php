@@ -9,6 +9,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../S3BackupService.php';
 require_once __DIR__ . '/../LocalBackupService.php';
+require_once __DIR__ . '/../lib/session-sweep.php';
 
 const S3_BACKUP_WORKER_INTERVAL_SECONDS = 300;
 
@@ -54,6 +55,18 @@ do {
         }
     } catch (Throwable $e) {
         poznoteS3BackupWorkerLog('local fatal: ' . $e->getMessage());
+    }
+
+    // Not a backup, but this is the worker that wakes up every few minutes:
+    // sessions that never signed in are deleted after 24 minutes idle,
+    // instead of waiting out the 7-day lifetime of signed-in ones.
+    try {
+        $sweep = poznoteSweepIdleAnonymousSessions(poznoteSessionSavePath());
+        if ($sweep['deleted'] > 0) {
+            poznoteS3BackupWorkerLog('deleted ' . $sweep['deleted'] . ' idle anonymous session(s)');
+        }
+    } catch (Throwable $e) {
+        poznoteS3BackupWorkerLog('session sweep failed: ' . $e->getMessage());
     }
 
     if ($runOnce) {

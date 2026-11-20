@@ -2452,8 +2452,7 @@ function detachApiRequestFromSession(): void {
     $detached = true;
 
     $deleteSessionFile = static function (string $id): void {
-        $savePath = (string)session_save_path();
-        $file = rtrim($savePath !== '' ? $savePath : sys_get_temp_dir(), '/') . '/sess_' . $id;
+        $file = poznoteSessionFilePath($id);
         if (is_file($file)) {
             @unlink($file);
         }
@@ -2469,17 +2468,7 @@ function detachApiRequestFromSession(): void {
         // holds the id of: withdraw the cookie that would hand it out, and
         // drop its empty file, or every call from a cookie-less client (curl,
         // the MCP server) would leave one behind in data/sessions.
-        $kept = [];
-        foreach (headers_list() as $header) {
-            if (stripos($header, 'Set-Cookie:') === 0
-                && !str_starts_with(ltrim(substr($header, strlen('Set-Cookie:'))), $cookieName . '=')) {
-                $kept[] = $header;
-            }
-        }
-        header_remove('Set-Cookie');
-        foreach ($kept as $header) {
-            header($header, false);
-        }
+        poznoteWithdrawSessionCookieHeader();
         $deleteSessionFile($openedId);
     }
 

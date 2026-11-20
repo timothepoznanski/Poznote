@@ -182,11 +182,35 @@ else
     echo "Warning: automatic orphan snapshot cleanup failed; continuing startup."
 fi
 
+echo "Removing idle sessions that never signed in..."
+if ! php /var/www/html/maintenance/sweep-sessions.php "$DATA_DIR"; then
+    echo "Warning: session sweep failed; continuing startup."
+fi
+
+# The sessions folder stays out of the recursive pass below: it can hold a
+# very large number of files (one per cookie-less request until they expire),
+# and its files must stay private (0600) rather than 664. PHP creates them as
+# www-data already, so only stray entries are fixed.
+SESSIONS_DIR="$DATA_DIR/sessions"
+
 if [ "$CURRENT_UID" = "0" ]; then
     echo "Setting correct permissions recursively on $DATA_DIR..."
-    chown -R www-data:www-data "$DATA_DIR"
-    find "$DATA_DIR" -type d -exec chmod 775 {} +
-    find "$DATA_DIR" -type f -exec chmod 664 {} +
+    chown www-data:www-data "$DATA_DIR"
+    for entry in "$DATA_DIR"/* "$DATA_DIR"/.[!.]*; do
+        if [ "$entry" = "$SESSIONS_DIR" ] || { [ ! -e "$entry" ] && [ ! -L "$entry" ]; }; then
+            continue
+        fi
+        chown -R www-data:www-data "$entry"
+    done
+    find "$DATA_DIR" -path "$SESSIONS_DIR" -prune -o -type d -exec chmod 775 {} +
+    find "$DATA_DIR" -path "$SESSIONS_DIR" -prune -o -type f -exec chmod 664 {} +
+
+    if [ -d "$SESSIONS_DIR" ]; then
+        chown www-data:www-data "$SESSIONS_DIR"
+        chmod 700 "$SESSIONS_DIR"
+        find "$SESSIONS_DIR" -mindepth 1 ! -user www-data -exec chown www-data:www-data {} +
+        find "$SESSIONS_DIR" -mindepth 1 -type f ! -perm 600 -exec chmod 600 {} +
+    fi
 else
     echo "Running as non-root (uid $CURRENT_UID); $DATA_DIR is already correctly owned, skipping chown."
 fi
