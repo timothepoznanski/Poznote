@@ -39,6 +39,56 @@
         return getSlashMenuTrigger() === 'alt-slash';
     }
 
+    // A typed "/" opens the menu only at the start of a line or after a space:
+    // "word1/word2", "and/or", 20/11/2026, https://, docs/README.md stay text.
+    // Nobody inserts a block or a format glued to the end of a word. Alt + /,
+    // right-click and the mobile Insert button open the menu anywhere.
+    // prevChar is the character before the "/", '' at the start of a line.
+    // U+200B and U+FEFF are the caret holders browsers and Poznote leave on an
+    // empty line, so they count as nothing typed.
+    function isSlashTriggerBoundary(prevChar) {
+        return prevChar === '' || /[\s\u200B\uFEFF]/.test(prevChar);
+    }
+
+    const SLASH_LINE_BLOCK_TAGS = new Set(['P', 'DIV', 'LI', 'TD', 'TH', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
+        'BLOCKQUOTE', 'PRE', 'SUMMARY', 'DETAILS', 'ASIDE', 'SECTION', 'UL', 'OL', 'TABLE', 'TR', 'FIGURE']);
+
+    function closestSlashLineBlock(node, root) {
+        let el = node.nodeType === 1 ? node : node.parentNode;
+        while (el && el !== root) {
+            if (SLASH_LINE_BLOCK_TAGS.has(el.tagName)) return el;
+            el = el.parentNode;
+        }
+        return root;
+    }
+
+    // The character before the "/" at `offset` of the text node `container`, in
+    // a rich text note. The "/" can be the first character of its text node
+    // (typed right after bold text, a link, a pasted span), so the walk goes
+    // back through the line: a <br> or another block ends it ('').
+    function charBeforeSlashInEditable(container, offset, root) {
+        if (offset >= 2) return container.textContent.charAt(offset - 2);
+        if (!root || !root.contains(container)) return '';
+
+        const block = closestSlashLineBlock(container, root);
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
+        walker.currentNode = container;
+        let node;
+        while ((node = walker.previousNode())) {
+            if (node === block || node === root) return '';
+            if (node.nodeType === 3) {
+                if (!node.textContent.length) continue;
+                if (closestSlashLineBlock(node, root) !== block) return '';
+                return node.textContent.charAt(node.textContent.length - 1);
+            }
+            if (node.contains(container)) continue; // an inline wrapper of the "/"
+            if (node.tagName === 'BR' || closestSlashLineBlock(node, root) !== block) return '';
+            // An image or a widget is something written before the "/"
+            if (node.tagName === 'IMG' || node.getAttribute('contenteditable') === 'false') return 'x';
+        }
+        return '';
+    }
+
     function isSlashMenuKeyDisabled() {
         return getSlashMenuTrigger() === 'disabled';
     }
@@ -5453,6 +5503,7 @@
 
         hideSubmenu();
         filteredCommands = getFilteredCommands(filterText);
+
         selectedIndex = Math.min(selectedIndex, Math.max(0, filteredCommands.length - 1));
         slashMenuElement.innerHTML = buildMenuHTML();
         fitMenuToWindow();
@@ -6520,11 +6571,8 @@
         const lastChar = cursorPos > 0 ? api.sliceText(editor, cursorPos - 1, cursorPos) : '';
 
         if (lastChar === '/' && !isDeleting && isTypedSlashModeEnabled()) {
-            // The URL tests below only look at the last two characters
-            const textBeforeSlash = api.sliceText(editor, Math.max(0, cursorPos - 3), cursorPos - 1);
-            const isUrl = /:$/.test(textBeforeSlash) || /:\/$/.test(textBeforeSlash);
-
-            if (!isUrl) {
+            const prevChar = cursorPos > 1 ? api.sliceText(editor, cursorPos - 2, cursorPos - 1) : '';
+            if (isSlashTriggerBoundary(prevChar)) {
                 showSlashMenuForCodeMirror(editor, cursorPos - 1, cursorPos);
             }
             return;
@@ -6628,12 +6676,7 @@
         const isDeleting = e.inputType && e.inputType.startsWith('delete');
 
         if (lastChar === '/' && !isDeleting && isTypedSlashModeEnabled()) {
-            // Check if we're typing a URL - don't open menu in that case
-            const textBeforeSlash = textBefore.substring(0, textBefore.length - 1);
-            // Detect URL pattern: when typing / directly after : or :/ (protocol)
-            const isUrl = /:$/.test(textBeforeSlash) || /:\/$/.test(textBeforeSlash);
-
-            if (!isUrl) {
+            if (isSlashTriggerBoundary(charBeforeSlashInEditable(container, offset, noteEntry))) {
                 showSlashMenu();
             }
         } else if (slashMenuElement) {
@@ -6939,15 +6982,8 @@
                 if (pos > 0 && value[pos - 1] === '/' && isTypedSlashModeEnabled()) {
                     // Don't show if we're deleting
                     const isDeleting = e.inputType && e.inputType.startsWith('delete');
-                    if (!isDeleting) {
-                        // Check if we're typing a URL - don't open menu in that case
-                        const textBeforeSlash = value.substring(0, pos - 1);
-                        // Detect URL pattern: when typing / directly after : or :/ (protocol)
-                        const isUrl = /:$/.test(textBeforeSlash) || /:\/$/.test(textBeforeSlash);
-
-                        if (!isUrl) {
-                            showSlashMenuForInput(target, pos);
-                        }
+                    if (!isDeleting && isSlashTriggerBoundary(pos > 1 ? value.charAt(pos - 2) : '')) {
+                        showSlashMenuForInput(target, pos);
                     }
                 }
                 // Update filter if menu is already open
