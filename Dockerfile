@@ -19,9 +19,11 @@
 # root and running as "poznote" (user creation, a couple of config lines,
 # ownership, the exposed port) is repeated in the two final stages below.
 # PHP is pinned to a patch release, not the floating 8.5 tag, so a cached
-# build can never fall back below a security fix: 8.5.12 is the floor for
-# CVE-2026-109618 and CVE-2026-109619 (unauthenticated RCE in PHP core).
-FROM php:8.5.12-fpm-alpine3.23 AS base
+# build can never fall back below a security fix: 8.5.13 is the floor for
+# CVE-2026-115560 (session serializer RCE), CVE-2026-126714 (session file
+# RCE) and the PHP-FPM fixes of the 19 Nov 2026 release (request smuggling,
+# epoll use-after-free); 8.5.12 already covered CVE-2026-109618/109619.
+FROM php:8.5.13-fpm-alpine3.23 AS base
 
 # Install system dependencies and PHP extensions (OPcache is built into PHP
 # since 8.5, it has no extension to install)
