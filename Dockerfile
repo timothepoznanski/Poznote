@@ -23,7 +23,7 @@
 # CVE-2026-115560 (session serializer RCE), CVE-2026-126714 (session file
 # RCE) and the PHP-FPM fixes of the 19 Nov 2026 release (request smuggling,
 # epoll use-after-free); 8.5.12 already covered CVE-2026-109618/109619.
-FROM php:8.5.13-fpm-alpine3.23 AS base
+FROM php:8.5.13-fpm-alpine3.24 AS base
 
 # Install system dependencies and PHP extensions (OPcache is built into PHP
 # since 8.5, it has no extension to install)

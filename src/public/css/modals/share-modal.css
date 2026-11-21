@@ -169,15 +169,17 @@ html[data-theme='dark'] #folderShareModal h3 {
    ============================================ */
 
 #sharedViaFolderModal .modal-content {
-    max-width: 620px;
+    max-width: 800px;
 }
 
-/* The three buttons stay on one line: the widest wording (ca/pt "Edit folder
-   share") needs about 565px, hence the wider dialog above. Below 800px the
-   responsive sheet stacks them, as in every other modal. */
+/* The four buttons (Cancel, Open URL, Edit folder share, Create URL) stay on
+   one line: the widest wording (ca/pt "Edit folder share") needs about 700px,
+   hence the wider dialog above. A narrower window lets the row wrap rather
+   than overflow; below 800px the responsive sheet stacks them, as in every
+   other modal. */
 #sharedViaFolderModal .share-modal-buttons {
     margin-top: 20px;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
 }
 
 #sharedViaFolderModal .share-modal-buttons button {

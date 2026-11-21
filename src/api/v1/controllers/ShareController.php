@@ -50,7 +50,7 @@ class ShareController {
                     'noteType' => $noteType,
                     'accessMode' => $this->sanitizeAccessMode('full', $noteType),
                     'workspace' => $noteWorkspace,
-                    'sharedViaFolder' => $this->findSharingFolder($noteRow['folder_id'] ?? null),
+                    'sharedViaFolder' => $this->findSharingFolder($noteRow['folder_id'] ?? null, (int)$noteId),
                     'folderPasswordExempt' => poznoteNoteIsFolderPasswordExempt($this->con, (int)$noteId)
                 ]);
                 return;
@@ -473,7 +473,7 @@ class ShareController {
      * The nearest shared folder among the note's folder and its ancestors,
      * or null when no folder share covers the note.
      */
-    private function findSharingFolder($folderId): ?array {
+    private function findSharingFolder($folderId, int $noteId = 0): ?array {
         if (empty($folderId)) {
             return null;
         }
@@ -487,7 +487,7 @@ class ShareController {
                 FROM folders parent
                 INNER JOIN folder_path ON folder_path.parent_id = parent.id
             )
-            SELECT fo.id, fo.name
+            SELECT fo.id, fo.name, sf.token
             FROM folder_path
             INNER JOIN shared_folders sf ON sf.folder_id = folder_path.id
             INNER JOIN folders fo ON fo.id = folder_path.id
@@ -499,10 +499,26 @@ class ShareController {
         if (!$folder) {
             return null;
         }
-        return ['folderId' => (int)$folder['id'], 'folderName' => (string)$folder['name']];
+        $result = ['folderId' => (int)$folder['id'], 'folderName' => (string)$folder['name']];
+        // The note has no token of its own: its public page goes through the
+        // folder token, the URL the Shares page opens for it
+        if ($noteId > 0 && !empty($folder['token'])) {
+            $result['url'] = $this->publicBaseUrl()
+                . '/public_note.php?id=' . $noteId . '&folder_token=' . rawurlencode((string)$folder['token']);
+        }
+        return $result;
     }
 
     private function buildUrls($token) {
+        $base = $this->publicBaseUrl();
+        return [
+            'query' => $base . '/public_note.php?token=' . rawurlencode($token),
+            'path' => $base . '/' . rawurlencode($token),
+            'workspace' => $base . '/workspace/' . rawurlencode($token)
+        ];
+    }
+
+    private function publicBaseUrl(): string {
         $host = getExternalHostWithPort();
         $scriptDir = dirname($_SERVER['SCRIPT_NAME']);
         if ($scriptDir === '/' || $scriptDir === '\\' || $scriptDir === '.') {
@@ -516,13 +532,7 @@ class ShareController {
         $scriptDir = rtrim($scriptDir, '/\\');
         $base = '//' . $host . ($scriptDir ? '/' . ltrim($scriptDir, '/\\') : '');
         // Through the MCP server the request host is its internal address
-        $base = poznoteServiceTokenInstanceBaseUrl() ?? $base;
-        
-        return [
-            'query' => $base . '/public_note.php?token=' . rawurlencode($token),
-            'path' => $base . '/' . rawurlencode($token),
-            'workspace' => $base . '/workspace/' . rawurlencode($token)
-        ];
+        return poznoteServiceTokenInstanceBaseUrl() ?? $base;
     }
 
     private function sanitizeAccessMode($accessMode, string $noteType): string {

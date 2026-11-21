@@ -67,6 +67,44 @@ function getMasterConnection(): PDO {
 }
 
 /**
+ * Add a column to a master.db table if it is still missing, together with the
+ * statements that must run right after it (an index, a backfill).
+ *
+ * Callers check PRAGMA table_info first and only come here when the column
+ * looked missing. On a fresh install several processes open master.db at the
+ * same instant (php-fpm workers, the reminder and backup workers started
+ * together by supervisor), all see the column missing, and all but one used to
+ * fail with "duplicate column name", which also skipped every later column of
+ * that block in the losing process. The write lock serialises them: the column
+ * list is read again once the lock is held, so the second process finds the
+ * column and does nothing, and the column and its follow-up statements land in
+ * one transaction (no process can see the column before its backfill ran).
+ *
+ * @param string[] $followUps SQL run after the ALTER, only when this call added the column
+ */
+function masterAddColumnOnce(PDO $con, string $table, string $column, string $definition, array $followUps = []): void {
+    $con->exec('BEGIN IMMEDIATE');
+    try {
+        $existing = array_column($con->query("PRAGMA table_info($table)")->fetchAll(PDO::FETCH_ASSOC), 'name');
+        if (!in_array($column, $existing, true)) {
+            $con->exec("ALTER TABLE $table ADD COLUMN $column $definition");
+            foreach ($followUps as $sql) {
+                $con->exec($sql);
+            }
+        }
+        $con->exec('COMMIT');
+    } catch (Throwable $e) {
+        try {
+            $con->exec('ROLLBACK');
+        } catch (Throwable $ignored) {
+            // SQLite had already rolled the transaction back by itself
+            // (disk full, I/O error): nothing is left open.
+        }
+        throw $e;
+    }
+}
+
+/**
  * Initialize the master database schema
  */
 function initializeMasterDatabase(PDO $con): void {
@@ -97,54 +135,57 @@ function initializeMasterDatabase(PDO $con): void {
         $existingColumns = array_column($cols, 'name');
         
         if (!in_array('email', $existingColumns)) {
-            $con->exec("ALTER TABLE users ADD COLUMN email TEXT");
-            $con->exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email) WHERE email IS NOT NULL AND email != ''");
+            masterAddColumnOnce($con, 'users', 'email', "TEXT", [
+                "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email) WHERE email IS NOT NULL AND email != ''",
+            ]);
         }
         
         if (!in_array('oidc_subject', $existingColumns)) {
-            $con->exec("ALTER TABLE users ADD COLUMN oidc_subject TEXT");
-            $con->exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_oidc_subject ON users(oidc_subject) WHERE oidc_subject IS NOT NULL AND oidc_subject != ''");
+            masterAddColumnOnce($con, 'users', 'oidc_subject', "TEXT", [
+                "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_oidc_subject ON users(oidc_subject) WHERE oidc_subject IS NOT NULL AND oidc_subject != ''",
+            ]);
         }
         
         if (!in_array('password_hash', $existingColumns)) {
-            $con->exec("ALTER TABLE users ADD COLUMN password_hash TEXT");
+            masterAddColumnOnce($con, 'users', 'password_hash', "TEXT");
         }
 
         if (!in_array('password_changed_at', $existingColumns)) {
-            $con->exec("ALTER TABLE users ADD COLUMN password_changed_at DATETIME");
+            masterAddColumnOnce($con, 'users', 'password_changed_at', "DATETIME");
         }
 
         if (!in_array('first_name', $existingColumns)) {
-            $con->exec("ALTER TABLE users ADD COLUMN first_name TEXT");
+            masterAddColumnOnce($con, 'users', 'first_name', "TEXT");
         }
 
         if (!in_array('last_name', $existingColumns)) {
-            $con->exec("ALTER TABLE users ADD COLUMN last_name TEXT");
+            masterAddColumnOnce($con, 'users', 'last_name', "TEXT");
         }
 
         if (!in_array('email_verified', $existingColumns)) {
-            $con->exec("ALTER TABLE users ADD COLUMN email_verified INTEGER DEFAULT 0");
             // Emails that predate self-service editing were all set by an
             // administrator, so they are trusted for OIDC account matching.
-            $con->exec("UPDATE users SET email_verified = 1 WHERE email IS NOT NULL AND email != ''");
+            masterAddColumnOnce($con, 'users', 'email_verified', "INTEGER DEFAULT 0", [
+                "UPDATE users SET email_verified = 1 WHERE email IS NOT NULL AND email != ''",
+            ]);
         }
 
         if (!in_array('notify_new_user', $existingColumns)) {
-            $con->exec("ALTER TABLE users ADD COLUMN notify_new_user INTEGER DEFAULT 0");
+            masterAddColumnOnce($con, 'users', 'notify_new_user', "INTEGER DEFAULT 0");
         }
 
         // Per-user access to the AI assistant. The connection itself is
         // instance-wide (global_settings), but each profile is opted in
         // individually; new profiles start without access.
         if (!in_array('ai_chat_enabled', $existingColumns)) {
-            $con->exec("ALTER TABLE users ADD COLUMN ai_chat_enabled INTEGER DEFAULT 0");
+            masterAddColumnOnce($con, 'users', 'ai_chat_enabled', "INTEGER DEFAULT 0");
         }
 
         // Per-user access to the transcription server, same shape and same
         // reasoning as ai_chat_enabled above: the server is instance-wide,
         // access to it is granted profile by profile.
         if (!in_array('stt_enabled', $existingColumns)) {
-            $con->exec("ALTER TABLE users ADD COLUMN stt_enabled INTEGER DEFAULT 0");
+            masterAddColumnOnce($con, 'users', 'stt_enabled', "INTEGER DEFAULT 0");
         }
 
         // Interface language, mirrored from the per-user settings table on every
@@ -153,25 +194,25 @@ function initializeMasterDatabase(PDO $con): void {
         // lists, admin exports) can address a user in their own language.
         // NULL means the profile has not opened the app since the column landed.
         if (!in_array('language', $existingColumns)) {
-            $con->exec("ALTER TABLE users ADD COLUMN language TEXT");
+            masterAddColumnOnce($con, 'users', 'language', "TEXT");
         }
 
         // Per-user quota overrides: NULL inherits the global setting, 0 means
         // unlimited, any other value is the limit for that user.
         if (!in_array('quota_max_notes', $existingColumns)) {
-            $con->exec("ALTER TABLE users ADD COLUMN quota_max_notes INTEGER");
+            masterAddColumnOnce($con, 'users', 'quota_max_notes', "INTEGER");
         }
 
         if (!in_array('quota_max_storage_mb', $existingColumns)) {
-            $con->exec("ALTER TABLE users ADD COLUMN quota_max_storage_mb INTEGER");
+            masterAddColumnOnce($con, 'users', 'quota_max_storage_mb', "INTEGER");
         }
 
         if (!in_array('quota_max_storage_s3_mb', $existingColumns)) {
-            $con->exec("ALTER TABLE users ADD COLUMN quota_max_storage_s3_mb INTEGER");
+            masterAddColumnOnce($con, 'users', 'quota_max_storage_s3_mb', "INTEGER");
         }
 
         if (!in_array('quota_max_backups_s3_mb', $existingColumns)) {
-            $con->exec("ALTER TABLE users ADD COLUMN quota_max_backups_s3_mb INTEGER");
+            masterAddColumnOnce($con, 'users', 'quota_max_backups_s3_mb', "INTEGER");
         }
     } catch (Exception $e) {
         error_log("Failed to add columns: " . $e->getMessage());
@@ -184,21 +225,23 @@ function initializeMasterDatabase(PDO $con): void {
     try {
         $cols = $con->query("PRAGMA table_info(users)")->fetchAll(PDO::FETCH_ASSOC);
         if (!in_array('password_login_disabled', array_column($cols, 'name'))) {
-            $con->exec("ALTER TABLE users ADD COLUMN password_login_disabled INTEGER DEFAULT 0");
             // Backfill the profiles that are exposed right now: linked to an SSO
             // identity and with no password hash, so they currently answer to the
             // public default. Profiles that already have a hash are untouched,
             // they went through a deliberate password set and keep working.
             // getUserPasswordHash() treats an empty string as "no hash", so the
             // backfill must too: matching only IS NULL would leave such a row
-            // answering to the public default.
-            $con->exec("
+            // answering to the public default. Same transaction as the column,
+            // so no request can see the column before the backfill ran.
+            masterAddColumnOnce($con, 'users', 'password_login_disabled', "INTEGER DEFAULT 0", [
+                "
                 UPDATE users
                 SET password_login_disabled = 1
                 WHERE (password_hash IS NULL OR password_hash = '')
                   AND oidc_subject IS NOT NULL
                   AND oidc_subject != ''
-            ");
+                ",
+            ]);
         }
     } catch (Exception $e) {
         error_log("Failed to add password_login_disabled column: " . $e->getMessage());
@@ -284,7 +327,7 @@ function initializeMasterDatabase(PDO $con): void {
     try {
         $shareCols = array_column($con->query("PRAGMA table_info(workspace_shares)")->fetchAll(PDO::FETCH_ASSOC), 'name');
         if (!in_array('permission', $shareCols, true)) {
-            $con->exec("ALTER TABLE workspace_shares ADD COLUMN permission TEXT NOT NULL DEFAULT 'write'");
+            masterAddColumnOnce($con, 'workspace_shares', 'permission', "TEXT NOT NULL DEFAULT 'write'");
         }
     } catch (Exception $e) {
         error_log("Failed to add workspace_shares.permission: " . $e->getMessage());
@@ -316,7 +359,7 @@ function initializeMasterDatabase(PDO $con): void {
     try {
         $lockCols = $con->query("PRAGMA table_info(note_edit_locks)")->fetchAll(PDO::FETCH_ASSOC);
         if (!in_array('holder_kind', array_column($lockCols, 'name'))) {
-            $con->exec("ALTER TABLE note_edit_locks ADD COLUMN holder_kind TEXT NOT NULL DEFAULT 'user'");
+            masterAddColumnOnce($con, 'note_edit_locks', 'holder_kind', "TEXT NOT NULL DEFAULT 'user'");
         }
     } catch (Exception $e) {
         error_log("Failed to add note_edit_locks.holder_kind column: " . $e->getMessage());
@@ -381,19 +424,20 @@ function initializeMasterDatabase(PDO $con): void {
         $cols = $con->query("PRAGMA table_info(webhooks)")->fetchAll(PDO::FETCH_ASSOC);
         $webhookColumns = array_column($cols, 'name');
         if (!in_array('user_id', $webhookColumns)) {
-            $con->exec("ALTER TABLE webhooks ADD COLUMN user_id INTEGER");
-            $con->exec("
+            masterAddColumnOnce($con, 'webhooks', 'user_id', "INTEGER", [
+                "
                 UPDATE webhooks
                 SET user_id = 1
                 WHERE user_id IS NULL
                   AND (events LIKE 'reminder.%' OR events LIKE '%,reminder.%'
                        OR events LIKE 'note.%' OR events LIKE '%,note.%')
-            ");
+                ",
+            ]);
         }
         // Free-text label so a list of endpoints stays readable, e.g.
         // "n8n workflow that files new notes into Notion".
         if (!in_array('description', $webhookColumns)) {
-            $con->exec("ALTER TABLE webhooks ADD COLUMN description TEXT");
+            masterAddColumnOnce($con, 'webhooks', 'description', "TEXT");
         }
     } catch (Exception $e) {
         error_log("Failed to add webhooks columns: " . $e->getMessage());

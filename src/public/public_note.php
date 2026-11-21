@@ -678,9 +678,13 @@ if ($noteType === 'tasklist') {
     }
 }
 
+// The owner's "Attachment links as cards" setting, so that the share shows
+// links and cards as the app does (index.php, js/attachments.js)
+$publicAttachmentCards = in_array((string)getSetting('attachment_links_as_cards', '0'), ['1', 'true'], true);
+
 // Markdown: convert to HTML
 if ($noteType === 'markdown') {
-    $content = parseMarkdown($content);
+    $content = parseMarkdown($content, ['attachment_cards' => $publicAttachmentCards]);
 }
 
 // ============================================================================
@@ -774,7 +778,7 @@ if (is_array($attachmentsData)) {
 // srcdoc), and clean media tags before the content is echoed. Centralized in
 // public_helpers.php so it can be unit tested.
 
-$content = sanitizePublicNoteHtml($content, $currentLang);
+$content = sanitizePublicNoteHtml($content, $currentLang, $noteType === 'note' ? $publicAttachmentCards : null);
 
 // The sanitizer drops <form>/<input> together with their content, so the
 // public add-task UI cannot be part of the note body it processes. Inject it

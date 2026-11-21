@@ -291,7 +291,67 @@ function poznoteReplaceWithBlockedEmbedNotice(DOMElement $iframe, ?string $lang 
  * Server-generated markup (e.g. tasklist `data-index`/`data-text`) is preserved
  * because data-* / aria-* / title / class are kept.
  */
-function sanitizePublicNoteHtml(string $content, ?string $lang = null): string {
+/**
+ * The "Attachment links as cards" setting of the note's owner, applied to a
+ * rich text note the way js/attachments.js applies it in the app, so that a
+ * share looks like the note its owner sees. On, a link to an attachment
+ * alone on its line (the only content of a <p> or a <div>, <br> and blanks
+ * aside, text only) becomes a card; off, a written card is shown as the
+ * plain link it stands for. Nothing of the stored note changes.
+ */
+function poznotePublicApplyAttachmentCards(DOMXPath $xpath, bool $asCards): void {
+    require_once __DIR__ . '/markdown_parser.php'; // poznoteAttachmentCardKind()
+    // The address has the share's token appended by now (public_note.php)
+    $isAttachmentHref = static fn (string $href): bool
+        => preg_match('#^(?:/[^?\#]*)?/api/v1/notes/\d+/attachments/[A-Za-z0-9_-]+(?:\?[^\#]*)?$#', $href) === 1;
+
+    if (!$asCards) {
+        foreach (iterator_to_array($xpath->query('//a[contains(concat(" ", normalize-space(@class), " "), " attachment-card ")]')) as $card) {
+            /** @var DOMElement $card */
+            $kept = array_filter(
+                preg_split('/\s+/', trim($card->getAttribute('class'))) ?: [],
+                static fn ($name) => $name !== '' && $name !== 'attachment-card' && strpos($name, 'attachment-card-') !== 0
+            );
+            if ($kept) {
+                $card->setAttribute('class', implode(' ', $kept));
+            } else {
+                $card->removeAttribute('class');
+            }
+            $card->removeAttribute('contenteditable');
+        }
+        return;
+    }
+
+    foreach (iterator_to_array($xpath->query('//a[@href]')) as $link) {
+        /** @var DOMElement $link */
+        if (preg_match('/(^|\s)attachment-card(\s|$)/', $link->getAttribute('class'))) continue;
+        if (!$isAttachmentHref($link->getAttribute('href'))) continue;
+        $label = trim($link->textContent);
+        if ($label === '') continue;
+        foreach ($link->childNodes as $child) {
+            if ($child->nodeType !== XML_TEXT_NODE) continue 2;
+        }
+        $line = $link->parentNode;
+        if (!($line instanceof DOMElement) || !in_array(strtolower($line->nodeName), ['p', 'div'], true)) continue;
+        foreach ($line->childNodes as $child) {
+            if ($child === $link) continue;
+            if ($child->nodeType === XML_TEXT_NODE) {
+                if (preg_replace('/[\s\x{200B}\x{FEFF}]+/u', '', $child->nodeValue) !== '') continue 2;
+            } elseif ($child->nodeType === XML_ELEMENT_NODE) {
+                if (strtolower($child->nodeName) !== 'br') continue 2;
+            }
+        }
+        $classes = trim($link->getAttribute('class') . ' attachment-card attachment-card-' . poznoteAttachmentCardKind($label));
+        $link->setAttribute('class', $classes);
+    }
+}
+
+/**
+ * $attachmentCards: the owner's "Attachment links as cards" setting for a rich
+ * text note (poznotePublicApplyAttachmentCards()), null to leave links and
+ * cards as written.
+ */
+function sanitizePublicNoteHtml(string $content, ?string $lang = null, ?bool $attachmentCards = null): string {
     if (trim($content) === '') {
         return $content;
     }
@@ -456,6 +516,10 @@ function sanitizePublicNoteHtml(string $content, ?string $lang = null): string {
             // place here too (css/components/embed-blocked.css).
             poznoteReplaceWithBlockedEmbedNotice($el, $lang);
         }
+    }
+
+    if ($attachmentCards !== null) {
+        poznotePublicApplyAttachmentCards($xpath, $attachmentCards);
     }
 
     $body = $dom->getElementsByTagName('body')->item(0);

@@ -1,0 +1,29 @@
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### 👋 A little note before posting
+
+        Hi! I'm Tim, the developer behind Poznote. 😊
+
+        Just a friendly reminder that **there's a real human being behind this project**, working on it in his free time.
+
+        I love talking about Poznote and hearing your ideas, but sometimes messages come without even a "Hello" or a "Thanks", and after answering, I never hear back.
+
+        I'm not asking for much:
+
+        - 🔄 **Make sure you're on the latest version** before posting (you can check it in Settings > About). What you're about to ask may already be answered or added.
+        - 👋 **Say hello and be polite.** I'm a person, not a support bot.
+        - 💬 **Please follow up.** If I've answered your question or added what you suggested, let me know if it works for you. A simple "Thank you" means a lot!
+        - 📚 **No need to close your discussion.** I leave discussions open on purpose, so that other users can easily find the answers later.
+
+        Thanks for understanding and being part of Poznote!
+
+  - type: textarea
+    id: message
+    attributes:
+      label: 💬 Your message
+      description: Your question, idea, or anything you'd like to talk about.
+      placeholder: "Hello! I was wondering..."
+    validations:
+      required: true
