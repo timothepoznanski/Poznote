@@ -770,13 +770,49 @@ function sanitizeMarkdownTaskListEmbed($html) {
 const POZNOTE_MARKDOWN_ATTACHMENT_CARD_LINE = '/^[ \t]*<a\s+class="attachment-card(?:\s+attachment-card-([a-z]+))?"\s+href="([^"\n]*)"\s*>([^<\n]*)<\/a>[ \t]*$/m';
 const POZNOTE_ATTACHMENT_CARD_KINDS = ['pdf', 'doc', 'sheet', 'slides', 'archive', 'image', 'audio', 'video', 'code', 'text', 'file'];
 
-function sanitizeMarkdownAttachmentCard(array $matches) {
+// A plain link to an attachment alone on its line, drawn as a card while
+// "Attachment links as cards" is on, the rule of js/markdown-parser.js
+// (_MD_ATTACHMENT_LINK_LINE). Only where the caller says so (the
+// attachment_cards option of parseMarkdown(), set by public_note.php).
+const POZNOTE_MARKDOWN_ATTACHMENT_LINK_LINE = '/^ {0,3}\[((?:[^\]\n\\\\]|\\\\.)+)\]\((\/api\/v1\/notes\/\d+\/attachments\/[A-Za-z0-9_-]+)\)[ \t]*$/m';
+
+// The kind of a card from the file name, the table of attachmentCardKind()
+// in js/attachments.js
+function poznoteAttachmentCardKind(string $filename): string {
+    static $kinds = [
+        'pdf' => ['pdf'],
+        'doc' => ['doc', 'docx', 'odt', 'rtf', 'pages'],
+        'sheet' => ['xls', 'xlsx', 'xlsm', 'ods', 'csv', 'tsv', 'numbers'],
+        'slides' => ['ppt', 'pptx', 'odp', 'key'],
+        'archive' => ['zip', 'rar', '7z', 'tar', 'gz', 'tgz', 'bz2', 'xz', 'zst'],
+        'image' => ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'heic', 'heif', 'avif', 'tif', 'tiff', 'ico'],
+        'audio' => ['mp3', 'wav', 'm4a', 'ogg', 'oga', 'flac', 'aac', 'opus', 'wma'],
+        'video' => ['mp4', 'webm', 'mov', 'mkv', 'avi', 'm4v', 'ogv'],
+        'code' => ['js', 'ts', 'py', 'php', 'html', 'htm', 'css', 'json', 'xml', 'yml', 'yaml', 'toml', 'sh', 'sql', 'java', 'c', 'h', 'cpp', 'go', 'rs', 'rb', 'swift', 'kt'],
+        'text' => ['txt', 'md', 'log', 'ini', 'cfg', 'conf'],
+    ];
+    $ext = preg_match('/\.([A-Za-z0-9]+)$/', $filename, $m) ? strtolower($m[1]) : '';
+    foreach ($kinds as $kind => $extensions) {
+        if (in_array($ext, $extensions, true)) {
+            return $kind;
+        }
+    }
+    return 'file';
+}
+
+// $asCards false (the setting off, said by the caller): the card is drawn as
+// the plain link it stands for, as js/markdown-parser.js does in the app.
+function sanitizeMarkdownAttachmentCard(array $matches, ?bool $asCards = null) {
     $href = html_entity_decode($matches[2], ENT_QUOTES, 'UTF-8');
     if (!preg_match('#^/api/v1/notes/\d+/attachments/[A-Za-z0-9_-]+$#', $href)) {
         return null;
     }
     $kind = in_array($matches[1], POZNOTE_ATTACHMENT_CARD_KINDS, true) ? $matches[1] : 'file';
     $name = html_entity_decode($matches[3], ENT_QUOTES, 'UTF-8');
+    if ($asCards === false) {
+        return '<p class="attachment-card-line-off"><a href="' . htmlspecialchars($href, ENT_QUOTES, 'UTF-8')
+            . '" target="_blank" rel="noopener">' . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . '</a></p>';
+    }
     return '<div class="attachment-card-line"><a class="attachment-card attachment-card-' . $kind . '" href="'
         . htmlspecialchars($href, ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . '</a></div>';
 }
@@ -836,8 +872,15 @@ function buildMarkdownImageTag($alt, $url, $title = '', $attrBlock = '') {
     return '<img ' . implode(' ', $attributes) . '>';
 }
 
-function parseMarkdown($text) {
+/**
+ * $options['attachment_cards']: the "Attachment links as cards" setting of the
+ * note's owner, for a page that shows the note as the app does (a public
+ * share). true draws a link to an attachment alone on its line as a card,
+ * false draws a written card as a plain link, absent leaves both as written.
+ */
+function parseMarkdown($text, array $options = []) {
     if (!$text) return '';
+    $attachmentCards = array_key_exists('attachment_cards', $options) ? (bool)$options['attachment_cards'] : null;
     
     // STEP 1: Extract and protect code blocks from HTML escaping
     $protectedCodeBlocks = [];
@@ -926,6 +969,24 @@ function parseMarkdown($text) {
     // STEP 4: Extract and protect images, links, and HTML elements from escaping
     $protectedElements = [];
     $protectedIndex = 0;
+
+    // "Attachment links as cards" on: a plain link to an attachment alone on
+    // its line is drawn as a card too, the source keeping its link. One in a
+    // sentence stays a link.
+    if ($attachmentCards === true) {
+        $text = preg_replace_callback(POZNOTE_MARKDOWN_ATTACHMENT_LINK_LINE, function($matches) use (&$protectedElements, &$protectedIndex, $protectedEscapes) {
+            // Its backslash escapes are placeholders by now, HTML once restored
+            $label = html_entity_decode(restoreMarkdownBackslashEscapes($matches[1], $protectedEscapes), ENT_QUOTES, 'UTF-8');
+            $card = sanitizeMarkdownAttachmentCard(['', poznoteAttachmentCardKind($label), $matches[2], htmlspecialchars($label, ENT_QUOTES, 'UTF-8')]);
+            if ($card === null) {
+                return $matches[0];
+            }
+            $placeholder = "\x00PATTCARD" . $protectedIndex . "\x00";
+            $protectedElements[$protectedIndex] = $card;
+            $protectedIndex++;
+            return "\n" . $placeholder . "\n";
+        }, $text);
+    }
     
     // Protect images first: ![alt](url "title") with optional {.img-with-border width=320} attributes
     $text = preg_replace_callback('/!\[(' . MARKDOWN_LINK_TEXT_PATTERN . ')\]\((' . MARKDOWN_LINK_URL_PATTERN . ')(?:\s+"([^"]+)")?\)(?:\{((?=[^}]*(?:\.img-with-border(?:-no-padding)?(?=\s|})|\bwidth\s*=))[^}]*)\})?/', function($matches) use (&$protectedElements, &$protectedIndex, &$placeholderSources) {
@@ -1004,8 +1065,8 @@ function parseMarkdown($text) {
     }, $text);
 
     // Attachment cards, block HTML of their own (sanitizeMarkdownAttachmentCard())
-    $text = preg_replace_callback(POZNOTE_MARKDOWN_ATTACHMENT_CARD_LINE, function($matches) use (&$protectedElements, &$protectedIndex) {
-        $card = sanitizeMarkdownAttachmentCard($matches);
+    $text = preg_replace_callback(POZNOTE_MARKDOWN_ATTACHMENT_CARD_LINE, function($matches) use (&$protectedElements, &$protectedIndex, $attachmentCards) {
+        $card = sanitizeMarkdownAttachmentCard($matches, $attachmentCards);
         // Not an attachment: the line stays, and is escaped as text
         if ($card === null) {
             return $matches[0];
