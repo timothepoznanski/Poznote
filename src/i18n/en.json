@@ -136,7 +136,7 @@
       "markdown_font": "Choose the font used in the markdown editor.",
       "markdown_default_view_mode": "Choose whether markdown notes open in preview, edit, live preview, rich text or split mode.",
       "markdown_new_note_view_mode": "Choose whether a new markdown note opens in split, edit, live preview or rich text mode. With live preview or rich text, the other notes switch to that view too. On a phone a new note never opens in split mode.",
-      "font_size": "Adjust the font size of notes, sidebar, code blocks and the settings page.",
+      "font_size": "Adjust the font size of notes, sidebar, code blocks, the folder path, tags, attachments and backlinks rows, and the settings page.",
       "index_icon_scale": "Adjust the size of the icons in the note list.",
       "icon_rail_scale": "Adjust the size of the icons in the icon sidebar.",
       "timezone": "Set the timezone used to display dates and times.",
@@ -379,6 +379,10 @@
       "font_size_notes": "Note content",
       "font_size_sidebar": "Sidebar",
       "font_size_code_blocks": "Code blocks",
+      "font_size_folder_path": "Folder path",
+      "font_size_tags": "Tags",
+      "font_size_attachments": "Attachments",
+      "font_size_backlinks": "Backlinks",
       "font_size_settings": "Settings page"
     },
     "storage_summary": {
@@ -612,6 +616,10 @@
       "note_font_size": "{{size}}px",
       "sidebar_font_size": "{{size}}px",
       "code_block_font_size": "{{size}}px",
+      "folder_path_font_size": "{{size}}px",
+      "tags_font_size": "{{size}}px",
+      "attachments_font_size": "{{size}}px",
+      "backlinks_font_size": "{{size}}px",
       "settings_font_size": "{{size}}px",
       "icon_sidebar_order_configure": "Configure",
       "slash_menu_alt_slash": "Alt + /",
@@ -1124,9 +1132,24 @@
       "note_label": "Note content (px):",
       "sidebar_label": "Sidebar (px):",
       "code_block_label": "Code blocks (px):",
+      "folder_path_label": "Folder path (px):",
+      "tags_label": "Tags (px):",
+      "attachments_label": "Attachments (px):",
+      "backlinks_label": "Backlinks (px):",
       "settings_label": "Settings page (px):",
       "default_value": "{{size}} px is the Default value",
-      "preview": "Preview"
+      "preview": "Preview",
+      "reset": "Reset to defaults",
+      "help": {
+        "note": "The text of the notes, in the editor and the preview.",
+        "sidebar": "The names of the notes and folders in the tree on the left.",
+        "code_block": "Code in the notes: code blocks and inline code.",
+        "folder_path": "The folder badge above the note title, which shows where the note is.",
+        "tags": "The tags above the note title, and the field to add one.",
+        "attachments": "The links to the note's attachments, above or below the note. Preview tiles keep their own size.",
+        "backlinks": "The row listing the notes that link to this one, and the passages it unfolds.",
+        "settings": "The text of this Settings page."
+      }
     },
     "note_width": {
       "title": "Note Content Width",

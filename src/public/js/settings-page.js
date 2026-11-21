@@ -932,6 +932,10 @@
             { id: 'font-size-badge', key: 'note_font_size', default: '15', i18nKey: 'display.badges.note_font_size', fallback: '' },
             { id: 'sidebar-font-size-badge', key: 'sidebar_font_size', default: '13', i18nKey: 'display.badges.sidebar_font_size', fallback: '' },
             { id: 'code-block-font-size-badge', key: 'code_block_font_size', default: '15', i18nKey: 'display.badges.code_block_font_size', fallback: '' },
+            { id: 'folder-path-font-size-badge', key: 'folder_path_font_size', default: '13', i18nKey: 'display.badges.folder_path_font_size', fallback: '' },
+            { id: 'tags-font-size-badge', key: 'tags_font_size', default: '13', i18nKey: 'display.badges.tags_font_size', fallback: '' },
+            { id: 'attachments-font-size-badge', key: 'attachments_font_size', default: '13', i18nKey: 'display.badges.attachments_font_size', fallback: '' },
+            { id: 'backlinks-font-size-badge', key: 'backlinks_font_size', default: '14', i18nKey: 'display.badges.backlinks_font_size', fallback: '' },
             { id: 'settings-font-size-badge', key: 'settings_font_size', default: settingsFontSizeFallback(), i18nKey: 'display.badges.settings_font_size', fallback: '' }
         ];
 

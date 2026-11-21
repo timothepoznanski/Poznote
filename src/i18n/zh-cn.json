@@ -492,7 +492,7 @@
       "markdown_font": "选择 Markdown 编辑器使用的字体。",
       "markdown_default_view_mode": "选择 Markdown 笔记以预览、编辑、实时预览、富文本还是分栏模式打开。",
       "markdown_new_note_view_mode": "选择新建的 Markdown 笔记以分栏、编辑、实时预览还是富文本模式打开。选择实时预览或富文本后，其他笔记也会切换到该视图。在手机上新笔记不会以分栏模式打开。",
-      "font_size": "调整笔记、侧边栏、代码块和设置页面的字体大小。",
+      "font_size": "调整笔记、侧边栏、代码块、文件夹路径/标签/附件/反向链接行以及设置页面的字体大小。",
       "index_icon_scale": "调整笔记列表中图标的大小。",
       "icon_rail_scale": "调整图标侧边栏中图标的大小。",
       "timezone": "设置用于显示日期和时间的时区。",
@@ -740,6 +740,10 @@
       "font_size_notes": "笔记内容",
       "font_size_sidebar": "侧边栏",
       "font_size_code_blocks": "代码块",
+      "font_size_folder_path": "文件夹路径",
+      "font_size_tags": "标签",
+      "font_size_attachments": "附件",
+      "font_size_backlinks": "反向链接",
       "font_size_settings": "设置页面"
     },
     "storage_summary": {
@@ -1011,6 +1015,10 @@
       "note_font_size": "{{size}}px",
       "sidebar_font_size": "{{size}}px",
       "code_block_font_size": "{{size}}px",
+      "folder_path_font_size": "{{size}}px",
+      "tags_font_size": "{{size}}px",
+      "attachments_font_size": "{{size}}px",
+      "backlinks_font_size": "{{size}}px",
       "settings_font_size": "{{size}}px",
       "format_toolbar_mode_toolbar": "在笔记工具栏中",
       "format_toolbar_mode_floating": "浮动在所选内容上方"
@@ -1667,7 +1675,22 @@
       "default_value": "{{size}} 像素是默认值",
       "preview": "预览",
       "code_block_label": "代码块（px）：",
-      "settings_label": "设置页面（px）："
+      "folder_path_label": "文件夹路径（px）：",
+      "tags_label": "标签（px）：",
+      "attachments_label": "附件（px）：",
+      "backlinks_label": "反向链接 (px)：",
+      "settings_label": "设置页面（px）：",
+      "reset": "恢复默认",
+      "help": {
+        "note": "笔记的正文，在编辑器和预览中。",
+        "sidebar": "左侧树中笔记和文件夹的名称。",
+        "code_block": "笔记中的代码：代码块和行内代码。",
+        "folder_path": "笔记标题上方显示笔记所在位置的文件夹标记。",
+        "tags": "笔记标题上方的标签，以及添加标签的输入框。",
+        "attachments": "笔记上方或下方的附件链接。预览图块保持各自的大小。",
+        "backlinks": "列出链接到此笔记的笔记的那一行，以及它展开的摘录。",
+        "settings": "此设置页面的文字。"
+      }
     },
     "note_width": {
       "title": "笔记内容宽度",

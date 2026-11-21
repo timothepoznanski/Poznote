@@ -493,7 +493,7 @@
       "markdown_font": "Wählen Sie die Schriftart für den Markdown-Editor.",
       "markdown_default_view_mode": "Festlegen, ob Markdown-Notizen in der Vorschau, im Bearbeitungsmodus, in der Live-Vorschau, als Rich Text oder geteilt geöffnet werden.",
       "markdown_new_note_view_mode": "Festlegen, ob eine neue Markdown-Notiz geteilt, im Bearbeitungsmodus, in der Live-Vorschau oder als Rich Text geöffnet wird. Bei Live-Vorschau oder Rich Text wechseln auch die anderen Notizen in diese Ansicht. Auf dem Smartphone öffnet sich eine neue Notiz nie geteilt.",
-      "font_size": "Passen Sie die Schriftgröße von Notizen, Seitenleiste, Codeblöcken und der Einstellungsseite an.",
+      "font_size": "Passen Sie die Schriftgröße von Notizen, Seitenleiste, Codeblöcken, den Zeilen für Ordnerpfad, Tags, Anhänge und Backlinks sowie der Einstellungsseite an.",
       "index_icon_scale": "Passen Sie die Größe der Symbole in der Notizenliste an.",
       "icon_rail_scale": "Passen Sie die Größe der Symbole in der Icon-Seitenleiste an.",
       "timezone": "Legen Sie die Zeitzone für die Anzeige von Datum und Uhrzeit fest.",
@@ -741,6 +741,10 @@
       "font_size_notes": "Notizinhalt",
       "font_size_sidebar": "Seitenleiste",
       "font_size_code_blocks": "Codeblöcke",
+      "font_size_folder_path": "Ordnerpfad",
+      "font_size_tags": "Tags",
+      "font_size_attachments": "Anhänge",
+      "font_size_backlinks": "Backlinks",
       "font_size_settings": "Einstellungsseite"
     },
     "storage_summary": {
@@ -1012,6 +1016,10 @@
       "note_font_size": "{{size}}px",
       "sidebar_font_size": "{{size}}px",
       "code_block_font_size": "{{size}}px",
+      "folder_path_font_size": "{{size}}px",
+      "tags_font_size": "{{size}}px",
+      "attachments_font_size": "{{size}}px",
+      "backlinks_font_size": "{{size}}px",
       "settings_font_size": "{{size}}px",
       "format_toolbar_mode_toolbar": "In der Notiz-Symbolleiste",
       "format_toolbar_mode_floating": "Schwebend über der Auswahl"
@@ -1669,7 +1677,22 @@
       "default_value": "{{size}} px ist der Standardwert",
       "preview": "Vorschau",
       "code_block_label": "Codeblöcke (px):",
-      "settings_label": "Einstellungsseite (px):"
+      "folder_path_label": "Ordnerpfad (px):",
+      "tags_label": "Tags (px):",
+      "attachments_label": "Anhänge (px):",
+      "backlinks_label": "Backlinks (px):",
+      "settings_label": "Einstellungsseite (px):",
+      "reset": "Zurücksetzen",
+      "help": {
+        "note": "Der Text der Notizen, im Editor und in der Vorschau.",
+        "sidebar": "Die Namen der Notizen und Ordner im Baum links.",
+        "code_block": "Code in den Notizen: Codeblöcke und Inline-Code.",
+        "folder_path": "Das Ordner-Badge über dem Notiztitel, das zeigt, wo die Notiz liegt.",
+        "tags": "Die Tags über dem Notiztitel und das Feld zum Hinzufügen.",
+        "attachments": "Die Links zu den Anhängen der Notiz, über oder unter der Notiz. Vorschaukacheln behalten ihre eigene Größe.",
+        "backlinks": "Die Zeile mit den Notizen, die auf diese verlinken, und die Textstellen, die sie aufklappt.",
+        "settings": "Der Text dieser Einstellungsseite."
+      }
     },
     "note_width": {
       "title": "Breite des Notizinhalts",

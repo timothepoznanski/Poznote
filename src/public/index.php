@@ -437,6 +437,10 @@ if ($center_note_content_enabled && $width_value !== '1' && $width_value !== 'tr
             root.setProperty('--note-font-size', (store.getItem('note_font_size') || '15') + 'px');
             root.setProperty('--sidebar-font-size', (store.getItem('sidebar_font_size') || '13') + 'px');
             root.setProperty('--code-block-font-size', (store.getItem('code_block_font_size') || '15') + 'px');
+            root.setProperty('--folder-path-font-size', (store.getItem('folder_path_font_size') || '13') + 'px');
+            root.setProperty('--tags-font-size', (store.getItem('tags_font_size') || '13') + 'px');
+            root.setProperty('--attachments-font-size', (store.getItem('attachments_font_size') || '13') + 'px');
+            root.setProperty('--backlinks-font-size', (store.getItem('backlinks_font_size') || '14') + 'px');
         } catch (e) {
             // js/font-size-settings.js applies them once loaded
         }

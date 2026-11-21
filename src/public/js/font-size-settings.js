@@ -30,6 +30,41 @@ function settingsFontScale(size) {
     return String(Math.round((safe / SETTINGS_FONT_SIZE_BASE) * 1000) / 1000);
 }
 
+// The sizes in pixels the Font size card sets, in the order of its dialog
+// (src/modals.php). Each one is kept in the browser (per user) under `key` and
+// written on :root as `cssVar`, which the stylesheets read with the same
+// default as a fallback. index.php sets the same variables before the first
+// paint: keep its list in step with this one. The Settings page size is not
+// here, it is a scale factor with a viewport dependent default (below).
+const PX_FONT_SIZES = [
+    { key: 'note_font_size', inputId: 'fontSizeInput', cssVar: '--note-font-size', fallback: '15' },
+    { key: 'sidebar_font_size', inputId: 'sidebarFontSizeInput', cssVar: '--sidebar-font-size', fallback: '13' },
+    { key: 'code_block_font_size', inputId: 'codeBlockFontSizeInput', cssVar: '--code-block-font-size', fallback: '15' },
+    { key: 'folder_path_font_size', inputId: 'folderPathFontSizeInput', cssVar: '--folder-path-font-size', fallback: '13' },
+    { key: 'tags_font_size', inputId: 'tagsFontSizeInput', cssVar: '--tags-font-size', fallback: '13' },
+    { key: 'attachments_font_size', inputId: 'attachmentsFontSizeInput', cssVar: '--attachments-font-size', fallback: '13' },
+    { key: 'backlinks_font_size', inputId: 'backlinksFontSizeInput', cssVar: '--backlinks-font-size', fallback: '14' }
+];
+
+const SETTINGS_FONT_SIZE_INPUT_ID = 'settingsFontSizeInput';
+
+function storedPxFontSize(entry) {
+    return fontSizeStore.getItem(entry.key) || entry.fallback;
+}
+
+function storedSettingsFontSize() {
+    return fontSizeStore.getItem('settings_font_size') || settingsFontSizeDefault();
+}
+
+// Every input of the dialog, or null when the page does not carry it
+function fontSizeInputs() {
+    const inputs = PX_FONT_SIZES.map(function (entry) {
+        return document.getElementById(entry.inputId);
+    });
+    inputs.push(document.getElementById(SETTINGS_FONT_SIZE_INPUT_ID));
+    return inputs.every(Boolean) ? inputs : null;
+}
+
 // Function to show font size settings prompt
 function showNoteFontSizePrompt() {
     // Close settings menus
@@ -37,40 +72,15 @@ function showNoteFontSizePrompt() {
         closeSettingsMenus();
     }
 
-    // Get modal elements
     const modal = document.getElementById('fontSizeModal');
-    const fontSizeInput = document.getElementById('fontSizeInput');
-    const sidebarFontSizeInput = document.getElementById('sidebarFontSizeInput');
-    const codeBlockFontSizeInput = document.getElementById('codeBlockFontSizeInput');
-    const settingsFontSizeInput = document.getElementById('settingsFontSizeInput');
-    const closeFontSizeBtn = document.getElementById('closeFontSizeModal');
-    const cancelFontSizeBtn = document.getElementById('cancelFontSizeBtn');
-    const saveFontSizeBtn = document.getElementById('saveFontSizeBtn');
-
-    if (!modal || !fontSizeInput || !sidebarFontSizeInput || !codeBlockFontSizeInput || !settingsFontSizeInput) {
+    if (!modal || !fontSizeInputs()) {
         return;
     }
 
-    // Add event listeners if they don't exist yet
-    if (!modal.hasAttribute('data-initialized')) {
-        // Add event listeners
-        if (closeFontSizeBtn) {
-            closeFontSizeBtn.addEventListener('click', closeFontSizeModal);
-        }
-        if (cancelFontSizeBtn) {
-            cancelFontSizeBtn.addEventListener('click', closeFontSizeModal);
-        }
-        if (saveFontSizeBtn) {
-            saveFontSizeBtn.addEventListener('click', saveFontSize);
-        }
-
-        // Mark as initialized
-        modal.setAttribute('data-initialized', 'true');
-    }
+    initFontSizeSettings();
 
     // Load current font size settings
     loadCurrentFontSizes();
-    updateFontSizePreview();
 
     // Show modal
     modal.style.display = 'block';
@@ -93,18 +103,15 @@ function safeShowNotification(message, type) {
     }
 }
 
-// Keep optional modal preview nodes in sync without requiring them to exist.
+// Keep optional modal preview nodes (<inputId minus "Input">Preview) in sync
+// without requiring them to exist.
 function updateFontSizePreview() {
-    const previewMap = [
-        { inputId: 'fontSizeInput', previewId: 'fontSizePreview' },
-        { inputId: 'sidebarFontSizeInput', previewId: 'sidebarFontSizePreview' },
-        { inputId: 'codeBlockFontSizeInput', previewId: 'codeBlockFontSizePreview' },
-        { inputId: 'settingsFontSizeInput', previewId: 'settingsFontSizePreview' }
-    ];
+    const inputIds = PX_FONT_SIZES.map(function (entry) { return entry.inputId; });
+    inputIds.push(SETTINGS_FONT_SIZE_INPUT_ID);
 
-    previewMap.forEach(function (entry) {
-        const input = document.getElementById(entry.inputId);
-        const preview = document.getElementById(entry.previewId);
+    inputIds.forEach(function (inputId) {
+        const input = document.getElementById(inputId);
+        const preview = document.getElementById(inputId.replace(/Input$/, 'Preview'));
 
         if (input && preview) {
             preview.style.fontSize = input.value + 'px';
@@ -114,32 +121,34 @@ function updateFontSizePreview() {
 
 // Function to load current font size settings
 function loadCurrentFontSizes() {
-    // Load note font size from localStorage
-    const noteFontSize = fontSizeStore.getItem('note_font_size') || '15';
-    const fontSizeInput = document.getElementById('fontSizeInput');
-    if (fontSizeInput) {
-        fontSizeInput.value = noteFontSize;
-    }
+    PX_FONT_SIZES.forEach(function (entry) {
+        const input = document.getElementById(entry.inputId);
+        if (input) {
+            input.value = storedPxFontSize(entry);
+        }
+    });
 
-    // Load sidebar font size from localStorage
-    const sidebarFontSize = fontSizeStore.getItem('sidebar_font_size') || '13';
-    const sidebarFontSizeInput = document.getElementById('sidebarFontSizeInput');
-    if (sidebarFontSizeInput) {
-        sidebarFontSizeInput.value = sidebarFontSize;
-    }
-
-    // Load code block font size from localStorage
-    const codeBlockFontSize = fontSizeStore.getItem('code_block_font_size') || '15';
-    const codeBlockFontSizeInput = document.getElementById('codeBlockFontSizeInput');
-    if (codeBlockFontSizeInput) {
-        codeBlockFontSizeInput.value = codeBlockFontSize;
-    }
-
-    // Load settings page font size from localStorage
-    const settingsFontSize = fontSizeStore.getItem('settings_font_size') || settingsFontSizeDefault();
-    const settingsFontSizeInput = document.getElementById('settingsFontSizeInput');
+    const settingsFontSizeInput = document.getElementById(SETTINGS_FONT_SIZE_INPUT_ID);
     if (settingsFontSizeInput) {
-        settingsFontSizeInput.value = settingsFontSize;
+        settingsFontSizeInput.value = storedSettingsFontSize();
+    }
+
+    updateFontSizePreview();
+}
+
+// Reset button: puts every field back to its default. Nothing is stored until
+// Save, so Cancel still keeps the sizes the user had.
+function resetFontSizeFields() {
+    PX_FONT_SIZES.forEach(function (entry) {
+        const input = document.getElementById(entry.inputId);
+        if (input) {
+            input.value = entry.fallback;
+        }
+    });
+
+    const settingsFontSizeInput = document.getElementById(SETTINGS_FONT_SIZE_INPUT_ID);
+    if (settingsFontSizeInput) {
+        settingsFontSizeInput.value = settingsFontSizeDefault();
     }
 
     updateFontSizePreview();
@@ -147,23 +156,14 @@ function loadCurrentFontSizes() {
 
 // Function to save font size settings
 function saveFontSize() {
-    const fontSizeInput = document.getElementById('fontSizeInput');
-    const sidebarFontSizeInput = document.getElementById('sidebarFontSizeInput');
-    const codeBlockFontSizeInput = document.getElementById('codeBlockFontSizeInput');
-    const settingsFontSizeInput = document.getElementById('settingsFontSizeInput');
-
-    if (!fontSizeInput || !sidebarFontSizeInput || !codeBlockFontSizeInput || !settingsFontSizeInput) {
+    const inputs = fontSizeInputs();
+    if (!inputs) {
         return;
     }
 
-    const fontSize = fontSizeInput.value;
-    const sidebarFontSize = sidebarFontSizeInput.value;
-    const codeBlockFontSize = codeBlockFontSizeInput.value;
-    const settingsFontSize = settingsFontSizeInput.value;
-
     // Validate inputs
-    const outOfRange = [fontSize, sidebarFontSize, codeBlockFontSize, settingsFontSize].some(function (value) {
-        return value < 10 || value > 32;
+    const outOfRange = inputs.some(function (input) {
+        return input.value < 10 || input.value > 32;
     });
     if (outOfRange) {
         safeShowNotification('Font size must be between 10 and 32 pixels', 'error');
@@ -171,25 +171,19 @@ function saveFontSize() {
     }
 
     try {
-        // Save to localStorage instead of database
-        fontSizeStore.setItem('note_font_size', fontSize);
-        fontSizeStore.setItem('sidebar_font_size', sidebarFontSize);
-        fontSizeStore.setItem('code_block_font_size', codeBlockFontSize);
-        fontSizeStore.setItem('settings_font_size', settingsFontSize);
+        PX_FONT_SIZES.forEach(function (entry) {
+            fontSizeStore.setItem(entry.key, document.getElementById(entry.inputId).value);
+        });
+        fontSizeStore.setItem('settings_font_size', document.getElementById(SETTINGS_FONT_SIZE_INPUT_ID).value);
 
         closeFontSizeModal();
 
         // Apply changes immediately to the UI
-        const noteSize = fontSize + 'px';
-        const sidebarSize = sidebarFontSize + 'px';
-        const codeBlockSize = codeBlockFontSize + 'px';
-
-        document.documentElement.style.setProperty('--note-font-size', noteSize);
-        document.documentElement.style.setProperty('--sidebar-font-size', sidebarSize);
-        document.documentElement.style.setProperty('--code-block-font-size', codeBlockSize);
-        document.documentElement.style.setProperty('--settings-font-scale', settingsFontScale(settingsFontSize));
+        applyFontSizeToNotes();
 
         // Direct application as fallback for existing elements
+        const noteSize = storedPxFontSize(PX_FONT_SIZES[0]) + 'px';
+        const sidebarSize = storedPxFontSize(PX_FONT_SIZES[1]) + 'px';
         document.querySelectorAll('.noteentry').forEach(el => el.style.fontSize = noteSize);
         document.querySelectorAll('.links_arbo_left .note-title, .folder-toggle, .folder-name').forEach(el => el.style.fontSize = sidebarSize);
 
@@ -203,20 +197,13 @@ function saveFontSize() {
 
 // Function to apply font size to all note editors and note list
 function applyFontSizeToNotes() {
-    // Note: The font sizes are now handled via CSS variables on :root
-    // Loading from localStorage to ensure UI is in sync (e.g. on page load)
-
-    const noteFontSize = fontSizeStore.getItem('note_font_size') || '15';
-    document.documentElement.style.setProperty('--note-font-size', noteFontSize + 'px');
-
-    const sidebarFontSize = fontSizeStore.getItem('sidebar_font_size') || '13';
-    document.documentElement.style.setProperty('--sidebar-font-size', sidebarFontSize + 'px');
-
-    const codeBlockFontSize = fontSizeStore.getItem('code_block_font_size') || '15';
-    document.documentElement.style.setProperty('--code-block-font-size', codeBlockFontSize + 'px');
-
-    const settingsFontSize = fontSizeStore.getItem('settings_font_size') || settingsFontSizeDefault();
-    document.documentElement.style.setProperty('--settings-font-scale', settingsFontScale(settingsFontSize));
+    // The font sizes are handled via CSS variables on :root, read from the
+    // browser storage so the UI is in sync (e.g. on page load)
+    const root = document.documentElement.style;
+    PX_FONT_SIZES.forEach(function (entry) {
+        root.setProperty(entry.cssVar, storedPxFontSize(entry) + 'px');
+    });
+    root.setProperty('--settings-font-scale', settingsFontScale(storedSettingsFontSize()));
 }
 
 // Function to apply font size on page load
@@ -233,30 +220,31 @@ window.settingsFontSizeDefault = settingsFontSizeDefault;
 // Function to initialize all font size settings elements and events
 function initFontSizeSettings() {
     const fontSizeModal = document.getElementById('fontSizeModal');
-    const fontSizeInput = document.getElementById('fontSizeInput');
-    const sidebarFontSizeInput = document.getElementById('sidebarFontSizeInput');
-    const codeBlockFontSizeInput = document.getElementById('codeBlockFontSizeInput');
-    const settingsFontSizeInput = document.getElementById('settingsFontSizeInput');
-    const closeFontSizeBtn = document.getElementById('closeFontSizeModal');
     const cancelFontSizeBtn = document.getElementById('cancelFontSizeBtn');
     const saveFontSizeBtn = document.getElementById('saveFontSizeBtn');
+    const inputs = fontSizeInputs();
 
-    if (!fontSizeModal || !fontSizeInput || !sidebarFontSizeInput || !codeBlockFontSizeInput || !settingsFontSizeInput || !cancelFontSizeBtn || !saveFontSizeBtn) {
+    if (!fontSizeModal || !inputs || !cancelFontSizeBtn || !saveFontSizeBtn) {
         return;
     }
 
     // Add event listeners (once)
     if (!fontSizeModal.hasAttribute('data-initialized')) {
+        const closeFontSizeBtn = document.getElementById('closeFontSizeModal');
         if (closeFontSizeBtn) {
             closeFontSizeBtn.addEventListener('click', closeFontSizeModal);
         }
         cancelFontSizeBtn.addEventListener('click', closeFontSizeModal);
         saveFontSizeBtn.addEventListener('click', saveFontSize);
 
-        fontSizeInput.addEventListener('input', updateFontSizePreview);
-        sidebarFontSizeInput.addEventListener('input', updateFontSizePreview);
-        codeBlockFontSizeInput.addEventListener('input', updateFontSizePreview);
-        settingsFontSizeInput.addEventListener('input', updateFontSizePreview);
+        const resetFontSizeBtn = document.getElementById('resetFontSizeBtn');
+        if (resetFontSizeBtn) {
+            resetFontSizeBtn.addEventListener('click', resetFontSizeFields);
+        }
+
+        inputs.forEach(function (input) {
+            input.addEventListener('input', updateFontSizePreview);
+        });
 
         fontSizeModal.setAttribute('data-initialized', 'true');
     }

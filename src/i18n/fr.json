@@ -492,7 +492,7 @@
       "markdown_font": "Choisissez la police utilisée dans l'éditeur markdown.",
       "markdown_default_view_mode": "Choisir si les notes markdown s'ouvrent en aperçu, en édition, en aperçu en direct, en texte enrichi ou en vue partagée.",
       "markdown_new_note_view_mode": "Choisir si une nouvelle note markdown s'ouvre en vue partagée, en édition, en aperçu en direct ou en texte enrichi. Avec l'aperçu en direct ou le texte enrichi, les autres notes passent aussi dans cette vue. Sur téléphone, une nouvelle note ne s'ouvre jamais en vue partagée.",
-      "font_size": "Ajustez la taille de police des notes, de la barre latérale, des blocs de code et de la page des paramètres.",
+      "font_size": "Ajustez la taille de police des notes, de la barre latérale, des blocs de code, des lignes chemin du dossier, tags, pièces jointes et backlinks, et de la page des paramètres.",
       "index_icon_scale": "Ajustez la taille des icônes dans la liste des notes.",
       "icon_rail_scale": "Ajustez la taille des icônes de la barre d'icônes.",
       "timezone": "Définissez le fuseau horaire utilisé pour afficher les dates et heures.",
@@ -740,6 +740,10 @@
       "font_size_notes": "Contenu de la note",
       "font_size_sidebar": "Barre latérale",
       "font_size_code_blocks": "Blocs de code",
+      "font_size_folder_path": "Chemin du dossier",
+      "font_size_tags": "Tags",
+      "font_size_attachments": "Pièces jointes",
+      "font_size_backlinks": "Backlinks",
       "font_size_settings": "Page des paramètres"
     },
     "storage_summary": {
@@ -1004,6 +1008,10 @@
       "note_font_size": "{{size}}px",
       "sidebar_font_size": "{{size}}px",
       "code_block_font_size": "{{size}}px",
+      "folder_path_font_size": "{{size}}px",
+      "tags_font_size": "{{size}}px",
+      "attachments_font_size": "{{size}}px",
+      "backlinks_font_size": "{{size}}px",
       "settings_font_size": "{{size}}px",
       "icon_sidebar_order_configure": "Configurer",
       "toolbar_mode": {
@@ -1667,9 +1675,24 @@
       "note_label": "Contenu de la note (px) :",
       "sidebar_label": "Barre latérale (px) :",
       "code_block_label": "Blocs de code (px) :",
+      "folder_path_label": "Chemin du dossier (px) :",
+      "tags_label": "Tags (px) :",
+      "attachments_label": "Pièces jointes (px) :",
+      "backlinks_label": "Backlinks (px) :",
       "settings_label": "Page des paramètres (px) :",
       "default_value": "{{size}} px est la valeur par défaut",
-      "preview": "Aperçu"
+      "preview": "Aperçu",
+      "reset": "Réinitialiser",
+      "help": {
+        "note": "Le texte des notes, dans l'éditeur et l'aperçu.",
+        "sidebar": "Les noms des notes et des dossiers dans l'arborescence à gauche.",
+        "code_block": "Le code dans les notes : blocs de code et code en ligne.",
+        "folder_path": "Le badge du dossier au-dessus du titre de la note, qui indique où elle se trouve.",
+        "tags": "Les tags au-dessus du titre de la note, et le champ pour en ajouter un.",
+        "attachments": "Les liens vers les pièces jointes de la note, au-dessus ou en dessous de la note. Les tuiles d'aperçu gardent leur propre taille.",
+        "backlinks": "La rangée des notes qui pointent vers celle-ci, et les extraits qu'elle déplie.",
+        "settings": "Le texte de cette page des paramètres."
+      }
     },
     "note_width": {
       "title": "Largeur du contenu de la note",
