@@ -493,7 +493,7 @@
       "markdown_font": "Escolha a fonte usada no editor markdown.",
       "markdown_default_view_mode": "Escolha se as notas markdown abrem em pré-visualização, edição, pré-visualização em tempo real, texto formatado ou vista dividida.",
       "markdown_new_note_view_mode": "Escolha se uma nota markdown nova abre em vista dividida, em edição, em pré-visualização em tempo real ou em texto formatado. Com a pré-visualização em tempo real ou o texto formatado, as outras notas passam também para essa vista. No celular, uma nota nova nunca abre em vista dividida.",
-      "font_size": "Ajuste o tamanho da fonte das notas, da barra lateral, dos blocos de código e da página de configurações.",
+      "font_size": "Ajuste o tamanho da fonte das notas, da barra lateral, dos blocos de código, das linhas de caminho da pasta, etiquetas, anexos e backlinks, e da página de configurações.",
       "index_icon_scale": "Ajuste o tamanho dos ícones na lista de notas.",
       "icon_rail_scale": "Ajuste o tamanho dos ícones da barra de ícones.",
       "timezone": "Defina o fuso horário usado para exibir datas e horas.",
@@ -741,6 +741,10 @@
       "font_size_notes": "Conteúdo da nota",
       "font_size_sidebar": "Barra lateral",
       "font_size_code_blocks": "Blocos de código",
+      "font_size_folder_path": "Caminho da pasta",
+      "font_size_tags": "Etiquetas",
+      "font_size_attachments": "Anexos",
+      "font_size_backlinks": "Backlinks",
       "font_size_settings": "Página de configurações"
     },
     "storage_summary": {
@@ -1012,6 +1016,10 @@
       "note_font_size": "{{size}}px",
       "sidebar_font_size": "{{size}}px",
       "code_block_font_size": "{{size}}px",
+      "folder_path_font_size": "{{size}}px",
+      "tags_font_size": "{{size}}px",
+      "attachments_font_size": "{{size}}px",
+      "backlinks_font_size": "{{size}}px",
       "settings_font_size": "{{size}}px",
       "format_toolbar_mode_toolbar": "Na barra de ferramentas da nota",
       "format_toolbar_mode_floating": "Flutuante acima da seleção"
@@ -1669,7 +1677,22 @@
       "default_value": "{{size}} px é o valor Padrão",
       "preview": "Pré-visualização",
       "code_block_label": "Blocos de código (px):",
-      "settings_label": "Página de configurações (px):"
+      "folder_path_label": "Caminho da pasta (px):",
+      "tags_label": "Etiquetas (px):",
+      "attachments_label": "Anexos (px):",
+      "backlinks_label": "Backlinks (px):",
+      "settings_label": "Página de configurações (px):",
+      "reset": "Repor",
+      "help": {
+        "note": "O texto das notas, no editor e na pré-visualização.",
+        "sidebar": "Os nomes das notas e pastas na árvore à esquerda.",
+        "code_block": "O código nas notas: blocos de código e código em linha.",
+        "folder_path": "O distintivo da pasta acima do título da nota, que mostra onde ela está.",
+        "tags": "As etiquetas acima do título da nota, e o campo para adicionar uma.",
+        "attachments": "As ligações para os anexos da nota, acima ou abaixo da nota. As miniaturas de pré-visualização mantêm o seu próprio tamanho.",
+        "backlinks": "A linha das notas que ligam para esta, e os excertos que ela expande.",
+        "settings": "O texto desta página de configurações."
+      }
     },
     "note_width": {
       "title": "Largura do conteúdo da nota",

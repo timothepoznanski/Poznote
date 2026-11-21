@@ -1157,19 +1157,23 @@ $localRestoreCardVisible = !empty(LocalBackupService::restorePageBackups());
                 </div>
             </div>
 
-            <!-- Font Size: four sizes, so a dialog; each badge names what its
+            <!-- Font Size: eight sizes, so a dialog; each badge names what its
                  value sizes when hovered (data-tooltip, css/home/cards.css) -->
-            <div class="home-card" id="font-size-card">
-                <span class="setting-help" data-tooltip="<?php echo t_h('settings.card_help.font_size', [], 'Adjust the font size of notes, sidebar, code blocks and the settings page.'); ?>"><i class="lucide lucide-help-circle"></i></span>
+            <div class="home-card settings-card-stacks" id="font-size-card">
+                <span class="setting-help" data-tooltip="<?php echo t_h('settings.card_help.font_size', [], 'Adjust the font size of notes, sidebar, code blocks, the folder path, tags, attachments and backlinks rows, and the settings page.'); ?>"><i class="lucide lucide-help-circle"></i></span>
                 <div class="home-card-icon">
                     <i class="lucide lucide-type-height"></i>
                 </div>
                 <div class="home-card-content">
                     <span class="home-card-title"><?php echo t_h('display.cards.note_font_size', [], 'Font size'); ?></span>
-                    <div>
+                    <div class="font-size-badges">
                         <span id="font-size-badge" class="setting-status" data-tooltip="<?php echo t_h('settings.value_help.font_size_notes', [], 'Note content'); ?>"><?php echo t_h('common.loading'); ?></span>
                         <span id="sidebar-font-size-badge" class="setting-status" data-tooltip="<?php echo t_h('settings.value_help.font_size_sidebar', [], 'Sidebar'); ?>"><?php echo t_h('common.loading'); ?></span>
                         <span id="code-block-font-size-badge" class="setting-status" data-tooltip="<?php echo t_h('settings.value_help.font_size_code_blocks', [], 'Code blocks'); ?>"><?php echo t_h('common.loading'); ?></span>
+                        <span id="folder-path-font-size-badge" class="setting-status" data-tooltip="<?php echo t_h('settings.value_help.font_size_folder_path', [], 'Folder path'); ?>"><?php echo t_h('common.loading'); ?></span>
+                        <span id="tags-font-size-badge" class="setting-status" data-tooltip="<?php echo t_h('settings.value_help.font_size_tags', [], 'Tags'); ?>"><?php echo t_h('common.loading'); ?></span>
+                        <span id="attachments-font-size-badge" class="setting-status" data-tooltip="<?php echo t_h('settings.value_help.font_size_attachments', [], 'Attachments'); ?>"><?php echo t_h('common.loading'); ?></span>
+                        <span id="backlinks-font-size-badge" class="setting-status" data-tooltip="<?php echo t_h('settings.value_help.font_size_backlinks', [], 'Backlinks'); ?>"><?php echo t_h('common.loading'); ?></span>
                         <span id="settings-font-size-badge" class="setting-status" data-tooltip="<?php echo t_h('settings.value_help.font_size_settings', [], 'Settings page'); ?>"><?php echo t_h('common.loading'); ?></span>
                     </div>
                 </div>

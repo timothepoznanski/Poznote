@@ -136,7 +136,7 @@
       "markdown_font": "Markdownエディターで使うフォントを選択します。",
       "markdown_default_view_mode": "Markdownノートをプレビュー、編集、ライブプレビュー、リッチテキスト、分割のどのモードで開くかを選択します。",
       "markdown_new_note_view_mode": "新しいMarkdownノートを分割、編集、ライブプレビュー、リッチテキストのどのモードで開くかを選択します。ライブプレビューまたはリッチテキストを選ぶと、他のノートもその表示に切り替わります。スマートフォンでは、新しいノートが分割モードで開くことはありません。",
-      "font_size": "ノート、サイドバー、コードブロック、設定ページのフォントサイズを調整します。",
+      "font_size": "ノート、サイドバー、コードブロック、フォルダーのパス・タグ・添付ファイル・バックリンクの行、設定ページのフォントサイズを調整します。",
       "index_icon_scale": "ノート一覧のアイコンのサイズを調整します。",
       "icon_rail_scale": "アイコンサイドバーのアイコンのサイズを調整します。",
       "timezone": "日付と時刻の表示に使うタイムゾーンを設定します。",
@@ -379,6 +379,10 @@
       "font_size_notes": "ノートの内容",
       "font_size_sidebar": "サイドバー",
       "font_size_code_blocks": "コードブロック",
+      "font_size_folder_path": "フォルダーのパス",
+      "font_size_tags": "タグ",
+      "font_size_attachments": "添付ファイル",
+      "font_size_backlinks": "バックリンク",
       "font_size_settings": "設定ページ"
     },
     "storage_summary": {
@@ -612,6 +616,10 @@
       "note_font_size": "{{size}}px",
       "sidebar_font_size": "{{size}}px",
       "code_block_font_size": "{{size}}px",
+      "folder_path_font_size": "{{size}}px",
+      "tags_font_size": "{{size}}px",
+      "attachments_font_size": "{{size}}px",
+      "backlinks_font_size": "{{size}}px",
       "settings_font_size": "{{size}}px",
       "icon_sidebar_order_configure": "設定",
       "slash_menu_alt_slash": "Alt + /",
@@ -1124,9 +1132,24 @@
       "note_label": "ノートの内容（px）：",
       "sidebar_label": "サイドバー（px）：",
       "code_block_label": "コードブロック（px）：",
+      "folder_path_label": "フォルダーのパス（px）：",
+      "tags_label": "タグ（px）：",
+      "attachments_label": "添付ファイル（px）：",
+      "backlinks_label": "バックリンク（px）：",
       "settings_label": "設定ページ（px）：",
       "default_value": "既定値は{{size}}pxです",
-      "preview": "プレビュー"
+      "preview": "プレビュー",
+      "reset": "既定に戻す",
+      "help": {
+        "note": "ノートの本文（エディターとプレビュー）。",
+        "sidebar": "左側のツリーにあるノートとフォルダーの名前。",
+        "code_block": "ノート内のコード：コードブロックとインラインコード。",
+        "folder_path": "ノートのタイトルの上にある、ノートの場所を示すフォルダーのバッジ。",
+        "tags": "ノートのタイトルの上にあるタグと、タグを追加する欄。",
+        "attachments": "ノートの上または下にある、添付ファイルへのリンク。プレビューのタイルは独自のサイズのままです。",
+        "backlinks": "このノートにリンクしているノートの行と、そこで展開される抜粋。",
+        "settings": "この設定ページの文字。"
+      }
     },
     "note_width": {
       "title": "ノートの内容の幅",

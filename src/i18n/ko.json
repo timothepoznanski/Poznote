@@ -136,7 +136,7 @@
       "markdown_font": "마크다운 편집기에서 사용되는 글꼴을 선택하세요.",
       "markdown_default_view_mode": "마크다운 노트가 미리보기, 편집, 실시간 미리보기, 서식 있는 텍스트 또는 분할 모드에서 열릴지 선택하세요.",
       "markdown_new_note_view_mode": "새 마크다운 노트를 분할, 편집, 실시간 미리보기 또는 서식 있는 텍스트 모드 중 어느 것으로 열지 선택하세요. 실시간 미리보기나 서식 있는 텍스트를 선택하면 다른 노트도 같은 보기로 바뀝니다. 휴대폰에서는 새 노트가 분할 모드로 열리지 않습니다.",
-      "font_size": "노트, 사이드바, 코드 블록 및 설정 페이지의 글꼴 크기를 조정합니다.",
+      "font_size": "노트, 사이드바, 코드 블록, 폴더 경로·태그·첨부 파일·백링크 행 및 설정 페이지의 글꼴 크기를 조정합니다.",
       "index_icon_scale": "노트 목록의 아이콘 크기를 조정합니다.",
       "icon_rail_scale": "아이콘 사이드바의 아이콘 크기를 조절합니다.",
       "timezone": "날짜와 시간을 표시하는 데 사용되는 시간대를 설정합니다.",
@@ -379,6 +379,10 @@
       "font_size_notes": "노트 내용",
       "font_size_sidebar": "사이드바",
       "font_size_code_blocks": "코드 블록",
+      "font_size_folder_path": "폴더 경로",
+      "font_size_tags": "태그",
+      "font_size_attachments": "첨부 파일",
+      "font_size_backlinks": "백링크",
       "font_size_settings": "설정 페이지"
     },
     "storage_summary": {
@@ -612,6 +616,10 @@
       "note_font_size": "{{size}}px",
       "sidebar_font_size": "{{size}}px",
       "code_block_font_size": "{{size}}px",
+      "folder_path_font_size": "{{size}}px",
+      "tags_font_size": "{{size}}px",
+      "attachments_font_size": "{{size}}px",
+      "backlinks_font_size": "{{size}}px",
       "settings_font_size": "{{size}}px",
       "icon_sidebar_order_configure": "설정",
       "slash_menu_alt_slash": "Alt + /",
@@ -1124,9 +1132,24 @@
       "note_label": "노트 내용(px):",
       "sidebar_label": "사이드바(px):",
       "code_block_label": "코드 블록(px):",
+      "folder_path_label": "폴더 경로(px):",
+      "tags_label": "태그(px):",
+      "attachments_label": "첨부 파일(px):",
+      "backlinks_label": "백링크(px):",
       "settings_label": "설정 페이지(px):",
       "default_value": "{{size}} px는 기본값입니다.",
-      "preview": "미리보기"
+      "preview": "미리보기",
+      "reset": "기본값으로 재설정",
+      "help": {
+        "note": "노트 본문(편집기와 미리 보기).",
+        "sidebar": "왼쪽 트리에 있는 노트와 폴더의 이름.",
+        "code_block": "노트 안의 코드: 코드 블록과 인라인 코드.",
+        "folder_path": "노트 제목 위에서 노트의 위치를 보여 주는 폴더 배지.",
+        "tags": "노트 제목 위의 태그와 태그를 추가하는 입력란.",
+        "attachments": "노트 위나 아래에 있는 첨부 파일 링크. 미리 보기 타일은 자체 크기를 유지합니다.",
+        "backlinks": "이 노트를 링크하는 노트들의 행과, 그 행이 펼치는 발췌문.",
+        "settings": "이 설정 페이지의 글자."
+      }
     },
     "note_width": {
       "title": "노트 내용 너비",

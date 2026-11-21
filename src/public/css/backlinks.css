@@ -4,7 +4,12 @@
  * Mirrors the layout and style of .note-attachments-row exactly.
  */
 
-/* Row — identical to .note-attachments-row */
+/* Row — identical to .note-attachments-row.
+
+   Every size in it follows the Backlinks entry of the Font size card
+   (--backlinks-font-size, set on :root by index.php before the first paint
+   and by js/font-size-settings.js; 14px by default, the size the row always
+   had). The rest of the row is derived from it so it scales as one. */
 .backlinks-row {
     display: flex;
     align-items: center;
@@ -14,7 +19,7 @@
 
 /* Icon — identical to .lucide-paperclip.icon_attachment */
 .lucide-link.icon_backlinks {
-    font-size: 14px;
+    font-size: var(--backlinks-font-size, 14px);
     margin-right: 14px;
     flex-shrink: 0;
     align-self: center;
@@ -59,7 +64,7 @@
 .backlink-link {
     color: var(--pz-accent-text);
     text-decoration: none;
-    font-size: 14px;
+    font-size: var(--backlinks-font-size, 14px);
     transition: color 0.2s;
     cursor: pointer;
     display: inline-flex;
@@ -84,8 +89,8 @@
     padding: 0 6px;
     border: 1px solid var(--pz-border);
     border-radius: var(--pz-radius-sm);
-    font-size: 11px;
-    line-height: 16px;
+    font-size: calc(var(--backlinks-font-size, 14px) - 3px);
+    line-height: 1.45;
     color: var(--pz-text-muted);
 }
 
@@ -120,7 +125,7 @@
 }
 
 .backlinks-mentions-toggle i {
-    font-size: 14px;
+    font-size: var(--backlinks-font-size, 14px);
     line-height: 1;
 }
 
@@ -128,11 +133,17 @@
     color: var(--pz-accent-text);
 }
 
-/* Lines up under the chips: the width of the link icon and its gutter
-   (.lucide-link.icon_backlinks above), plus the chevron and its own. */
+/* Lines up under the chips: the width of the link icon and its 14px gutter
+   (.lucide-link.icon_backlinks above), the chevron and its 10px, and the
+   4px side margin of a chip. Both icons are one font size wide, so the indent
+   follows the row's size. Border-box, because the note width rule centres
+   this block like the row above it: in content-box the indent was added to
+   that width and half of it went out on the left, putting the passages 30px
+   ahead of the chips. */
 .backlinks-mentions {
+    box-sizing: border-box;
     margin: 2px 0 6px;
-    padding-left: 52px;
+    padding-left: calc(var(--backlinks-font-size, 14px) * 2 + 28px);
 }
 
 /* The markdown split view fills the screen with its two panes and gives back
@@ -152,7 +163,7 @@
     padding: 2px 0;
     color: var(--pz-text-muted);
     text-decoration: none;
-    font-size: 13px;
+    font-size: calc(var(--backlinks-font-size, 14px) - 1px);
     line-height: 1.5;
     white-space: nowrap;
     overflow: hidden;
@@ -197,7 +208,7 @@
 .backlinks-mention-empty {
     margin: 0;
     padding: 2px 0;
-    font-size: 13px;
+    font-size: calc(var(--backlinks-font-size, 14px) - 1px);
     line-height: 1.5;
     font-style: italic;
     color: var(--pz-text-muted);

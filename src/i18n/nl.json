@@ -136,7 +136,7 @@
       "markdown_font": "Kies het lettertype van de Markdown-editor.",
       "markdown_default_view_mode": "Kies of Markdown-notities openen in voorbeeld-, bewerk-, livevoorbeeld-, rich-text- of gesplitste modus.",
       "markdown_new_note_view_mode": "Kies of een nieuwe Markdown-notitie opent in gesplitste weergave, bewerkmodus, livevoorbeeld of rich text. Met livevoorbeeld of rich text schakelen de andere notities ook naar die weergave. Op een telefoon opent een nieuwe notitie nooit in gesplitste weergave.",
-      "font_size": "De lettergrootte van notities, zijbalk, codeblokken en de instellingenpagina aanpassen.",
+      "font_size": "De lettergrootte van notities, zijbalk, codeblokken, de regels voor mappad, tags, bijlagen en backlinks en de instellingenpagina aanpassen.",
       "index_icon_scale": "De grootte van de pictogrammen in de notitielijst aanpassen.",
       "icon_rail_scale": "De grootte van de pictogrammen in de pictogrammenbalk aanpassen.",
       "timezone": "De tijdzone instellen waarin datums en tijden worden getoond.",
@@ -379,6 +379,10 @@
       "font_size_notes": "Notitie-inhoud",
       "font_size_sidebar": "Zijbalk",
       "font_size_code_blocks": "Codeblokken",
+      "font_size_folder_path": "Mappad",
+      "font_size_tags": "Tags",
+      "font_size_attachments": "Bijlagen",
+      "font_size_backlinks": "Backlinks",
       "font_size_settings": "Instellingenpagina"
     },
     "storage_summary": {
@@ -612,6 +616,10 @@
       "note_font_size": "{{size}}px",
       "sidebar_font_size": "{{size}}px",
       "code_block_font_size": "{{size}}px",
+      "folder_path_font_size": "{{size}}px",
+      "tags_font_size": "{{size}}px",
+      "attachments_font_size": "{{size}}px",
+      "backlinks_font_size": "{{size}}px",
       "settings_font_size": "{{size}}px",
       "icon_sidebar_order_configure": "Configureren",
       "slash_menu_alt_slash": "Alt + /",
@@ -1124,9 +1132,24 @@
       "note_label": "Notitie-inhoud (px):",
       "sidebar_label": "Zijbalk (px):",
       "code_block_label": "Codeblokken (px):",
+      "folder_path_label": "Mappad (px):",
+      "tags_label": "Tags (px):",
+      "attachments_label": "Bijlagen (px):",
+      "backlinks_label": "Backlinks (px):",
       "settings_label": "Instellingenpagina (px):",
       "default_value": "{{size}} px is de standaardwaarde",
-      "preview": "Voorbeeld"
+      "preview": "Voorbeeld",
+      "reset": "Herstellen",
+      "help": {
+        "note": "De tekst van de notities, in de editor en het voorbeeld.",
+        "sidebar": "De namen van de notities en mappen in de boom links.",
+        "code_block": "Code in de notities: codeblokken en inline code.",
+        "folder_path": "Het mapbadge boven de titel van de notitie, dat laat zien waar de notitie staat.",
+        "tags": "De tags boven de titel van de notitie, en het veld om er een toe te voegen.",
+        "attachments": "De links naar de bijlagen van de notitie, boven of onder de notitie. Voorbeeldtegels houden hun eigen grootte.",
+        "backlinks": "De regel met de notities die naar deze linken, en de fragmenten die hij uitklapt.",
+        "settings": "De tekst van deze instellingenpagina."
+      }
     },
     "note_width": {
       "title": "Breedte van de notitie-inhoud",

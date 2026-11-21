@@ -414,23 +414,48 @@ $modalsPasswordDisabledHelp = $modalsPasswordDisabledReason === 'sso_only'
             <div class="font-size-controls">
                 <div class="font-size-row">
                     <label for="fontSizeInput"><?php echo t_h('modals.font_size.note_label'); ?></label>
+                    <span class="font-size-help" tabindex="0" role="img" aria-label="<?php echo t_h('modals.font_size.help.note'); ?>" data-tooltip="<?php echo t_h('modals.font_size.help.note'); ?>"><i class="lucide lucide-help-circle"></i></span>
                     <input type="number" id="fontSizeInput" min="10" max="32" step="1" value="15">
                 </div>
                 <div class="font-size-row">
                     <label for="sidebarFontSizeInput"><?php echo t_h('modals.font_size.sidebar_label'); ?></label>
+                    <span class="font-size-help" tabindex="0" role="img" aria-label="<?php echo t_h('modals.font_size.help.sidebar'); ?>" data-tooltip="<?php echo t_h('modals.font_size.help.sidebar'); ?>"><i class="lucide lucide-help-circle"></i></span>
                     <input type="number" id="sidebarFontSizeInput" min="10" max="32" step="1" value="13">
                 </div>
                 <div class="font-size-row">
                     <label for="codeBlockFontSizeInput"><?php echo t_h('modals.font_size.code_block_label'); ?></label>
+                    <span class="font-size-help" tabindex="0" role="img" aria-label="<?php echo t_h('modals.font_size.help.code_block'); ?>" data-tooltip="<?php echo t_h('modals.font_size.help.code_block'); ?>"><i class="lucide lucide-help-circle"></i></span>
                     <input type="number" id="codeBlockFontSizeInput" min="10" max="32" step="1" value="15">
                 </div>
                 <div class="font-size-row">
+                    <label for="folderPathFontSizeInput"><?php echo t_h('modals.font_size.folder_path_label', [], 'Folder path (px):'); ?></label>
+                    <span class="font-size-help" tabindex="0" role="img" aria-label="<?php echo t_h('modals.font_size.help.folder_path'); ?>" data-tooltip="<?php echo t_h('modals.font_size.help.folder_path'); ?>"><i class="lucide lucide-help-circle"></i></span>
+                    <input type="number" id="folderPathFontSizeInput" min="10" max="32" step="1" value="13">
+                </div>
+                <div class="font-size-row">
+                    <label for="tagsFontSizeInput"><?php echo t_h('modals.font_size.tags_label', [], 'Tags (px):'); ?></label>
+                    <span class="font-size-help" tabindex="0" role="img" aria-label="<?php echo t_h('modals.font_size.help.tags'); ?>" data-tooltip="<?php echo t_h('modals.font_size.help.tags'); ?>"><i class="lucide lucide-help-circle"></i></span>
+                    <input type="number" id="tagsFontSizeInput" min="10" max="32" step="1" value="13">
+                </div>
+                <div class="font-size-row">
+                    <label for="attachmentsFontSizeInput"><?php echo t_h('modals.font_size.attachments_label', [], 'Attachments (px):'); ?></label>
+                    <span class="font-size-help" tabindex="0" role="img" aria-label="<?php echo t_h('modals.font_size.help.attachments'); ?>" data-tooltip="<?php echo t_h('modals.font_size.help.attachments'); ?>"><i class="lucide lucide-help-circle"></i></span>
+                    <input type="number" id="attachmentsFontSizeInput" min="10" max="32" step="1" value="13">
+                </div>
+                <div class="font-size-row">
+                    <label for="backlinksFontSizeInput"><?php echo t_h('modals.font_size.backlinks_label', [], 'Backlinks (px):'); ?></label>
+                    <span class="font-size-help" tabindex="0" role="img" aria-label="<?php echo t_h('modals.font_size.help.backlinks'); ?>" data-tooltip="<?php echo t_h('modals.font_size.help.backlinks'); ?>"><i class="lucide lucide-help-circle"></i></span>
+                    <input type="number" id="backlinksFontSizeInput" min="10" max="32" step="1" value="14">
+                </div>
+                <div class="font-size-row">
                     <label for="settingsFontSizeInput"><?php echo t_h('modals.font_size.settings_label', [], 'Settings page (px):'); ?></label>
+                    <span class="font-size-help" tabindex="0" role="img" aria-label="<?php echo t_h('modals.font_size.help.settings'); ?>" data-tooltip="<?php echo t_h('modals.font_size.help.settings'); ?>"><i class="lucide lucide-help-circle"></i></span>
                     <input type="number" id="settingsFontSizeInput" min="10" max="32" step="1" value="15">
                 </div>
             </div>
         </div>
         <div class="modal-buttons">
+            <button type="button" id="resetFontSizeBtn" class="font-size-reset-btn"><?php echo t_h('modals.font_size.reset', [], 'Reset to defaults'); ?></button>
             <button type="button" id="cancelFontSizeBtn" class="btn-cancel"><?php echo t_h('common.cancel'); ?></button>
             <button type="button" id="saveFontSizeBtn" class="btn-primary"><?php echo t_h('common.save'); ?></button>
         </div>

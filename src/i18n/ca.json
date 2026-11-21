@@ -136,7 +136,7 @@
       "markdown_font": "Trieu el tipus de lletra de l'editor Markdown.",
       "markdown_default_view_mode": "Trieu si les notes Markdown s'obren en mode de previsualització, d'edició, de previsualització en directe, de text enriquit o dividit.",
       "markdown_new_note_view_mode": "Trieu si una nota Markdown nova s'obre en mode dividit, d'edició, de previsualització en directe o de text enriquit. Amb la previsualització en directe o el text enriquit, les altres notes també passen a aquesta vista. En un telèfon, una nota nova no s'obre mai en mode dividit.",
-      "font_size": "Ajusteu la mida de la lletra de les notes, la barra lateral, els blocs de codi i la pàgina de paràmetres.",
+      "font_size": "Ajusteu la mida de la lletra de les notes, la barra lateral, els blocs de codi, les línies de ruta de la carpeta, etiquetes, fitxers adjunts i enllaços entrants i la pàgina de paràmetres.",
       "index_icon_scale": "Ajusteu la mida de les icones de la llista de notes.",
       "icon_rail_scale": "Ajusteu la mida de les icones de la barra lateral d'icones.",
       "timezone": "Definiu el fus horari que es fa servir per mostrar les dates i les hores.",
@@ -379,6 +379,10 @@
       "font_size_notes": "Contingut de la nota",
       "font_size_sidebar": "Barra lateral",
       "font_size_code_blocks": "Blocs de codi",
+      "font_size_folder_path": "Ruta de la carpeta",
+      "font_size_tags": "Etiquetes",
+      "font_size_attachments": "Fitxers adjunts",
+      "font_size_backlinks": "Enllaços entrants",
       "font_size_settings": "Pàgina de paràmetres"
     },
     "storage_summary": {
@@ -612,6 +616,10 @@
       "note_font_size": "{{size}} px",
       "sidebar_font_size": "{{size}} px",
       "code_block_font_size": "{{size}} px",
+      "folder_path_font_size": "{{size}}px",
+      "tags_font_size": "{{size}}px",
+      "attachments_font_size": "{{size}}px",
+      "backlinks_font_size": "{{size}}px",
       "settings_font_size": "{{size}} px",
       "icon_sidebar_order_configure": "Configura",
       "slash_menu_alt_slash": "Alt + /",
@@ -1124,9 +1132,24 @@
       "note_label": "Contingut de la nota (px):",
       "sidebar_label": "Barra lateral (px):",
       "code_block_label": "Blocs de codi (px):",
+      "folder_path_label": "Ruta de la carpeta (px):",
+      "tags_label": "Etiquetes (px):",
+      "attachments_label": "Fitxers adjunts (px):",
+      "backlinks_label": "Enllaços entrants (px):",
       "settings_label": "Pàgina de paràmetres (px):",
       "default_value": "{{size}} px és el valor per defecte",
-      "preview": "Previsualització"
+      "preview": "Previsualització",
+      "reset": "Restableix",
+      "help": {
+        "note": "El text de les notes, a l'editor i a la previsualització.",
+        "sidebar": "Els noms de les notes i carpetes a l'arbre de l'esquerra.",
+        "code_block": "El codi de les notes: blocs de codi i codi en línia.",
+        "folder_path": "La insígnia de la carpeta sobre el títol de la nota, que indica on és.",
+        "tags": "Les etiquetes sobre el títol de la nota, i el camp per afegir-ne una.",
+        "attachments": "Els enllaços als fitxers adjunts de la nota, a sobre o a sota de la nota. Les miniatures de previsualització mantenen la seva mida.",
+        "backlinks": "La fila de les notes que enllacen amb aquesta, i els fragments que desplega.",
+        "settings": "El text d'aquesta pàgina de paràmetres."
+      }
     },
     "note_width": {
       "title": "Amplada del contingut de la nota",

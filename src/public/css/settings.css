@@ -1941,6 +1941,16 @@ html[data-theme='dark'] body:has(> .settings-shell.settings-subpage) {
         margin-left: 0;
     }
 
+    /* The eight badges of the Font size card: on a line of their own under
+       the title, wrapping, or they squeeze the title out and leave the card */
+    .settings-with-nav .settings-card-stacks .font-size-badges {
+        flex: 1 1 100%;
+        min-width: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
     /* The row's width, or the boxes never wrap and leave the card */
     .settings-with-nav .settings-card-stacks .settings-inline-checks {
         flex: 1 1 100%;
