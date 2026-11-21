@@ -602,7 +602,8 @@ async function openPublicShareModal(noteId, sourceEl) {
     if (shareInfo.sharedViaFolder) {
         showSharedViaFolderModal(noteId, shareInfo.sharedViaFolder.folderName || '', {
             folderId: shareInfo.sharedViaFolder.folderId,
-            workspace: shareInfo.workspace
+            workspace: shareInfo.workspace,
+            url: shareInfo.sharedViaFolder.url || ''
         });
         return;
     }
@@ -619,8 +620,10 @@ async function openPublicShareModal(noteId, sourceEl) {
  * Also offers to create a note-specific share link on top of the folder share.
  * @param {string} noteId - The note ID
  * @param {string} folderName - Name of the shared (ancestor) folder
- * @param {Object} [folderShare] - { folderId, workspace } of that folder share,
- *                                 enables the "Edit folder share" button
+ * @param {Object} [folderShare] - { folderId, workspace, url } of that folder share,
+ *                                 enables the "Edit folder share" button; url is
+ *                                 the note's public page through the folder token,
+ *                                 enables the "Open URL" button
  */
 function showSharedViaFolderModal(noteId, folderName, folderShare) {
     const existing = document.getElementById('sharedViaFolderModal');
@@ -667,6 +670,21 @@ function showSharedViaFolderModal(noteId, folderName, folderShare) {
     cancelBtn.textContent = window.t ? window.t('common.cancel', null, 'Cancel') : 'Cancel';
     cancelBtn.onclick = function () { closeModal('sharedViaFolderModal'); };
     buttonsDiv.appendChild(cancelBtn);
+
+    if (folderShare && folderShare.url) {
+        const openUrlBtn = document.createElement('button');
+        openUrlBtn.type = 'button';
+        openUrlBtn.className = 'btn-success';
+        openUrlBtn.textContent = window.t ? window.t('public.actions.open_url', null, 'Open URL') : 'Open URL';
+        openUrlBtn.onclick = function () {
+            let url = folderShare.url;
+            if (typeof applyProtocolToPublicUrl === 'function' && typeof getPreferredPublicUrlProtocol === 'function') {
+                url = applyProtocolToPublicUrl(url, getPreferredPublicUrlProtocol());
+            }
+            window.open(url, '_blank', 'noopener');
+        };
+        buttonsDiv.appendChild(openUrlBtn);
+    }
 
     // With the folder share known, its settings dialog replaces
     // the plain "View shares" link, which would only add a fourth button.
