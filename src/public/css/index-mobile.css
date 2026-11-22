@@ -23,6 +23,26 @@
     outline: none;
 }
 
+/* "Expand all folders", the lock-all padlock and the view options toggle at
+   the end of the rule after Favorites (css/sidebar.css): touching on desktop,
+   too close to hit one by one with a finger. Each button gets a wider box
+   (the padding is part of the tap target) and a gap before it. The ⋮ toggle
+   keeps its width, which the icon scale setting pins, and only takes the gap. */
+.notes-list-actions .sidebar-folder-toggle {
+    padding: 2px 6px;
+    margin-left: 6px;
+}
+
+.notes-list-actions .folder-actions-toggle {
+    margin-left: 6px;
+}
+
+/* A little more room on both sides of the padlock (demandé par le dev) */
+.notes-list-actions #sidebarLockAllBtn {
+    margin-left: 12px;
+    margin-right: 6px;
+}
+
 /* Forcing the folder toggle and star visible on touch now lives with the rules
    that hide them, in css/folders/actions-menu.css: they are display-based, and
    an !important override here would also beat the display: none !important
