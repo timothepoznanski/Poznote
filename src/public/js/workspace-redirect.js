@@ -37,10 +37,10 @@
             // workspace selection based on database settings (last_opened_workspace, default_workspace)
             // On a phone the page opens on the notes list, with the last
             // opened note behind it. Arriving in the app (the PWA starts
-            // here, so does every sign-in) shows that note: scroll=1 is the
-            // flag js/index-events.js already reads to slide to the note.
-            // The rail's Home link names no note and keeps opening the list.
-            window.location.href = window.innerWidth <= 800 ? 'index.php?scroll=1' : 'index.php';
+            // here, so does every sign-in) stays on that list, the open
+            // note marked and scrolled into view in the tree
+            // (js/index-events.js); nothing slides to the note on its own.
+            window.location.href = 'index.php';
         }
     } catch (e) {
         // Final fallback - redirect to index without workspace

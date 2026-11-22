@@ -716,15 +716,19 @@ function markOpenKanbanFolder(folderId) {
 }
 
 // Open every folder from the root down to `element` (the element itself too
-// when it is a folder's content)
-function openTreePathTo(element) {
+// when it is a folder's content). `display` only paints them open and keeps
+// nothing: the tree shown on load must not rewrite the folder states the
+// account keeps (and every other device shows).
+function openTreePathTo(element, display) {
     var node = element && element.classList && element.classList.contains('folder-content')
         ? element
         : (element && element.parentElement ? element.parentElement.closest('.folder-content') : null);
     var changed = false;
     while (node) {
         if (node.id && !isFavoritesTreeElement(node) && !isFolderContentOpen(node)) {
-            setFolderOpenState(node.id, true);
+            var toggle = display ? document.querySelector('.folder-name[data-folder-dom-id="' + CSS.escape(node.id) + '"]') : null;
+            if (toggle) paintFolderOpenState(node, toggle, true);
+            else setFolderOpenState(node.id, true);
             changed = true;
         }
         node = node.parentElement ? node.parentElement.closest('.folder-content') : null;
@@ -737,7 +741,7 @@ function openTreePathTo(element) {
 // loses the reader). The scroller is looked up rather than named, and only
 // it moves: never the sideways scroller <body> is on mobile, where the list
 // sits off screen next to the note or the board.
-function scrollTreeRowIntoView(row) {
+function scrollTreeRowIntoView(row, instant) {
     var scroller = row.parentElement;
     while (scroller && scroller !== document.body) {
         var overflowY = window.getComputedStyle(scroller).overflowY;
@@ -753,7 +757,7 @@ function scrollTreeRowIntoView(row) {
     var offset = (rowRect.top - boxRect.top) - (scroller.clientHeight - rowRect.height) / 2;
     var target = Math.max(0, Math.min(scroller.scrollTop + offset, scroller.scrollHeight - scroller.clientHeight));
     if (typeof scroller.scrollTo === 'function') {
-        scroller.scrollTo({ top: target, behavior: 'smooth' });
+        scroller.scrollTo({ top: target, behavior: instant ? 'instant' : 'smooth' });
     } else {
         scroller.scrollTop = target;
     }
@@ -769,14 +773,14 @@ function treeRevealTargetShown(type, id) {
     return !!(entry && entry.isConnected && (!card || card.style.display !== 'none'));
 }
 
-function revealTreeTarget(type, id) {
+function revealTreeTarget(type, id, quiet) {
     if (type === 'folder') {
         var header = findTreeFolderHeader(id);
         // Not in the tree as drawn (a search, a folder filter)
         if (!header) return;
-        openTreePathTo(document.getElementById('folder-' + id) || header);
+        openTreePathTo(document.getElementById('folder-' + id) || header, quiet);
         markOpenKanbanFolder(id);
-        scrollTreeRowIntoView(header.querySelector('.folder-toggle') || header);
+        scrollTreeRowIntoView(header.querySelector('.folder-toggle') || header, quiet);
         return;
     }
 
@@ -787,9 +791,9 @@ function revealTreeTarget(type, id) {
     }
     if (!row) row = rows[0] || null;
     if (!row) return;
-    openTreePathTo(row);
+    openTreePathTo(row, quiet);
     if (typeof updateSelectedNote === 'function') updateSelectedNote(row);
-    scrollTreeRowIntoView(row);
+    scrollTreeRowIntoView(row, quiet);
 }
 
 function cancelTreeReveal() {
@@ -802,24 +806,34 @@ function cancelTreeReveal() {
  * Show a link's target in the tree once it is on screen.
  * @param {'note'|'folder'} type
  * @param {string|number} id - Note or folder id
+ * @param {{quiet?: boolean}} [options] - quiet: the target is shown, not
+ *   asked for (the note a phone lands on, behind the list). Its folders are
+ *   only painted open, the tree jumps instead of gliding, and the request
+ *   does not outlive the page.
  */
-function requestTreeReveal(type, id, startedAt) {
+function requestTreeReveal(type, id, options) {
     id = String(id);
     if ((type !== 'note' && type !== 'folder') || !/^\d+$/.test(id)) return;
+    var quiet = !!(options && options.quiet);
+    // A link followed just before (resumed after a reload) wins over the
+    // note merely shown on load
+    if (quiet && treeRevealTimer) return;
 
     clearInterval(treeRevealTimer);
-    var since = startedAt || Date.now();
-    try {
-        sessionStorage.setItem(TREE_REVEAL_KEY, JSON.stringify({ type: type, id: id, at: since }));
-    } catch (e) {
-        console.debug('utils-folder-tree: tree reveal not kept:', e);
+    var since = (options && options.startedAt) || Date.now();
+    if (!quiet) {
+        try {
+            sessionStorage.setItem(TREE_REVEAL_KEY, JSON.stringify({ type: type, id: id, at: since }));
+        } catch (e) {
+            console.debug('utils-folder-tree: tree reveal not kept:', e);
+        }
     }
 
     var check = function () {
         if (treeRevealTargetShown(type, id)) {
             cancelTreeReveal();
             // After the loader's own last touches to the tree
-            setTimeout(function () { revealTreeTarget(type, id); }, 80);
+            setTimeout(function () { revealTreeTarget(type, id, quiet); }, 80);
             return;
         }
         if (Date.now() - since > TREE_REVEAL_WAIT_MS) cancelTreeReveal();

@@ -2295,10 +2295,25 @@
             const hasNoteId = urlParams.has('note') && urlParams.get('note');
             const isSearch = urlParams.has('search') || urlParams.has('tags_search') || urlParams.has('created_from') || urlParams.has('created_to') || window.isSearchMode;
 
-            // The flag alone (arriving through login.php, js/workspace-redirect.js)
+            // The flag alone (a note just created elsewhere, share target)
             // names no note: slide only if the page rendered one, the pane
-            // is empty when the last opened note is gone.
-            const hasRenderedNote = !!document.querySelector('#right_col .notecard');
+            // is empty when the last opened note is gone. Opening the app
+            // or coming back from another page carries no flag and stays on
+            // the notes list.
+            const renderedCard = document.querySelector('#right_col .notecard');
+            const hasRenderedNote = !!renderedCard;
+
+            // The list is what a phone shows first: the note behind it must
+            // be found there, marked as the open one, its folders opened and
+            // its row scrolled into the tree's view (a note deep in a folder,
+            // or below the fold, was invisible). Also when a flag slides to
+            // the note, so going back to the list finds it. Quiet: the
+            // folders are only shown open, not saved as open (the user did
+            // not ask), and the tree jumps rather than glides on load.
+            const renderedNoteId = renderedCard ? String(renderedCard.id || '').replace(/^note/, '') : '';
+            if (/^\d+$/.test(renderedNoteId) && typeof window.poznoteRequestTreeReveal === 'function') {
+                window.poznoteRequestTreeReveal('note', renderedNoteId, { quiet: true });
+            }
 
             if (hasScrollFlag || (hasNoteId && !isSearch)) {
                 requestAnimationFrame(function () {
