@@ -958,8 +958,16 @@
             button.classList.toggle('active', active);
             button.setAttribute('aria-pressed', active ? 'true' : 'false');
         });
-        // Preview / Source of a Markdown revision, beside the tabs
-        els.mdMode.hidden = config.noteType !== 'markdown' || state.view !== 'content';
+        // Preview / Source of a Markdown revision, beside the tabs. Greyed
+        // out rather than hidden in the Changes view, so the row does not
+        // shift when switching tabs.
+        els.mdMode.hidden = config.noteType !== 'markdown';
+        var mdModeIdle = state.view !== 'content';
+        els.mdMode.classList.toggle('is-disabled', mdModeIdle);
+        els.mdMode.setAttribute('aria-disabled', mdModeIdle ? 'true' : 'false');
+        els.mdMode.querySelectorAll('[data-md-mode]').forEach(function (button) {
+            button.disabled = mdModeIdle;
+        });
         // The option row only serves the comparison
         els.toolbar.hidden = state.view === 'content';
     }
