@@ -681,9 +681,15 @@ window.loadNoteDirectly = function (url, noteId, event, clickedElement, extraOpt
             event.stopPropagation();
         }
 
-        // Set flag for mobile scroll behavior
+        // Set flag for mobile scroll behavior. noMobileSlide: the note is
+        // loaded behind the list (workspace switch), the list stays on screen.
+        const noMobileSlide = !!(extraOptions && extraOptions.noMobileSlide);
         if (typeof sessionStorage !== 'undefined' && isMobileDevice()) {
-            sessionStorage.setItem('shouldScrollToNote', 'true');
+            if (noMobileSlide) {
+                sessionStorage.removeItem('shouldScrollToNote');
+            } else {
+                sessionStorage.setItem('shouldScrollToNote', 'true');
+            }
         }
 
         // Cancel any pending auto-save operations for the previous note

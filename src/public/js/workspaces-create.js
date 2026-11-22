@@ -248,8 +248,10 @@ function refreshLeftColumnForWorkspace(workspaceName) {
                 // No tabs on a phone (js/tabs.js leaves the pane alone there):
                 // open the note this same response landed on, the last one
                 // opened in the workspace (issue #1630), as a fresh page load
-                // of the workspace would. Nothing when the pane got something
-                // in the meantime, or when the server rendered no note.
+                // of the workspace would: behind the list, which stays on
+                // screen, the note shown in the tree. Nothing when the pane
+                // got something in the meantime, or when the server rendered
+                // no note.
                 if (window.innerWidth <= 800 && typeof window.loadNoteDirectly === 'function'
                     && !document.querySelector('#right_col .notecard')) {
                     var landingCard = doc.querySelector('#right_col .notecard[id^="note"]');
@@ -258,8 +260,13 @@ function refreshLeftColumnForWorkspace(workspaceName) {
                         window.loadNoteDirectly(
                             'index.php?workspace=' + encodeURIComponent(workspaceName) + '&note=' + landingNoteId,
                             landingNoteId,
-                            null
+                            null,
+                            null,
+                            { noMobileSlide: true }
                         );
+                        if (typeof window.poznoteRequestTreeReveal === 'function') {
+                            window.poznoteRequestTreeReveal('note', landingNoteId, { quiet: true });
+                        }
                     }
                 }
 
