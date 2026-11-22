@@ -171,6 +171,7 @@ body.sidebar-collapsed #left_col {
 
 #right_pane {
     overflow: hidden !important;
+    overflow: clip !important;
     height: 100vh !important;
 }
 
