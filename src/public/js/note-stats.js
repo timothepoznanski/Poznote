@@ -18,6 +18,9 @@
     'use strict';
 
     var RECOUNT_DELAY_MS = 400;
+    // Longest wait for an idle moment once typing has paused: past it the
+    // count runs anyway, so the figures never stay stale on a busy page
+    var IDLE_TIMEOUT_MS = 2000;
 
     var UNITS = ['characters', 'words', 'lines'];
     var DEFAULT_LABELS = {
@@ -37,6 +40,10 @@
     var WORD_CHAR = /[\p{L}\p{N}]/u;
 
     var recountTimer = null;
+    var idleHandle = null;
+    // A recount skipped because every figure was hidden: the figures on
+    // screen are stale until one of them is shown again
+    var skippedWhileHidden = false;
 
     /**
      * Characters (spaces included, line breaks excluded), words and lines of
@@ -328,13 +335,49 @@
         window.wireTagsListScroll(list);
     }
 
+    /**
+     * Whether at least one figure is shown. Each has its own checkbox in
+     * "Element visibility"; with the three unticked, counting reads the
+     * whole note for nothing (a tenth of a second on a note of a few
+     * megabytes). Read from the hidden keys, not from the page: asking an
+     * element whether it is displayed forces a style recalculation of the
+     * note being typed in.
+     */
+    function statsShown() {
+        var ui = window.PoznoteUiCustomization;
+        if (!ui || typeof ui.isHidden !== 'function') {
+            return true;
+        }
+        for (var i = 0; i < UNITS.length; i++) {
+            if (!ui.isHidden('panel:note-stats-' + UNITS[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function cancelScheduledRecount() {
+        if (recountTimer !== null) {
+            clearTimeout(recountTimer);
+            recountTimer = null;
+        }
+        if (idleHandle !== null) {
+            if (typeof window.cancelIdleCallback === 'function') {
+                window.cancelIdleCallback(idleHandle);
+            }
+            idleHandle = null;
+        }
+    }
+
     function recount() {
-        recountTimer = null;
+        cancelScheduledRecount();
+        var shown = statsShown();
+        skippedWhileHidden = !shown;
         var holders = document.querySelectorAll('#right_col .note-sub-stats');
         for (var i = 0; i < holders.length; i++) {
             var holder = holders[i];
             var noteId = holder.getAttribute('data-note-id');
-            var entry = noteId ? document.getElementById('entry' + noteId) : null;
+            var entry = (shown && noteId) ? document.getElementById('entry' + noteId) : null;
             if (entry) {
                 renderStats(holder, countText(noteTextOf(entry, noteId)));
             }
@@ -342,11 +385,26 @@
         }
     }
 
+    /**
+     * After typing, the note is recounted once it pauses, and then only when
+     * the browser has nothing else to do: on a long note the count takes a
+     * noticeable moment, which must not land in the middle of an animation,
+     * a scroll or the reply to a click. Browsers without requestIdleCallback
+     * count right after the pause.
+     */
     function scheduleRecount() {
-        if (recountTimer !== null) {
-            clearTimeout(recountTimer);
-        }
-        recountTimer = setTimeout(recount, RECOUNT_DELAY_MS);
+        cancelScheduledRecount();
+        recountTimer = setTimeout(function () {
+            recountTimer = null;
+            if (typeof window.requestIdleCallback === 'function') {
+                idleHandle = window.requestIdleCallback(function () {
+                    idleHandle = null;
+                    recount();
+                }, { timeout: IDLE_TIMEOUT_MS });
+            } else {
+                recount();
+            }
+        }, RECOUNT_DELAY_MS);
     }
 
     function isOwnMutation(mutation) {
@@ -355,6 +413,27 @@
             target = target.parentNode;
         }
         return !!(target && target.closest && target.closest('.note-subline'));
+    }
+
+    /**
+     * A line under a title that has just arrived (a note opened, swapped in
+     * or rendered again): its figures are still empty. Filling them after
+     * the delay made them pop in once the note was already on screen and
+     * pushed the information icon sideways, so a new line is counted in the
+     * same turn, before the browser paints it.
+     */
+    function addsStatsLine(mutation) {
+        var added = mutation.addedNodes;
+        for (var i = 0; i < added.length; i++) {
+            var node = added[i];
+            if (node.nodeType !== Node.ELEMENT_NODE) {
+                continue;
+            }
+            if (node.classList.contains('note-sub-stats') || node.querySelector('.note-sub-stats')) {
+                return true;
+            }
+        }
+        return false;
     }
 
     function watch() {
@@ -369,11 +448,19 @@
             return;
         }
         new MutationObserver(function (mutations) {
+            var changed = false;
             for (var i = 0; i < mutations.length; i++) {
-                if (!isOwnMutation(mutations[i])) {
-                    scheduleRecount();
+                if (mutations[i].type === 'childList' && addsStatsLine(mutations[i])) {
+                    // A MutationObserver runs before the next paint
+                    recount();
                     return;
                 }
+                if (!changed && !isOwnMutation(mutations[i])) {
+                    changed = true;
+                }
+            }
+            if (changed) {
+                scheduleRecount();
             }
         }).observe(column, {
             childList: true,
@@ -382,6 +469,13 @@
             attributes: true,
             // Where a task list and a Markdown note in preview keep their content
             attributeFilter: ['data-tasklist-json', 'data-markdown-content']
+        });
+
+        // A figure shown again after counts were skipped: fill it now
+        document.addEventListener('poznote-ui-customization-updated', function () {
+            if (skippedWhileHidden && statsShown()) {
+                recount();
+            }
         });
     }
 
