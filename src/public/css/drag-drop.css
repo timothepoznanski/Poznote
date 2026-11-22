@@ -349,6 +349,20 @@ a.links_arbo_left.dragging,
     cursor: grabbing;
 }
 
+/* Layout of a note row, whatever its draggable state: on a touch screen the
+   tree's script turns every row undraggable after load (js/events-drag-drop.js,
+   js/tree-touch-drag.js), and a display tied to [draggable="true"] left the
+   rows of the mobile tree as blocks on the first paint, then gave them to the
+   flex of css/index-mobile.css: each row lost 4px under the eye. Two classes,
+   so the flex of the mobile sheet (one class more an element) still wins.
+   The finger's drag image (.tree-touch-drag-ghost, a clone of the row) is
+   left out, its position: fixed must hold; :where() adds no weight. */
+.note-in-folder.links_arbo_left:where(:not(.tree-touch-drag-ghost)),
+.note-without-folder.links_arbo_left:where(:not(.tree-touch-drag-ghost)) {
+    display: block !important;
+    position: relative !important;
+}
+
 /* Specific styles for notes in folders */
 .note-in-folder.links_arbo_left[draggable="true"] {
     cursor: pointer !important;
@@ -356,8 +370,6 @@ a.links_arbo_left.dragging,
     -khtml-user-drag: element !important;
     -moz-user-drag: element !important;
     -o-user-drag: element !important;
-    display: block !important;
-    position: relative !important;
 }
 
 .note-in-folder.links_arbo_left[draggable="true"]:hover {
@@ -371,8 +383,6 @@ a.links_arbo_left.dragging,
     -khtml-user-drag: element !important;
     -moz-user-drag: element !important;
     -o-user-drag: element !important;
-    display: block !important;
-    position: relative !important;
 }
 
 .note-without-folder.links_arbo_left[draggable="true"]:hover {

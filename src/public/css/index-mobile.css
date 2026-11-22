@@ -23,6 +23,26 @@
     outline: none;
 }
 
+/* "Expand all folders", the lock-all padlock and the view options toggle at
+   the end of the rule after Favorites (css/sidebar.css): touching on desktop,
+   too close to hit one by one with a finger. Each button gets a wider box
+   (the padding is part of the tap target) and a gap before it. The ⋮ toggle
+   keeps its width, which the icon scale setting pins, and only takes the gap. */
+.notes-list-actions .sidebar-folder-toggle {
+    padding: 2px 6px;
+    margin-left: 6px;
+}
+
+.notes-list-actions .folder-actions-toggle {
+    margin-left: 6px;
+}
+
+/* A little more room on both sides of the padlock (demandé par le dev) */
+.notes-list-actions #sidebarLockAllBtn {
+    margin-left: 12px;
+    margin-right: 6px;
+}
+
 /* Forcing the folder toggle and star visible on touch now lives with the rules
    that hide them, in css/folders/actions-menu.css: they are display-based, and
    an !important override here would also beat the display: none !important
@@ -891,4 +911,43 @@ div[contentEditable=true][data-ph-mobile]:empty:before {
 #icon_sidebar,
 #iconSidebarToggle {
     display: none !important;
+}
+
+/* A note tapped in the list slides in at once, while it loads
+   (js/note-loader.js loadNoteDirectly): until it is swapped in, the column
+   must not show the note it still holds, the previous one. */
+#right_col.note-swap-pending > * {
+    visibility: hidden !important;
+}
+
+/* Slide over and the note still on its way (slow server): a spinner in the
+   blank screen. Only once .note-open is set (end of the slide; a failed load
+   clears it, so none shows over the list on the way back), and after a short
+   delay so a note landing right behind the slide does not flash it. Fixed:
+   #right_col still holds the previous note's scroll position. */
+body.note-open #right_col.note-swap-pending::after {
+    content: '';
+    position: fixed;
+    top: calc(40% - 14px);
+    left: calc(50% - 14px);
+    width: 28px;
+    height: 28px;
+    box-sizing: border-box;
+    border: 3px solid var(--pz-border);
+    border-top-color: var(--pz-accent-text);
+    border-radius: var(--pz-radius-circle);
+    pointer-events: none;
+    animation: note-swap-spinner-in 0.15s ease 0.2s both, lucide-spin 0.8s linear infinite;
+}
+
+@keyframes note-swap-spinner-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* The spin is the whole message, so it is slowed down rather than dropped. */
+@media (prefers-reduced-motion: reduce) {
+    body.note-open #right_col.note-swap-pending::after {
+        animation-duration: 0.15s, 2s;
+    }
 }

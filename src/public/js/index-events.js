@@ -2170,16 +2170,46 @@
      * On mobile: uses horizontal scroll
      * On desktop: uses scrollIntoView
      */
+    // Mobile slide to the note in progress, and what waits for its end. A
+    // note tapped in the list slides at once while it loads
+    // (js/note-loader.js); one arriving mid-slide is swapped in after the
+    // last frame, since laying it out during the slide made it jerk.
+    let mobileNoteSlideRunning = false;
+    let mobileNoteSlideWaiters = [];
+
+    function flushMobileNoteSlideWaiters() {
+        mobileNoteSlideRunning = false;
+        const waiters = mobileNoteSlideWaiters;
+        mobileNoteSlideWaiters = [];
+        waiters.forEach(function (fn) {
+            try { fn(); } catch (e) { console.error('[Poznote] After note slide:', e); }
+        });
+    }
+
+    window.poznoteIsMobileNoteSlideRunning = function () {
+        return mobileNoteSlideRunning;
+    };
+
+    window.poznoteWhenMobileNoteSlideDone = function (fn) {
+        if (!mobileNoteSlideRunning) {
+            fn();
+            return;
+        }
+        mobileNoteSlideWaiters.push(fn);
+    };
+
     window.scrollToRightColumn = function () {
         if (window.innerWidth <= 800) {
             const scrollAmount = window.innerWidth;
             const duration = isReducedMotionPreferred() ? 0 : 260;
+            mobileNoteSlideRunning = true;
             // .note-open is applied only once the slide is over: it hides the
             // icon rail and resizes the columns, which is invisible while the
             // note fills the viewport but reads as a jerky extra animation if
             // it happens at tap time or mid-slide.
             animateHorizontalScroll(scrollAmount, duration, function () {
                 document.body.classList.add('note-open');
+                flushMobileNoteSlideWaiters();
             });
         } else {
             const rightCol = document.getElementById('right_col');
