@@ -84,7 +84,7 @@ function restoreNoteDomFromCache(url, noteId, options) {
     clearKanbanStateForNoteLoad(options);
 
     if (!options.fromHistory) {
-        updateBrowserUrl(url, noteId);
+        updateBrowserUrl(url, noteId, !!options.earlySlide);
     }
 
     reinitializeNoteContent({
@@ -420,6 +420,32 @@ function runAfterNextPaint(run, cancel) {
     setTimeout(function () { finish(run); }, 250);
 }
 
+/**
+ * Mobile: runs the swap once the slide to the note is over (see
+ * window.poznoteWhenMobileNoteSlideDone in js/index-events.js). Takes the
+ * same slot as a heavy swap, so a newer navigation drops it the same way.
+ * @param {Function} run - the swap
+ * @param {Function} cancel - ends the load when a newer navigation drops it
+ */
+function runAfterMobileNoteSlide(run, cancel) {
+    var done = false;
+    var finish = function (fn) {
+        if (done) return;
+        done = true;
+        if (pendingHeavyNoteSwap === job) pendingHeavyNoteSwap = null;
+        fn();
+    };
+    var job = { cancel: function () { finish(cancel); } };
+    pendingHeavyNoteSwap = job;
+    window.poznoteWhenMobileNoteSlideDone(function () { finish(run); });
+}
+
+function isMobileNoteSlideRunning() {
+    return typeof window.poznoteIsMobileNoteSlideRunning === 'function'
+        && typeof window.poznoteWhenMobileNoteSlideDone === 'function'
+        && window.poznoteIsMobileNoteSlideRunning();
+}
+
 function abortActiveNoteLoad() {
     if (pendingHeavyNoteSwap) {
         pendingHeavyNoteSwap.cancel();
@@ -494,6 +520,9 @@ function loadNoteCommon(url, noteId, options) {
         if (isMobileDevice()) {
             document.body.classList.remove('note-open');
         }
+        if (typeof options.onLoadFailed === 'function') {
+            options.onLoadFailed();
+        }
     };
 
     // Create XMLHttpRequest
@@ -511,23 +540,38 @@ function loadNoteCommon(url, noteId, options) {
         if (xhr.readyState !== 4) return;
         if (activeNoteLoadXhr === xhr) activeNoteLoadXhr = null;
 
-        // A heavy swap waits for the hourglass to reach the screen before it
-        // runs (see runAfterNextPaint()).
-        if (!xhr.poznoteAborted && xhr.status === 200) {
-            var parsedDoc = null;
-            try {
-                parsedDoc = new DOMParser().parseFromString(xhr.responseText, 'text/html');
-            } catch (e) {
-                parsedDoc = null;
-            }
-            if (parsedDoc && isHeavyNoteSwap(parsedDoc.getElementById('right_col'))) {
-                runAfterNextPaint(function () { finishXhrLoad(parsedDoc); }, clearLoading);
-                return;
-            }
-            finishXhrLoad(parsedDoc);
+        if (xhr.poznoteAborted) {
+            finishXhrLoad(null);
             return;
         }
-        finishXhrLoad(null);
+
+        // A heavy swap waits for the hourglass to reach the screen before it
+        // runs (see runAfterNextPaint()).
+        var proceed = function () {
+            if (xhr.status === 200) {
+                var parsedDoc = null;
+                try {
+                    parsedDoc = new DOMParser().parseFromString(xhr.responseText, 'text/html');
+                } catch (e) {
+                    parsedDoc = null;
+                }
+                if (parsedDoc && isHeavyNoteSwap(parsedDoc.getElementById('right_col'))) {
+                    runAfterNextPaint(function () { finishXhrLoad(parsedDoc); }, clearLoading);
+                    return;
+                }
+                finishXhrLoad(parsedDoc);
+                return;
+            }
+            finishXhrLoad(null);
+        };
+
+        // Mobile: arrived while sliding to the note, swapped in after the
+        // slide's last frame
+        if (isMobileNoteSlideRunning()) {
+            runAfterMobileNoteSlide(proceed, clearLoading);
+            return;
+        }
+        proceed();
     };
 
     var finishXhrLoad = function (parsedDoc) {
@@ -575,7 +619,7 @@ function loadNoteCommon(url, noteId, options) {
 
                             // Update URL (skip if coming from popstate)
                             if (!options.fromHistory) {
-                                updateBrowserUrl(url, noteId);
+                                updateBrowserUrl(url, noteId, !!options.earlySlide);
                             }
 
                             reinitializeNoteContent();
@@ -728,6 +772,27 @@ window.loadNoteDirectly = function (url, noteId, event, clickedElement, extraOpt
         // Find the clicked link to update selection
         const clickedLink = clickedElement || findNoteLinkById(noteId);
 
+        // Mobile, from the list: slide to the note now, while it loads. The
+        // slide used to wait for the request and the note's set-up, so a
+        // tap showed nothing for half a second before 260 ms of slide. The
+        // column hides what it holds (the previous note) until the new one
+        // is swapped in, which a note in the DOM cache is before the first
+        // frame.
+        const rightColForSlide = (isMobileDevice()
+            && !noMobileSlide
+            && !document.body.classList.contains('note-open')
+            && typeof window.scrollToRightColumn === 'function')
+            ? document.getElementById('right_col')
+            : null;
+        const slidesEarly = !!rightColForSlide;
+        let earlySlideFailed = false;
+        if (slidesEarly) {
+            rightColForSlide.classList.add('note-swap-pending');
+            if (typeof sessionStorage !== 'undefined') {
+                sessionStorage.removeItem('shouldScrollToNote');
+            }
+        }
+
         loadNoteCommon(url, noteId, Object.assign({
             clickedLink: clickedLink,
             fromHistory: false,
@@ -736,8 +801,29 @@ window.loadNoteDirectly = function (url, noteId, event, clickedElement, extraOpt
             updateSelectionBeforeLoad: false,
             reinitClickHandlers: true,
             xhrTimeout: 10000,
+            earlySlide: slidesEarly,
             onLoadingComplete: function () {
                 window.isLoadingNote = false;
+                // Called just before the swap, in the same task: the old
+                // note is never painted in between
+                if (rightColForSlide && !earlySlideFailed) {
+                    rightColForSlide.classList.remove('note-swap-pending');
+                }
+            },
+            onLoadFailed: function () {
+                // Back to the list, the previous note kept out of sight
+                // until it is there
+                if (!slidesEarly || earlySlideFailed) return;
+                earlySlideFailed = true;
+                rightColForSlide.classList.add('note-swap-pending');
+                window.poznoteWhenMobileNoteSlideDone(function () {
+                    if (typeof window.scrollToLeftColumn === 'function') {
+                        window.scrollToLeftColumn();
+                    }
+                    setTimeout(function () {
+                        rightColForSlide.classList.remove('note-swap-pending');
+                    }, 400);
+                });
             },
             onContentLoaded: function (loadedNoteId, originalUrl) {
                 // If this was a forced refresh, skip auto-draft restore
@@ -756,7 +842,8 @@ window.loadNoteDirectly = function (url, noteId, event, clickedElement, extraOpt
                 }
 
                 // Auto-scroll to right column on mobile after note is loaded
-                if (isMobileDevice() && loadedNoteId && typeof scrollToRightColumn === 'function') {
+                // (already sliding when the tap came from the list)
+                if (!slidesEarly && isMobileDevice() && loadedNoteId && typeof scrollToRightColumn === 'function') {
                     const shouldScroll = sessionStorage.getItem('shouldScrollToNote');
                     if (shouldScroll === 'true') {
                         requestAnimationFrame(function () {
@@ -768,10 +855,18 @@ window.loadNoteDirectly = function (url, noteId, event, clickedElement, extraOpt
             }
         }, extraOptions || {}));
 
+        // After loadNoteCommon, so a note from the DOM cache is already in
+        // place when the slide starts
+        if (slidesEarly && !earlySlideFailed) {
+            window.scrollToRightColumn();
+        }
+
         return false;
     } catch (error) {
         console.error('Error in loadNoteDirectly:', error);
         window.isLoadingNote = false;
+        var pendingRightCol = document.getElementById('right_col');
+        if (pendingRightCol) pendingRightCol.classList.remove('note-swap-pending');
         if (window.tabManager && typeof window.tabManager._onNoteLoadFinished === 'function') {
             window.tabManager._onNoteLoadFinished();
         }
@@ -931,7 +1026,7 @@ function updateSelectedNote(clickedLink) {
 /**
  * Update browser URL without reload
  */
-function updateBrowserUrl(url, noteId) {
+function updateBrowserUrl(url, noteId, underNoteBackEntry) {
     // Track this note in navigation history
     if (typeof NoteHistory !== 'undefined' && NoteHistory.push) {
         NoteHistory.push(noteId);
@@ -953,6 +1048,15 @@ function updateBrowserUrl(url, noteId) {
 
         target.search = targetParams.toString();
         const state = { noteId: noteId };
+        // Mobile, note tapped in the list: the slide ended before the swap,
+        // so js/note-back.js has already pushed its Back entry, on the
+        // list's URL. The note's entry goes under it, as when the swap came
+        // first: Back slides to the list, the note's URL stays.
+        if (underNoteBackEntry && history.state && history.state.poznoteNoteView) {
+            history.replaceState(state, '', target.toString());
+            history.pushState(Object.assign({}, state, { poznoteNoteView: true }), '', target.toString());
+            return;
+        }
         history.pushState(state, '', target.toString());
     } catch (e) {
         const state = { noteId: noteId };
