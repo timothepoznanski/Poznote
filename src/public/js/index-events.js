@@ -1663,7 +1663,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const kanbanFolderId = urlParams.get('kanban');
         if (kanbanFolderId && typeof window.openKanbanView === 'function') {
-            window.openKanbanView(parseInt(kanbanFolderId, 10));
+            window.openKanbanView(parseInt(kanbanFolderId, 10), undefined, { noMobileSlide: true });
         }
 
         // Initialize tasklists and markdown notes
@@ -2283,30 +2283,27 @@
     }
 
     /**
-     * Check URL parameters and auto-scroll to note if scroll=1 is present
-     * or if a note ID is present in the URL (mobile only).
-     * Used on mobile after creating/loading a note
+     * Mobile, page load: the list shows first, the note behind it. Nothing
+     * slides to the note on its own, a note named in the URL included (it
+     * stayed in the URL after going back to the list, so a reload or a tab
+     * Chrome restored after Android killed it slid to the note). Only
+     * scroll=1 slides: a link from one note to another that reloads the
+     * page (js/note-reference.js), and the paths that open a note just
+     * created (note creation fallback, share target).
      */
     function checkAndScrollToNote() {
         const isMobile = window.innerWidth <= 800;
         if (isMobile) {
             const urlParams = new URLSearchParams(window.location.search);
             const hasScrollFlag = urlParams.has('scroll') && urlParams.get('scroll') === '1';
-            const hasNoteId = urlParams.has('note') && urlParams.get('note');
-            const isSearch = urlParams.has('search') || urlParams.has('tags_search') || urlParams.has('created_from') || urlParams.has('created_to') || window.isSearchMode;
 
-            // The flag alone (a note just created elsewhere, share target)
-            // names no note: slide only if the page rendered one, the pane
-            // is empty when the last opened note is gone. Opening the app
-            // or coming back from another page carries no flag and stays on
-            // the notes list.
             const renderedCard = document.querySelector('#right_col .notecard');
             const hasRenderedNote = !!renderedCard;
 
             // The list is what a phone shows first: the note behind it must
             // be found there, marked as the open one, its folders opened and
             // its row scrolled into the tree's view (a note deep in a folder,
-            // or below the fold, was invisible). Also when a flag slides to
+            // or below the fold, was invisible). Also when scroll=1 slides to
             // the note, so going back to the list finds it. Quiet: the
             // folders are only shown open, not saved as open (the user did
             // not ask), and the tree jumps rather than glides on load.
@@ -2315,9 +2312,9 @@
                 window.poznoteRequestTreeReveal('note', renderedNoteId, { quiet: true });
             }
 
-            if (hasScrollFlag || (hasNoteId && !isSearch)) {
+            if (hasScrollFlag) {
                 requestAnimationFrame(function () {
-                    if (!hasNoteId && !hasRenderedNote) {
+                    if (!hasRenderedNote) {
                         // nothing to show: stay on the list
                     } else if (typeof window.scrollToRightColumn === 'function') {
                         window.scrollToRightColumn();
