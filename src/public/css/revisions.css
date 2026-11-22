@@ -539,6 +539,22 @@ html:has(> body.revisions-page)::-webkit-scrollbar-thumb:hover,
     color: var(--pz-text);
 }
 
+.revisions-segmented.is-disabled {
+    opacity: 0.45;
+}
+
+.revisions-segmented button:disabled {
+    cursor: default;
+}
+
+.revisions-segmented button:disabled:hover {
+    color: var(--pz-text-muted);
+}
+
+.revisions-segmented button.active:disabled:hover {
+    color: var(--pz-text);
+}
+
 .revisions-segmented .lucide {
     width: 15px;
     height: 15px;

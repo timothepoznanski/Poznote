@@ -171,6 +171,7 @@ body.sidebar-collapsed #left_col {
 
 #right_pane {
     overflow: hidden !important;
+    overflow: clip !important;
     height: 100vh !important;
 }
 
@@ -790,15 +791,17 @@ a.links_arbo_left::-webkit-scrollbar,
     background-color: var(--pz-surface-hover);
 }
 
-/* Responsive tables in note view (mobile)
-   - Prevent tables from forcing a wider-than-screen layout
-   - Keep native table layout (do NOT use display:block on <table>)
-   - Make the table fill the available width and let cell contents wrap
+/* Tables in note view (mobile): none is squeezed to the screen width any more.
+   A table of an HTML note keeps its natural layout and, once wider than the
+   note, scrolls sideways in its own box like on a computer
+   (js/note-table-scroll.js, css/markdown.css); squeezed into a fixed layout,
+   a table of eight columns broke every word down to one letter per line.
    Markdown tables have a box of their own that scrolls (css/markdown.css, #1701).
+   The rules below only keep a stray table of a Markdown preview (outside its
+   scroll box) inside the screen.
 */
 /* Not the frames of an attachment preview (the preview of an attachment card
    sits in the note): their size is the tile's (css/notes/noteentry.css) */
-.noteentry table:not(.markdown-table-scroll > table),
 .markdown-preview table:not(.markdown-table-scroll > table),
 .noteentry iframe:not([data-is-audio]):not(.note-audio-embed):not(.note-attachment-preview-media),
 .markdown-preview iframe:not([data-is-audio]):not(.note-audio-embed):not(.note-attachment-preview-media) {
@@ -806,7 +809,6 @@ a.links_arbo_left::-webkit-scrollbar,
     max-width: 100%;
 }
 
-.noteentry table:not(.markdown-table-scroll > table),
 .markdown-preview table:not(.markdown-table-scroll > table) {
     table-layout: fixed;
 }
@@ -838,8 +840,6 @@ a.links_arbo_left::-webkit-scrollbar,
     aspect-ratio: 4 / 3;
 }
 
-.noteentry table:not(.markdown-table-scroll > table) td,
-.noteentry table:not(.markdown-table-scroll > table) th,
 .markdown-preview table:not(.markdown-table-scroll > table) td,
 .markdown-preview table:not(.markdown-table-scroll > table) th {
     min-width: 0 !important;

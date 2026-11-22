@@ -346,7 +346,7 @@ function scrollMarkdownEditorLineToTop(markdownEditor, lineNumber, scrollContain
         const targetScrollTop = scrollContainer.scrollTop + targetRect.top - containerRect.top - safeTopOffset;
         scrollContainer.scrollTo({
             top: Math.max(0, targetScrollTop),
-            behavior: 'smooth'
+            behavior: 'instant'
         });
         return true;
     }
@@ -363,7 +363,7 @@ function scrollMarkdownEditorLineToTop(markdownEditor, lineNumber, scrollContain
 
     scrollContainer.scrollTo({
         top: Math.max(0, fallbackScrollTop),
-        behavior: 'smooth'
+        behavior: 'instant'
     });
     return true;
 }
@@ -866,6 +866,56 @@ function appendOutlineSectionLinkButton(li, heading) {
 }
 
 /**
+ * Keep every scrollable ancestor of an element where it is for a moment.
+ * CodeMirror scrolls the ancestors of the editor along with its own scroller,
+ * and keeps scrolling to its target again while images above it draw
+ * (SCROLL_SETTLE_MS in the editor bundle), so the positions are restored on
+ * each scroll for that long, until the reader takes over.
+ */
+const OUTLINE_ANCESTOR_PIN_MS = 1800;
+let releaseOutlineAncestorPin = null;
+
+function pinOutlineAncestorScroll(element) {
+    if (releaseOutlineAncestorPin) releaseOutlineAncestorPin();
+    if (!element) return;
+
+    const pinned = [];
+    for (let node = element.parentElement; node; node = node.parentElement) {
+        pinned.push({ node, top: node.scrollTop, left: node.scrollLeft });
+    }
+    const docEl = getDocumentScrollContainer();
+    if (docEl && !pinned.some(entry => entry.node === docEl)) {
+        pinned.push({ node: docEl, top: docEl.scrollTop, left: docEl.scrollLeft });
+    }
+
+    const restore = () => {
+        pinned.forEach(entry => {
+            if (entry.node.scrollTop !== entry.top) entry.node.scrollTop = entry.top;
+            if (entry.node.scrollLeft !== entry.left) entry.node.scrollLeft = entry.left;
+        });
+    };
+    const onScroll = (event) => {
+        const target = event.target === document ? docEl : event.target;
+        if (pinned.some(entry => entry.node === target)) restore();
+    };
+    const stopEvents = ['wheel', 'touchmove', 'pointerdown', 'keydown'];
+    let timer = 0;
+    const release = () => {
+        clearTimeout(timer);
+        document.removeEventListener('scroll', onScroll, true);
+        stopEvents.forEach(type => window.removeEventListener(type, release, true));
+        if (releaseOutlineAncestorPin === release) releaseOutlineAncestorPin = null;
+    };
+
+    document.addEventListener('scroll', onScroll, true);
+    stopEvents.forEach(type => window.addEventListener(type, release, { capture: true, passive: true }));
+    timer = setTimeout(release, OUTLINE_ANCESTOR_PIN_MS);
+    releaseOutlineAncestorPin = release;
+    // (the reveal is measured on the next frame: restore once more after it)
+    requestAnimationFrame(() => requestAnimationFrame(restore));
+}
+
+/**
  * Scroll to a heading in the note
  */
 function scrollToHeading(heading) {
@@ -894,27 +944,17 @@ function scrollToHeading(heading) {
                     ? (markdownEditor.querySelector('.cm-scroller') || markdownEditor)
                     : markdownEditor;
 
-                // In split mode the two panes scroll internally, so the outer
-                // container (#right_col) must stay put. Revealing a position in
-                // CodeMirror uses scrollIntoView, which also nudges ancestor
-                // scroll containers — pinning the outer scrollTop keeps the
-                // toolbar from creeping up when a bottom heading is selected.
-                const outerScrollContainer = getOutlineScrollContainer();
-                const pinnedScrollTop = outerScrollContainer ? outerScrollContainer.scrollTop : null;
-                const restoreOuterScrollTop = () => {
-                    if (outerScrollContainer && outerScrollContainer.scrollTop !== pinnedScrollTop) {
-                        outerScrollContainer.scrollTop = pinnedScrollTop;
-                    }
-                };
+                // In split mode the two panes scroll internally, and nothing
+                // around them may move. Revealing a position in CodeMirror uses
+                // scrollIntoView, which also scrolls the ancestors: #right_col
+                // is clipped there (not scrollable), so the browser scrolled
+                // #right_pane instead, overflow: hidden but still scrollable by
+                // script, and the tab bar slid up out of view. Every ancestor
+                // keeps its position, including through the follow-up scrolls
+                // CodeMirror makes while late content draws.
+                pinOutlineAncestorScroll(markdownEditor);
 
                 scrollMarkdownEditorLineToTop(markdownEditor, heading.lineNumber, editorScrollContainer, OUTLINE_SPLIT_PANE_SCROLL_TOP_OFFSET);
-
-                if (pinnedScrollTop !== null) {
-                    restoreOuterScrollTop();
-                    // scrollMarkdownEditorLineToTop finishes its CodeMirror
-                    // adjustment on the next frame; restore again afterwards.
-                    requestAnimationFrame(restoreOuterScrollTop);
-                }
             }
 
             // Scroll preview to heading element
@@ -978,11 +1018,11 @@ function scrollToElement(element) {
     const scrollContainer = getOutlineScrollContainer();
     if (!scrollContainer) {
         // Fallback to element scroll
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        element.scrollIntoView({ behavior: 'instant', block: 'start' });
         return;
     }
 
-    smoothScrollOutlineContainerToElement(scrollContainer, element);
+    scrollOutlineContainerToElement(scrollContainer, element);
     highlightOutlineTarget(element);
 }
 
@@ -999,11 +1039,12 @@ function computeOutlineTargetScrollTop(scrollContainer, element) {
     return Math.max(0, scrollContainer.scrollTop + elementTop - containerRect.top - OUTLINE_PAGE_SCROLL_TOP_OFFSET);
 }
 
-// Lazy-loaded images between the current position and the target load while the
-// smooth scroll is running, pushing the content down, so a target offset computed
-// once lands short on long notes. Re-measure once the scroll settles and keep
-// nudging until the heading is actually in place (unless the user takes over).
-function smoothScrollOutlineContainerToElement(scrollContainer, element) {
+// Jump straight to the heading, like the scroll-to-bottom button (no smooth
+// scroll). Lazy-loaded images around the target can still load after the jump
+// and push the content down, so a target offset computed once lands short on
+// long notes: re-measure once things settle and jump again until the heading
+// is actually in place (unless the user takes over).
+function scrollOutlineContainerToElement(scrollContainer, element) {
     const sequence = ++outlineScrollSequence;
     const isDoc = isDocumentScrollContainer(scrollContainer);
     const scrollTarget = isDoc ? window : scrollContainer;
@@ -1028,7 +1069,7 @@ function smoothScrollOutlineContainerToElement(scrollContainer, element) {
 
         scrollTarget.scrollTo({
             top: computeOutlineTargetScrollTop(scrollContainer, element),
-            behavior: 'smooth'
+            behavior: 'instant'
         });
 
         waitForOutlineScrollToSettle(readScrollTop, () => {
@@ -1066,7 +1107,7 @@ function waitForOutlineScrollToSettle(readScrollTop, callback) {
             lastTop = top;
         }
 
-        // ~100ms without movement means the smooth scroll is done; the frame
+        // ~100ms without movement means the layout has settled; the frame
         // cap keeps the loop from running forever if scrolling never settles.
         if (stableFrames >= 6 || totalFrames > 300) {
             callback();
@@ -1100,8 +1141,8 @@ function highlightOutlineTarget(element) {
             flash.remove();
             return;
         }
-        // Re-read every frame: the smooth scroll that brings the heading
-        // into view is still running when the flash starts.
+        // Re-read every frame: images loading around the heading can still
+        // move it after the jump.
         const rect = element.getBoundingClientRect();
         flash.style.top = rect.top + 'px';
         flash.style.left = rect.left + 'px';

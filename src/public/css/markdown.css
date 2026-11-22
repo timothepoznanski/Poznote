@@ -1932,7 +1932,9 @@ html[data-theme='dark'] .katex {
     flex-direction: row !important;
     gap: 0 !important;
     align-items: stretch !important;
+    /* clip, not hidden: see below, the two panes scroll, never their row */
     overflow: hidden !important;
+    overflow: clip !important;
     height: auto !important;
     padding: 0 !important;
 }

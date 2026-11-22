@@ -185,8 +185,10 @@ function loadKanbanViewInline(folderId, folderName, options) {
                 history.pushState({ kanban: folderId }, '', newUrl);
             }
 
-            // On mobile, scroll to right column
-            if (window.innerWidth <= 800 && typeof window.scrollToRightColumn === 'function') {
+            // On mobile, scroll to right column, unless the board is only
+            // put back by a page load (?kanban= in the URL): the list shows
+            // first, like for a note (checkAndScrollToNote, js/index-events.js)
+            if (!options.noMobileSlide && window.innerWidth <= 800 && typeof window.scrollToRightColumn === 'function') {
                 window.scrollToRightColumn();
             }
         })

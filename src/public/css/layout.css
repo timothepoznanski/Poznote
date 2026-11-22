@@ -188,7 +188,11 @@ body {
     display: flex;
     flex-direction: column;
     background-color: var(--pz-bg);
+    /* clip, not hidden: a hidden box is still scrollable by script, and the
+       editor's scrollIntoView (an outline link in split view) scrolled it,
+       sliding the tab bar up out of view. This pane never scrolls. */
     overflow: hidden;
+    overflow: clip;
 }
 
 #right_col {
@@ -196,6 +200,18 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
     box-sizing: border-box;
+}
+
+/* The note keeps its 400px and the docked columns on the right (outline, AI
+   chat, Element visibility) keep theirs: on a narrow laptop screen the notes
+   tree gives up room first, down to its 200px, so the last column docked on
+   the right is never pushed past the edge of the window with its close button
+   (the body clips, nothing scrolls sideways). Its stored width is unchanged,
+   it comes back as soon as there is room. */
+@media (min-width: 801px) {
+    #left_col {
+        flex-shrink: 1;
+    }
 }
 
 /* The note's scrollbar (#1544): thin, unless unticked in Element visibility

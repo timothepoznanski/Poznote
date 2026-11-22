@@ -953,6 +953,69 @@
         });
     }
 
+    /**
+     * Phones: a finger swipe to the right closes the panel, like the outline
+     * panel (js/outline-panel.js, same distances). The panel covers the whole
+     * screen there, so this is the gesture that sends it back where it came
+     * from. A swipe that starts in something that scrolls sideways (code
+     * block, table of a reply) belongs to that element, and one made while
+     * text is selected is the user adjusting the selection.
+     */
+    var SWIPE_MIN_DISTANCE = 80;
+    var SWIPE_MAX_VERTICAL = 100;
+
+    function scrollsSideways(target, root) {
+        var el = target instanceof Element ? target : target && target.parentElement;
+        while (el && el !== root) {
+            if (el.scrollWidth > el.clientWidth + 1) {
+                var overflowX = window.getComputedStyle(el).overflowX;
+                if (overflowX === 'auto' || overflowX === 'scroll' || overflowX === 'overlay') return true;
+            }
+            el = el.parentElement;
+        }
+        return false;
+    }
+
+    function hasTextSelection() {
+        var sel = window.getSelection ? window.getSelection() : null;
+        return !!sel && !sel.isCollapsed && sel.toString() !== '';
+    }
+
+    function initSwipeClose() {
+        var p = panel();
+        if (!p) return;
+        var startX = 0;
+        var startY = 0;
+        var tracking = false;
+
+        p.addEventListener('touchstart', function (e) {
+            tracking = false;
+            if (isDesktop() || !isOpen() || e.touches.length !== 1) return;
+            if (scrollsSideways(e.target, p) || hasTextSelection()) return;
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            tracking = true;
+        }, { passive: true });
+
+        p.addEventListener('touchcancel', function () { tracking = false; }, { passive: true });
+
+        p.addEventListener('touchend', function (e) {
+            if (!tracking) return;
+            tracking = false;
+            var touch = e.changedTouches[0];
+            if (!touch || hasTextSelection()) return;
+            var dx = touch.clientX - startX;
+            var dy = Math.abs(touch.clientY - startY);
+            if (dx > SWIPE_MIN_DISTANCE && dy < SWIPE_MAX_VERTICAL && isOpen() && !isDesktop()) {
+                // A focused message field would keep the keyboard up over
+                // the note the panel uncovers
+                var active = document.activeElement;
+                if (active && p.contains(active) && typeof active.blur === 'function') active.blur();
+                setOpen(false);
+            }
+        }, { passive: true });
+    }
+
     function resetMessages() {
         var el = messagesEl();
         if (!el) return;
@@ -1285,6 +1348,7 @@
             setOpen(true);
         }
         initResize();
+        initSwipeClose();
 
         // The translations arrive after the first render (js/globals.js
         // fetches them): the hint drawn above with the English fallbacks is

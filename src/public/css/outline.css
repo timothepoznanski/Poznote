@@ -303,6 +303,14 @@ body.outline-collapsed #toggleOutlineBtn .lucide {
     html {
         --pz-outline-toggle-room: 20px;
     }
+
+    /* On a narrow screen it shrinks after the notes tree (css/layout.css), so
+       a column docked to its right keeps its close button on screen. The
+       collapsed rule above sets min-width: 0 !important. */
+    #outline-panel {
+        flex-shrink: 1;
+        min-width: 180px;
+    }
 }
 
 /* No headings to outline: no chevron to open the panel. Once open it keeps
