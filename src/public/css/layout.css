@@ -202,6 +202,18 @@ body {
     box-sizing: border-box;
 }
 
+/* The note keeps its 400px and the docked columns on the right (outline, AI
+   chat, Element visibility) keep theirs: on a narrow laptop screen the notes
+   tree gives up room first, down to its 200px, so the last column docked on
+   the right is never pushed past the edge of the window with its close button
+   (the body clips, nothing scrolls sideways). Its stored width is unchanged,
+   it comes back as soon as there is room. */
+@media (min-width: 801px) {
+    #left_col {
+        flex-shrink: 1;
+    }
+}
+
 /* The note's scrollbar (#1544): thin, unless unticked in Element visibility
    (panel:note-scrollbar, lib/ui-customization.php). The markdown split panes
    share it, they are the only other boxes that scroll a note. The gutter is reserved
