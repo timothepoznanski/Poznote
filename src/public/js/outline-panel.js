@@ -346,7 +346,7 @@ function scrollMarkdownEditorLineToTop(markdownEditor, lineNumber, scrollContain
         const targetScrollTop = scrollContainer.scrollTop + targetRect.top - containerRect.top - safeTopOffset;
         scrollContainer.scrollTo({
             top: Math.max(0, targetScrollTop),
-            behavior: 'smooth'
+            behavior: 'instant'
         });
         return true;
     }
@@ -363,7 +363,7 @@ function scrollMarkdownEditorLineToTop(markdownEditor, lineNumber, scrollContain
 
     scrollContainer.scrollTo({
         top: Math.max(0, fallbackScrollTop),
-        behavior: 'smooth'
+        behavior: 'instant'
     });
     return true;
 }
@@ -978,11 +978,11 @@ function scrollToElement(element) {
     const scrollContainer = getOutlineScrollContainer();
     if (!scrollContainer) {
         // Fallback to element scroll
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        element.scrollIntoView({ behavior: 'instant', block: 'start' });
         return;
     }
 
-    smoothScrollOutlineContainerToElement(scrollContainer, element);
+    scrollOutlineContainerToElement(scrollContainer, element);
     highlightOutlineTarget(element);
 }
 
@@ -999,11 +999,12 @@ function computeOutlineTargetScrollTop(scrollContainer, element) {
     return Math.max(0, scrollContainer.scrollTop + elementTop - containerRect.top - OUTLINE_PAGE_SCROLL_TOP_OFFSET);
 }
 
-// Lazy-loaded images between the current position and the target load while the
-// smooth scroll is running, pushing the content down, so a target offset computed
-// once lands short on long notes. Re-measure once the scroll settles and keep
-// nudging until the heading is actually in place (unless the user takes over).
-function smoothScrollOutlineContainerToElement(scrollContainer, element) {
+// Jump straight to the heading, like the scroll-to-bottom button (no smooth
+// scroll). Lazy-loaded images around the target can still load after the jump
+// and push the content down, so a target offset computed once lands short on
+// long notes: re-measure once things settle and jump again until the heading
+// is actually in place (unless the user takes over).
+function scrollOutlineContainerToElement(scrollContainer, element) {
     const sequence = ++outlineScrollSequence;
     const isDoc = isDocumentScrollContainer(scrollContainer);
     const scrollTarget = isDoc ? window : scrollContainer;
@@ -1028,7 +1029,7 @@ function smoothScrollOutlineContainerToElement(scrollContainer, element) {
 
         scrollTarget.scrollTo({
             top: computeOutlineTargetScrollTop(scrollContainer, element),
-            behavior: 'smooth'
+            behavior: 'instant'
         });
 
         waitForOutlineScrollToSettle(readScrollTop, () => {
@@ -1066,7 +1067,7 @@ function waitForOutlineScrollToSettle(readScrollTop, callback) {
             lastTop = top;
         }
 
-        // ~100ms without movement means the smooth scroll is done; the frame
+        // ~100ms without movement means the layout has settled; the frame
         // cap keeps the loop from running forever if scrolling never settles.
         if (stableFrames >= 6 || totalFrames > 300) {
             callback();
@@ -1100,8 +1101,8 @@ function highlightOutlineTarget(element) {
             flash.remove();
             return;
         }
-        // Re-read every frame: the smooth scroll that brings the heading
-        // into view is still running when the flash starts.
+        // Re-read every frame: images loading around the heading can still
+        // move it after the jump.
         const rect = element.getBoundingClientRect();
         flash.style.top = rect.top + 'px';
         flash.style.left = rect.left + 'px';
