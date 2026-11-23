@@ -24,8 +24,8 @@ test('Dutch has no key unknown to English and preserves runtime placeholders and
         $source = $english[$key];
         assertTrue(is_string($translated) && trim($translated) !== '', $key);
         foreach (['/\{\{[^}]+\}\}/', '/<[^>]+>/', '/<code>.*?<\/code>/s'] as $pattern) {
-            preg_match_all($pattern, $source, $original);
-            preg_match_all($pattern, $translated, $localized);
+            preg_match_all($pattern, i18nTestReadmeLinksAsOne($source, 'en'), $original);
+            preg_match_all($pattern, i18nTestReadmeLinksAsOne($translated, 'nl'), $localized);
             sort($original[0]);
             sort($localized[0]);
             assertSame($original[0], $localized[0], $key);

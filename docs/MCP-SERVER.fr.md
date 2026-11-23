@@ -223,7 +223,7 @@ POZNOTE_MCP_AUTH_TOKEN=paste-the-token-here
 docker compose up -d --force-recreate mcp-server
 ```
 
-Ajoutez ensuite le même en-tête à la configuration de votre client : voir [VS Code Copilot](VSCODE-COPILOT.fr.md#utiliser-un-jeton-dauthentification) et [Claude CLI](CLAUDE-CLI.fr.md#utiliser-un-jeton-dauthentification). Les espaces en début et en fin de valeur sont ignorés, si bien qu'un jeton lu depuis un fichier de secrets avec un saut de ligne final fonctionne quand même. Une valeur vide laisse le point de terminaison ouvert. La ligne de log au démarrage indique le mode actif.
+Ajoutez ensuite le même en-tête à la configuration de votre client : voir [VS Code Copilot](VSCODE-COPILOT.fr.md#utiliser-un-jeton-dauthentification) et [Claude CLI](CLAUDE-CLI.fr.md#utiliser-un-jeton-dauthentification). Les espaces en début et en fin de valeur sont ignorés, si bien qu'un jeton lu depuis un fichier de secrets avec un saut de ligne final fonctionne quand même. Une valeur vide laisse le point de terminaison ouvert. La ligne de log au démarrage indique le mode actif. Pour que le jeton n'apparaisse pas dans `docker inspect`, placez-le dans un fichier et définissez plutôt `POZNOTE_MCP_AUTH_TOKEN_FILE` avec son chemin, voir [Secrets dans des fichiers](README.fr.md#secrets-dans-des-fichiers-_file).
 
 Ce jeton est distinct de `data/.mcp_token` : celui-là sert au serveur MCP pour dialoguer *avec* l'API Poznote, celui-ci est ce que *votre assistant IA* doit présenter au serveur MCP.
 

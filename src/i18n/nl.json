@@ -1831,7 +1831,7 @@
   },
   "update": {
     "new_available": "🎉 Nieuwe update beschikbaar!",
-    "new_version_available": "Als je deze installatie zelf beheert, volg dan de instructies op GitHub <a href=\"https://github.com/timothepoznanski/poznote#update-application\" target=\"_blank\">hier</a> om bij te werken. Anders moet je hostingprovider de update uitvoeren.",
+    "new_version_available": "Als je deze installatie zelf beheert, volg dan de instructies op GitHub <a href=\"https://github.com/timothepoznanski/poznote/blob/main/docs/README.nl.md#applicatie-bijwerken\" target=\"_blank\">hier</a> om bij te werken. Anders moet je hostingprovider de update uitvoeren.",
     "description": "Je gegevens blijven behouden tijdens de update.",
     "up_to_date": "✅ Poznote is up-to-date",
     "error_loading_version": "Fout bij het laden van de versie",

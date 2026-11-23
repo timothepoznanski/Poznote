@@ -444,6 +444,38 @@ docker compose down
 docker compose up -d
 ```
 
+### 从文件读取密钥（`_FILE`）
+
+`.env` 中设置的所有内容都会进入容器的配置，任何能访问 Docker 的人都可以通过 `docker inspect` 看到明文。以下密钥可以改为从文件读取：设置同名并加上 `_FILE` 后缀的变量，值为该文件在容器内的路径，并让原变量保持为空。
+
+- `POZNOTE_OIDC_CLIENT_SECRET_FILE`
+- `POZNOTE_SETTINGS_PASSWORD_FILE`
+- `POZNOTE_MCP_AUTH_TOKEN_FILE`, `POZNOTE_MCP_AUTH_CLIENT_SECRET_FILE` (需连同其 secret 一起添加到 `docker-compose.yml` 的 `mcp-server` 服务中，该容器只会收到其中列出的变量)
+
+例如，在 `docker-compose.yml` 中用 Docker Compose secret 提供 OIDC 客户端密钥：
+
+```yaml
+services:
+  webserver:
+    environment:
+      POZNOTE_OIDC_CLIENT_SECRET_FILE: /run/secrets/oidc_client_secret
+    secrets:
+      - oidc_client_secret
+
+secrets:
+  oidc_client_secret:
+    file: ./secrets/oidc_client_secret
+```
+
+Docker Compose 挂载文件时保留其在宿主机上的所有者和权限，因此文件必须在容器内可读：`webserver` 容器需 uid 82 可读（rootless 镜像为 uid 1000），`mcp-server` 容器需 uid 1000 可读。
+
+```bash
+sudo chown 82:82 secrets/oidc_client_secret
+sudo chmod 400 secrets/oidc_client_secret
+```
+
+文件末尾的换行符会被忽略。如果文件无法读取，或者变量与其 `_FILE` 版本同时设置，容器会在启动时停止，并给出指明变量和路径的错误（见 `docker compose logs`），而不是带着空密钥运行。
+
 ## 更新应用
 
 进入您的 Poznote 目录：
@@ -1113,8 +1145,10 @@ Poznote 可以通过多种方式备份账户。它们生成的都是同一种 ZI
 
 ```bash
 # 通过 CLI 进行完整系统备份
-tar -czvf poznote-full-backup.tar.gz data/
+sudo tar -czvf poznote-full-backup.tar.gz data/
 ```
+
+请使用 `sudo` 运行：`data/` 中的部分文件仅供容器读取，其中包括加密密钥 `data/.app_secret`。缺少该密钥恢复的实例将无法再读取已保存的 Git 令牌和 AI API 密钥，需要重新输入。
 
 </details>
 

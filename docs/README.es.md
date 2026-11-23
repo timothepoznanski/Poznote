@@ -444,6 +444,38 @@ Guarda el archivo y vuelve a iniciar los contenedores para aplicar los cambios:
 docker compose up -d
 ```
 
+### Secretos en archivos (`_FILE`)
+
+Todo lo que se define en `.env` acaba en la configuración del contenedor, donde `docker inspect` lo muestra en texto plano a cualquiera con acceso a Docker. Estos secretos pueden leerse de un archivo en su lugar: defina el mismo nombre seguido de `_FILE` con la ruta del archivo dentro del contenedor, y deje la variable en sí vacía.
+
+- `POZNOTE_OIDC_CLIENT_SECRET_FILE`
+- `POZNOTE_SETTINGS_PASSWORD_FILE`
+- `POZNOTE_MCP_AUTH_TOKEN_FILE`, `POZNOTE_MCP_AUTH_CLIENT_SECRET_FILE` (que se añaden con su secreto al servicio `mcp-server` de `docker-compose.yml`, ya que ese contenedor solo recibe las variables que figuran allí)
+
+Por ejemplo, con un secreto de Docker Compose para el secreto de cliente OIDC, en `docker-compose.yml`:
+
+```yaml
+services:
+  webserver:
+    environment:
+      POZNOTE_OIDC_CLIENT_SECRET_FILE: /run/secrets/oidc_client_secret
+    secrets:
+      - oidc_client_secret
+
+secrets:
+  oidc_client_secret:
+    file: ./secrets/oidc_client_secret
+```
+
+Docker Compose monta el archivo con el propietario y los permisos que tiene en el host, así que debe poder leerse dentro del contenedor: por el uid 82 en el contenedor `webserver` (uid 1000 con la imagen rootless), y por el uid 1000 en el contenedor `mcp-server`.
+
+```bash
+sudo chown 82:82 secrets/oidc_client_secret
+sudo chmod 400 secrets/oidc_client_secret
+```
+
+Un salto de línea al final del archivo se ignora. Si el archivo no puede leerse, o si la variable y su versión `_FILE` están definidas a la vez, el contenedor se detiene al arrancar con un error que indica la variable y la ruta (vea `docker compose logs`), en lugar de funcionar con un secreto vacío.
+
 ## Actualizar la aplicación
 
 Entra en tu directorio de Poznote:
@@ -1113,8 +1145,10 @@ Una **copia de seguridad completa del sistema**, que incluye la configuración m
 
 ```bash
 # Copia de seguridad completa del sistema desde la línea de comandos
-tar -czvf poznote-full-backup.tar.gz data/
+sudo tar -czvf poznote-full-backup.tar.gz data/
 ```
+
+Ejecútelo con `sudo`: algunos archivos de `data/` están reservados al contenedor, entre ellos la clave de cifrado `data/.app_secret`. Una instancia restaurada sin esa clave ya no puede leer su token de Git ni sus claves de API de IA guardados, que habrá que introducir de nuevo.
 
 </details>
 

@@ -223,7 +223,7 @@ POZNOTE_MCP_AUTH_TOKEN=paste-the-token-here
 docker compose up -d --force-recreate mcp-server
 ```
 
-Voeg daarna dezelfde header toe aan de configuratie van je client: zie [VS Code Copilot](VSCODE-COPILOT.nl.md#een-authenticatietoken-gebruiken) en [Claude CLI](CLAUDE-CLI.nl.md#een-authenticatietoken-gebruiken). Spaties aan het begin en eind worden genegeerd, dus een token uit een geheimenbestand met een afsluitend regeleinde werkt ook. Een lege waarde laat het endpoint open. De logregel bij het opstarten vertelt welke modus actief is.
+Voeg daarna dezelfde header toe aan de configuratie van je client: zie [VS Code Copilot](VSCODE-COPILOT.nl.md#een-authenticatietoken-gebruiken) en [Claude CLI](CLAUDE-CLI.nl.md#een-authenticatietoken-gebruiken). Spaties aan het begin en eind worden genegeerd, dus een token uit een geheimenbestand met een afsluitend regeleinde werkt ook. Een lege waarde laat het endpoint open. De logregel bij het opstarten vertelt welke modus actief is. Om het token uit `docker inspect` te houden, zet je het in een bestand en zet je in plaats daarvan `POZNOTE_MCP_AUTH_TOKEN_FILE` op het pad ervan, zie [Geheimen in bestanden](README.nl.md#geheimen-in-bestanden-_file).
 
 Dit token staat los van `data/.mcp_token`: dat gebruikt de MCP-server om *met* de Poznote-API te praten, dit is wat *je AI-assistent* aan de MCP-server moet laten zien.
 

@@ -80,3 +80,17 @@ function lib(string ...$modules): void
         require_once dirname(__DIR__) . '/src/lib/' . $m . '.php';
     }
 }
+
+/**
+ * Markup comparison in the translation tests: a link to the README may point
+ * to the translated README of the dictionary's own language (docs/README.<lang>.md,
+ * with its own heading anchor) where English points to the root README. Both
+ * become the same token; a translated README of another language does not.
+ * Whether the anchor exists is checked in i18n.test.php.
+ */
+function i18nTestReadmeLinksAsOne(string $html, string $lang): string
+{
+    $repo = preg_quote('https://github.com/timothepoznanski/poznote', '~');
+    $html = (string)preg_replace('~' . $repo . '/blob/main/docs/README\.' . preg_quote($lang, '~') . '\.md(?:#[^"\']*)?~u', 'POZNOTE_README', $html);
+    return (string)preg_replace('~' . $repo . '(?:#[^"\']*)?(?=["\'])~u', 'POZNOTE_README', $html);
+}

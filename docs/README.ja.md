@@ -444,6 +444,38 @@ docker compose down
 docker compose up -d
 ```
 
+### ファイルからシークレットを読み込む（`_FILE`）
+
+`.env` に設定した値はすべてコンテナの設定に含まれ、Docker にアクセスできる人なら誰でも `docker inspect` で平文のまま見られます。次のシークレットは、代わりにファイルから読み込めます。同じ名前の末尾に `_FILE` を付けた変数にコンテナ内のファイルのパスを設定し、元の変数は空のままにしてください。
+
+- `POZNOTE_OIDC_CLIENT_SECRET_FILE`
+- `POZNOTE_SETTINGS_PASSWORD_FILE`
+- `POZNOTE_MCP_AUTH_TOKEN_FILE`, `POZNOTE_MCP_AUTH_CLIENT_SECRET_FILE` (secret と一緒に `docker-compose.yml` の `mcp-server` サービスへ追加します。このコンテナが受け取るのは、そこに列挙された変数だけです)
+
+たとえば OIDC のクライアントシークレットを Docker Compose の secret で渡す場合、`docker-compose.yml` には次のように書きます。
+
+```yaml
+services:
+  webserver:
+    environment:
+      POZNOTE_OIDC_CLIENT_SECRET_FILE: /run/secrets/oidc_client_secret
+    secrets:
+      - oidc_client_secret
+
+secrets:
+  oidc_client_secret:
+    file: ./secrets/oidc_client_secret
+```
+
+Docker Compose はホスト上の所有者と権限のままファイルをマウントするので、コンテナ内で読み取れる必要があります。`webserver` コンテナでは uid 82（rootless イメージでは uid 1000）、`mcp-server` コンテナでは uid 1000 が読み取れるようにしてください。
+
+```bash
+sudo chown 82:82 secrets/oidc_client_secret
+sudo chmod 400 secrets/oidc_client_secret
+```
+
+ファイル末尾の改行は無視されます。ファイルを読み取れない場合や、変数とその `_FILE` 版の両方が設定されている場合、コンテナは空のシークレットで動き続けるのではなく、変数とパスを示すエラーを出して起動時に停止します（`docker compose logs` を参照）。
+
 ## アプリケーションのアップデート
 
 Poznoteのディレクトリに移動します：
@@ -1114,8 +1146,10 @@ Poznoteでは、いくつかの方法でアカウントをバックアップで�
 
 ```bash
 # CLIでシステム全体を完全バックアップ
-tar -czvf poznote-full-backup.tar.gz data/
+sudo tar -czvf poznote-full-backup.tar.gz data/
 ```
+
+`sudo` を付けて実行してください。`data/` の一部のファイルはコンテナ専用で、暗号鍵 `data/.app_secret` もその一つです。この鍵なしで復元したインスタンスは、保存済みの Git トークンと AI の API キーを読み取れなくなり、入力し直す必要があります。
 
 </details>
 

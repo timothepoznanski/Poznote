@@ -2373,7 +2373,7 @@
   },
   "update": {
     "new_available": "🎉 Neues Update verfügbar!",
-    "new_version_available": "Wenn Sie diese Installation selbst verwalten, folgen Sie der Anleitung auf GitHub <a href=\"https://github.com/timothepoznanski/poznote/blob/main/README.de.md#anwendung-aktualisieren\" target=\"_blank\">hier</a>, um zu aktualisieren. Andernfalls muss Ihr Hosting-Anbieter die Aktualisierung durchführen.",
+    "new_version_available": "Wenn Sie diese Installation selbst verwalten, folgen Sie der Anleitung auf GitHub <a href=\"https://github.com/timothepoznanski/poznote/blob/main/docs/README.de.md#anwendung-aktualisieren\" target=\"_blank\">hier</a>, um zu aktualisieren. Andernfalls muss Ihr Hosting-Anbieter die Aktualisierung durchführen.",
     "description": "Ihre Daten werden während des Updates erhalten bleiben.",
     "up_to_date": "✅ Poznote ist auf dem neuesten Stand",
     "error_loading_version": "Fehler beim Laden der Version",

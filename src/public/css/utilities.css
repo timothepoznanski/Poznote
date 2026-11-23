@@ -132,8 +132,11 @@ body #right_col .notecard[data-content-width] {
        .innernote:has(.noteentry.markdown-split-mode): with that :has(),
        Chromium restyled the whole note on every DOM change during the split,
        and Mermaid, which inserts and measures thousands of elements per
-       diagram, froze the page for minutes. */
-    #right_col .innernote.markdown-split-open > :not(.note-header):not(.note-scroll-edge-controls) {
+       diagram, froze the page for minutes.
+       Same :not() list as the rule above, plus the class: with fewer :not()s
+       this rule weighs less than the width rule and loses to it, so the split
+       panes were squeezed into the narrowed note. Keep the two lists in step. */
+    #right_col .innernote.markdown-split-open > :not(.note-header):not(.note-scroll-edge-controls):not(.note-bottom-space):not(.att-cut-mark) {
         max-width: none;
     }
 }

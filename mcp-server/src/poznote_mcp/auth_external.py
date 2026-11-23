@@ -80,6 +80,8 @@ from urllib.parse import urlsplit
 
 import httpx
 
+from .env import env_or_file
+
 logger = logging.getLogger(__name__)
 
 try:
@@ -283,7 +285,7 @@ class ExternalAuthConfig:
             )
 
         client_id = (os.getenv(CLIENT_ID_ENV) or "").strip() or None
-        client_secret = (os.getenv(CLIENT_SECRET_ENV) or "").strip() or None
+        client_secret = (env_or_file(CLIENT_SECRET_ENV) or "").strip() or None
 
         # These apply to 'introspection' only: 'userinfo' sends the caller's
         # token and nothing else. Say so rather than reading them and quietly
@@ -344,7 +346,7 @@ class ExternalAuthConfig:
         # providers. Say so rather than ignore them silently.
         for name in (MATCH_ENV, SCOPE_CLAIM_ENV, SCOPE_MAP_ENV, AUDIENCE_ENV, HEADER_ENV,
                      CLIENT_ID_ENV, CLIENT_SECRET_ENV):
-            if (os.getenv(name) or "").strip():
+            if (os.getenv(name) or "").strip() or (os.getenv(name + "_FILE") or "").strip():
                 logger.warning("%s is set but ignored by the 'poznote' provider.", name)
 
         return cls(

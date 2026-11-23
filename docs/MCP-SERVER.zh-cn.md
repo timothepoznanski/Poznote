@@ -223,7 +223,7 @@ POZNOTE_MCP_AUTH_TOKEN=paste-the-token-here
 docker compose up -d --force-recreate mcp-server
 ```
 
-然后在客户端配置中添加相同的标头：参见 [VS Code Copilot](VSCODE-COPILOT.zh-cn.md#使用身份验证令牌) 和 [Claude CLI](CLAUDE-CLI.zh-cn.md#使用身份验证令牌)。首尾空白会被忽略，因此从密钥文件中读取、末尾带换行符的令牌仍然有效。值为空时端点保持开放。启动日志中的一行会告诉您当前启用的是哪种模式。
+然后在客户端配置中添加相同的标头：参见 [VS Code Copilot](VSCODE-COPILOT.zh-cn.md#使用身份验证令牌) 和 [Claude CLI](CLAUDE-CLI.zh-cn.md#使用身份验证令牌)。首尾空白会被忽略，因此从密钥文件中读取、末尾带换行符的令牌仍然有效。值为空时端点保持开放。启动日志中的一行会告诉您当前启用的是哪种模式。若不想让令牌出现在 `docker inspect` 中，可将其放入文件，改为设置 `POZNOTE_MCP_AUTH_TOKEN_FILE` 为该文件路径，参见[从文件读取密钥](README.zh-cn.md#从文件读取密钥_file)。
 
 此令牌与 `data/.mcp_token` 相互独立：后者由 MCP 服务器用于与 Poznote API *通信*，前者则是*您的 AI 助手*必须向 MCP 服务器出示的令牌。
 

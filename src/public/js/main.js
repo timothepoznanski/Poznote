@@ -392,5 +392,3 @@ window.selectCreateType = selectCreateType;
 window.createNoteInFolder = createNoteInFolder;
 window.executeCreateAction = executeCreateAction;
 window.closeUpdateCheckModal = closeUpdateCheckModal;
-window.goToSelfHostedUpdateInstructions = goToSelfHostedUpdateInstructions;
-window.goToCloudUpdateInstructions = goToCloudUpdateInstructions;

@@ -444,6 +444,38 @@ Save the file and start the containers again to apply changes:
 docker compose up -d
 ```
 
+### Secrets in files (`_FILE`)
+
+Anything set in `.env` ends up in the container configuration, where `docker inspect` shows it in plain text to anyone with access to Docker. These secrets can be read from a file instead: set the same name followed by `_FILE` to the path of the file inside the container, and leave the variable itself unset.
+
+- `POZNOTE_OIDC_CLIENT_SECRET_FILE`
+- `POZNOTE_SETTINGS_PASSWORD_FILE`
+- `POZNOTE_MCP_AUTH_TOKEN_FILE` and `POZNOTE_MCP_AUTH_CLIENT_SECRET_FILE`, to add with their secret to the `mcp-server` service in `docker-compose.yml`: that container only receives the variables listed there
+
+For example, with a Docker Compose secret for the OIDC client secret, in `docker-compose.yml`:
+
+```yaml
+services:
+  webserver:
+    environment:
+      POZNOTE_OIDC_CLIENT_SECRET_FILE: /run/secrets/oidc_client_secret
+    secrets:
+      - oidc_client_secret
+
+secrets:
+  oidc_client_secret:
+    file: ./secrets/oidc_client_secret
+```
+
+Docker Compose mounts the file with the owner and permissions it has on the host, so it must be readable inside the container: by uid 82 for the `webserver` container (uid 1000 with the rootless image), and by uid 1000 for the `mcp-server` container.
+
+```bash
+sudo chown 82:82 secrets/oidc_client_secret
+sudo chmod 400 secrets/oidc_client_secret
+```
+
+A line break at the end of the file is ignored. If the file cannot be read, or if both the variable and its `_FILE` version are set, the container stops at startup with an error that names the variable and the path (see `docker compose logs`), rather than running with an empty secret.
+
 ## Update application
 
 Navigate to your Poznote directory:
@@ -1114,8 +1146,10 @@ A **complete system backup**, including the master configuration (accounts, glob
 
 ```bash
 # Complete system backup via CLI
-tar -czvf poznote-full-backup.tar.gz data/
+sudo tar -czvf poznote-full-backup.tar.gz data/
 ```
+
+Run it with `sudo`: some files in `data/` are private to the container, among them the encryption key `data/.app_secret`. An instance restored without that key can no longer read its saved Git token and AI API keys, which then have to be entered again.
 
 </details>
 

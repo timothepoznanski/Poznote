@@ -223,7 +223,7 @@ POZNOTE_MCP_AUTH_TOKEN=paste-the-token-here
 docker compose up -d --force-recreate mcp-server
 ```
 
-클라이언트 설정에도 동일한 헤더를 추가하세요. [VS Code Copilot](VSCODE-COPILOT.ko.md#인증-토큰-사용)과 [Claude CLI](CLAUDE-CLI.ko.md#인증-토큰-사용)를 참고하세요. 앞뒤 공백은 무시하므로 비밀 파일에서 읽은 토큰에 끝 줄바꿈이 있어도 작동합니다. 빈 값이면 엔드포인트를 개방 상태로 둡니다. 시작 로그에 현재 모드가 표시됩니다.
+클라이언트 설정에도 동일한 헤더를 추가하세요. [VS Code Copilot](VSCODE-COPILOT.ko.md#인증-토큰-사용)과 [Claude CLI](CLAUDE-CLI.ko.md#인증-토큰-사용)를 참고하세요. 앞뒤 공백은 무시하므로 비밀 파일에서 읽은 토큰에 끝 줄바꿈이 있어도 작동합니다. 빈 값이면 엔드포인트를 개방 상태로 둡니다. 시작 로그에 현재 모드가 표시됩니다. 토큰이 `docker inspect`에 보이지 않게 하려면 파일에 넣고 대신 `POZNOTE_MCP_AUTH_TOKEN_FILE`에 그 경로를 설정하세요. [파일에서 비밀 값 읽기](README.ko.md#파일에서-비밀-값-읽기_file)를 참고하세요.
 
 이 토큰은 `data/.mcp_token`과 별개입니다. 파일의 토큰은 MCP 서버가 *Poznote API에* 접속할 때 사용하며, 이 설정값은 *AI 어시스턴트*가 MCP 서버에 제시하는 토큰입니다.
 

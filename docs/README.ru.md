@@ -444,6 +444,38 @@ docker compose down
 docker compose up -d
 ```
 
+### Секреты в файлах (`_FILE`)
+
+Всё, что задано в `.env`, попадает в конфигурацию контейнера, где `docker inspect` показывает это открытым текстом любому, у кого есть доступ к Docker. Эти секреты можно читать из файла: задайте то же имя с суффиксом `_FILE`, указав путь к файлу внутри контейнера, а саму переменную оставьте пустой.
+
+- `POZNOTE_OIDC_CLIENT_SECRET_FILE`
+- `POZNOTE_SETTINGS_PASSWORD_FILE`
+- `POZNOTE_MCP_AUTH_TOKEN_FILE`, `POZNOTE_MCP_AUTH_CLIENT_SECRET_FILE` (их добавляют вместе с секретом в сервис `mcp-server` файла `docker-compose.yml`, этот контейнер получает только перечисленные там переменные)
+
+Например, с секретом Docker Compose для клиентского секрета OIDC, в `docker-compose.yml`:
+
+```yaml
+services:
+  webserver:
+    environment:
+      POZNOTE_OIDC_CLIENT_SECRET_FILE: /run/secrets/oidc_client_secret
+    secrets:
+      - oidc_client_secret
+
+secrets:
+  oidc_client_secret:
+    file: ./secrets/oidc_client_secret
+```
+
+Docker Compose монтирует файл с тем владельцем и правами, которые у него есть на хосте, поэтому он должен быть доступен для чтения внутри контейнера: для uid 82 в контейнере `webserver` (uid 1000 с образом rootless) и для uid 1000 в контейнере `mcp-server`.
+
+```bash
+sudo chown 82:82 secrets/oidc_client_secret
+sudo chmod 400 secrets/oidc_client_secret
+```
+
+Перевод строки в конце файла игнорируется. Если файл не удаётся прочитать или заданы одновременно переменная и её версия `_FILE`, контейнер останавливается при запуске с ошибкой, в которой названы переменная и путь (см. `docker compose logs`), а не работает с пустым секретом.
+
 ## Обновление приложения
 
 Перейдите в каталог Poznote:
@@ -1113,8 +1145,10 @@ Poznote может создавать резервную копию учетно
 
 ```bash
 # Полная резервная копия системы из командной строки
-tar -czvf poznote-full-backup.tar.gz data/
+sudo tar -czvf poznote-full-backup.tar.gz data/
 ```
+
+Запускайте её через `sudo`: часть файлов в `data/` доступна только контейнеру, в том числе ключ шифрования `data/.app_secret`. Экземпляр, восстановленный без этого ключа, больше не сможет прочитать сохранённые токен Git и ключи API ИИ, их придётся ввести заново.
 
 </details>
 

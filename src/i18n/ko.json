@@ -1831,7 +1831,7 @@
   },
   "update": {
     "new_available": "🎉 새로운 업데이트가 가능합니다!",
-    "new_version_available": "직접 설치를 관리하고 있다면 GitHub의 <a href=\"https://github.com/timothepoznanski/poznote#update-application\" target=\"_blank\">업데이트 안내</a>에 따라 업데이트하세요. 호스팅 서비스를 이용하고 있다면 해당 제공자가 업데이트해야 합니다.",
+    "new_version_available": "직접 설치를 관리하고 있다면 GitHub의 <a href=\"https://github.com/timothepoznanski/poznote/blob/main/docs/README.ko.md#앱-업데이트\" target=\"_blank\">업데이트 안내</a>에 따라 업데이트하세요. 호스팅 서비스를 이용하고 있다면 해당 제공자가 업데이트해야 합니다.",
     "description": "데이터는 업데이트 중에도 보존됩니다.",
     "up_to_date": "✅ Poznote가 최신 상태입니다",
     "error_loading_version": "버전을 로드하는 중에 오류가 발생했습니다.",

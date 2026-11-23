@@ -30,6 +30,31 @@ if [ "$CURRENT_UID" != "0" ]; then
     fi
 fi
 
+# Secrets read from files (POZNOTE_OIDC_CLIENT_SECRET_FILE and the like, see
+# lib/env.php): checked as the user PHP runs as, since a file only root can
+# read passes a check run as root and then fails every request. Stops here,
+# so the reason shows in `docker compose logs` instead of blank error pages.
+SECRET_CHECK="php /var/www/html/maintenance/check-secret-files.php"
+SECRET_CHECK_OK=1
+# Left out, as in check-secret-files.php: the service token path, and the two
+# variables the mcp-server container reads (they arrive here through .env).
+if ! env | grep -v -E '^POZNOTE_(SERVICE_TOKEN|MCP_AUTH_TOKEN|MCP_AUTH_CLIENT_SECRET)_FILE=' | grep -q '^POZNOTE_[A-Z0-9_]*_FILE=.'; then
+    : # No secret file configured: nothing to check, startup unchanged.
+elif [ "$CURRENT_UID" = "0" ]; then
+    su -p -s /bin/sh www-data -c "$SECRET_CHECK" || SECRET_CHECK_OK=0
+else
+    $SECRET_CHECK || SECRET_CHECK_OK=0
+fi
+if [ "$SECRET_CHECK_OK" = "0" ]; then
+    echo "ERROR: a POZNOTE_*_FILE setting cannot be used (see above). Poznote does not start with an empty secret." >&2
+    exit 1
+fi
+
+# Transition, to remove in 7.0 with poznoteLegacyAppSecret() (lib/app-secret.php).
+if [ -n "$(printf '%s' "${POZNOTE_APP_SECRET:-}" | tr -d ' \t')" ]; then
+    echo "Notice: POZNOTE_APP_SECRET is being retired. Its value is copied to data/.app_secret on first use, after which it can be removed from your .env."
+fi
+
 # php-fpm worker count. The image default (docker/php-fpm/www.conf) suits
 # most instances; a busy one (several users, AI chat, S3, git sync) can raise
 # it with POZNOTE_PHP_FPM_MAX_CHILDREN, each busy worker costing about
@@ -203,7 +228,7 @@ if [ "$CURRENT_UID" = "0" ]; then
         chown -R www-data:www-data "$entry"
     done
     find "$DATA_DIR" -path "$SESSIONS_DIR" -prune -o -type d -exec chmod 775 {} +
-    find "$DATA_DIR" -path "$SESSIONS_DIR" -prune -o -type f -exec chmod 664 {} +
+    find "$DATA_DIR" -path "$SESSIONS_DIR" -prune -o -type f ! -name '.app_secret*' -exec chmod 664 {} +
 
     if [ -d "$SESSIONS_DIR" ]; then
         chown www-data:www-data "$SESSIONS_DIR"
@@ -214,6 +239,16 @@ if [ "$CURRENT_UID" = "0" ]; then
 else
     echo "Running as non-root (uid $CURRENT_UID); $DATA_DIR is already correctly owned, skipping chown."
 fi
+
+# The instance key (lib/app-secret.php) stays private: PHP creates it 0600
+# and nothing else reads it (the recursive pass above leaves it out). Root or
+# not, the user running this script owns it. Never fatal: some volumes refuse
+# a chmod, and the key works the same either way.
+for key_file in "$DATA_DIR"/.app_secret*; do
+    if [ -f "$key_file" ]; then
+        chmod 600 "$key_file" 2>/dev/null || echo "Warning: could not make $key_file private (chmod 600)."
+    fi
+done
 
 echo "Final permissions check for $DATA_DIR:"
 ls -la "$DATA_DIR"

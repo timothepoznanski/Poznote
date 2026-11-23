@@ -20,8 +20,13 @@ body.graph-page {
 .graph-container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
+    /* The height of <body>, itself the height of the screen (html, body at
+       100% above), and not 100dvh: a phone's browser can resolve 100dvh as if
+       its address bar were hidden when the page opens, and only correct it on
+       the next resize. The bottom of the page then sat under the edge of the
+       screen, notice of the notes left out included, until the phone was
+       turned. The 100% chain is the area the browser actually shows. */
+    height: 100%;
 }
 
 /* Toolbar ------------------------------------------------------------- */

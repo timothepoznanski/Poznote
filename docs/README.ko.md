@@ -444,6 +444,38 @@ docker compose down
 docker compose up -d
 ```
 
+### 파일에서 비밀 값 읽기(`_FILE`)
+
+`.env`에 설정한 값은 모두 컨테이너 설정에 들어가며, Docker에 접근할 수 있는 사람은 누구나 `docker inspect`로 평문을 볼 수 있습니다. 다음 비밀 값은 파일에서 읽도록 할 수 있습니다. 같은 이름 뒤에 `_FILE`을 붙인 변수에 컨테이너 안의 파일 경로를 설정하고, 원래 변수는 비워 두세요.
+
+- `POZNOTE_OIDC_CLIENT_SECRET_FILE`
+- `POZNOTE_SETTINGS_PASSWORD_FILE`
+- `POZNOTE_MCP_AUTH_TOKEN_FILE`, `POZNOTE_MCP_AUTH_CLIENT_SECRET_FILE` (해당 secret과 함께 `docker-compose.yml`의 `mcp-server` 서비스에 추가해야 합니다. 이 컨테이너는 거기에 나열된 변수만 받습니다)
+
+예를 들어 OIDC 클라이언트 시크릿을 Docker Compose secret으로 넘기려면 `docker-compose.yml`에 다음과 같이 씁니다.
+
+```yaml
+services:
+  webserver:
+    environment:
+      POZNOTE_OIDC_CLIENT_SECRET_FILE: /run/secrets/oidc_client_secret
+    secrets:
+      - oidc_client_secret
+
+secrets:
+  oidc_client_secret:
+    file: ./secrets/oidc_client_secret
+```
+
+Docker Compose는 호스트에서의 소유자와 권한을 그대로 유지한 채 파일을 마운트하므로, 컨테이너 안에서 읽을 수 있어야 합니다. `webserver` 컨테이너는 uid 82(rootless 이미지는 uid 1000), `mcp-server` 컨테이너는 uid 1000이 읽을 수 있어야 합니다.
+
+```bash
+sudo chown 82:82 secrets/oidc_client_secret
+sudo chmod 400 secrets/oidc_client_secret
+```
+
+파일 끝의 줄바꿈은 무시됩니다. 파일을 읽을 수 없거나 변수와 그 `_FILE` 버전이 둘 다 설정되어 있으면, 컨테이너는 빈 비밀 값으로 실행되는 대신 시작 시 변수와 경로를 알려 주는 오류와 함께 멈춥니다(`docker compose logs` 참고).
+
 ## 앱 업데이트
 
 Poznote 디렉터리로 이동하세요.
@@ -1113,8 +1145,10 @@ Poznote는 계정을 여러 방법으로 백업할 수 있습니다. 모두 같�
 
 ```bash
 # CLI로 시스템 전체 백업
-tar -czvf poznote-full-backup.tar.gz data/
+sudo tar -czvf poznote-full-backup.tar.gz data/
 ```
+
+`sudo`로 실행하세요. `data/`의 일부 파일은 컨테이너만 읽을 수 있으며, 암호화 키 `data/.app_secret`도 그중 하나입니다. 이 키 없이 복원한 인스턴스는 저장된 Git 토큰과 AI API 키를 더 이상 읽을 수 없어 다시 입력해야 합니다.
 
 </details>
 

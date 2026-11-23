@@ -444,6 +444,38 @@ Sla het bestand op en start de containers opnieuw om de wijzigingen toe te passe
 docker compose up -d
 ```
 
+### Geheimen in bestanden (`_FILE`)
+
+Alles wat in `.env` staat, komt in de configuratie van de container terecht, waar `docker inspect` het in platte tekst laat zien aan iedereen met toegang tot Docker. Deze geheimen kunnen in plaats daarvan uit een bestand worden gelezen: zet dezelfde naam met `_FILE` erachter op het pad van het bestand in de container, en laat de variabele zelf leeg.
+
+- `POZNOTE_OIDC_CLIENT_SECRET_FILE`
+- `POZNOTE_SETTINGS_PASSWORD_FILE`
+- `POZNOTE_MCP_AUTH_TOKEN_FILE`, `POZNOTE_MCP_AUTH_CLIENT_SECRET_FILE` (voeg ze met hun secret toe aan de service `mcp-server` in `docker-compose.yml`, want die container krijgt alleen de variabelen die daar staan)
+
+Bijvoorbeeld met een Docker Compose-secret voor het OIDC-clientgeheim, in `docker-compose.yml`:
+
+```yaml
+services:
+  webserver:
+    environment:
+      POZNOTE_OIDC_CLIENT_SECRET_FILE: /run/secrets/oidc_client_secret
+    secrets:
+      - oidc_client_secret
+
+secrets:
+  oidc_client_secret:
+    file: ./secrets/oidc_client_secret
+```
+
+Docker Compose koppelt het bestand met de eigenaar en rechten die het op de host heeft, dus het moet in de container leesbaar zijn: voor uid 82 in de container `webserver` (uid 1000 met de rootless-image) en voor uid 1000 in de container `mcp-server`.
+
+```bash
+sudo chown 82:82 secrets/oidc_client_secret
+sudo chmod 400 secrets/oidc_client_secret
+```
+
+Een regeleinde aan het eind van het bestand wordt genegeerd. Als het bestand niet gelezen kan worden, of als de variabele en de `_FILE`-versie allebei gezet zijn, stopt de container bij het opstarten met een foutmelding die de variabele en het pad noemt (zie `docker compose logs`), in plaats van met een leeg geheim te draaien.
+
 ## Applicatie bijwerken
 
 Ga naar je Poznote-map:
@@ -1114,8 +1146,10 @@ Een **volledige systeemback-up**, met de hoofdconfiguratie (accounts, algemene i
 
 ```bash
 # Complete system backup via CLI
-tar -czvf poznote-full-backup.tar.gz data/
+sudo tar -czvf poznote-full-backup.tar.gz data/
 ```
+
+Voer het uit met `sudo`: sommige bestanden in `data/` zijn alleen voor de container leesbaar, waaronder de versleutelingssleutel `data/.app_secret`. Een instantie die zonder die sleutel is hersteld, kan het opgeslagen Git-token en de AI-API-sleutels niet meer lezen, je moet ze dan opnieuw invoeren.
 
 </details>
 
