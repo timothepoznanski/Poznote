@@ -259,6 +259,22 @@ class MediaWidget extends WidgetType {
         this.resizeObserver.observe(wrapper)
       }
       if (typeof window.initializeTaskListEmbeds === 'function') window.initializeTaskListEmbeds(wrapper)
+    } else if (media && media.matches('.attachment-card-line, a')) {
+      // An attachment card, or the link it becomes with the setting off: a
+      // line of text for the editor (ignoreEvent), so a click places the caret
+      // on it and Live preview brings its source back. The card still opens
+      // with Ctrl/Cmd + click, and on any click in Rich text, where the source
+      // never comes back; a plain click in Live preview never follows it.
+      wrapper.classList.add('cm-live-attachment-card')
+      wrapper.addEventListener('click', event => {
+        if (event.button === 0 && !event.ctrlKey && !event.metaKey && isSyntaxRevealed() &&
+          event.target.closest && event.target.closest('a[href]')) {
+          // (the note's link handling on <body> would open it otherwise)
+          event.preventDefault()
+          event.stopPropagation()
+        }
+      })
+      wrapper.appendChild(media)
     } else if (media) {
       media.addEventListener('load', () => view.requestMeasure())
       media.addEventListener('loadedmetadata', () => view.requestMeasure())
@@ -301,9 +317,16 @@ class MediaWidget extends WidgetType {
     if (this.resizeObserver) this.resizeObserver.disconnect()
   }
 
-  // Clicks go to the player, not to the editor
-  ignoreEvent() {
-    return true
+  // Clicks go to the player, not to the editor. An attachment card is a line
+  // of text instead: a press beside it, or on it in Live preview without
+  // Ctrl/Cmd, goes to the editor, which puts the caret on its line (before,
+  // the press was dropped and the caret landed at the top of the note).
+  ignoreEvent(event) {
+    const target = event.target
+    if (!target || !target.closest || !target.closest('.cm-live-attachment-card')) return true
+    if (event.type !== 'mousedown' || event.button !== 0) return true
+    if (!target.closest('a[href]')) return false
+    return !isSyntaxRevealed() || event.ctrlKey || event.metaKey
   }
 }
 

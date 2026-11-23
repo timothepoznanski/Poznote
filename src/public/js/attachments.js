@@ -957,9 +957,9 @@ function attachmentCardKind(filename) {
 /**
  * Insert an attachment as a card ("Attachment links as cards" setting, used
  * by "Link to attachment"): a link on a line of its own, drawn by
- * css/components/attachment-card.css. It is the same markup in both kinds of
- * note, a Markdown note keeping it as an HTML line its parsers turn back into
- * the card (markdown_parser.php, js/markdown-parser.js).
+ * css/components/attachment-card.css. A Markdown note gets a plain link on its
+ * line instead, drawn as the card by its parsers (markdown_parser.php,
+ * js/markdown-parser.js) and the editor views.
  */
 function insertAttachmentCardIntoNote(noteId, attachmentId, filename, context) {
     if (!noteId || !attachmentId || !canInsertAttachmentImageIntoNote(noteId)) return false;
@@ -969,10 +969,13 @@ function insertAttachmentCardIntoNote(noteId, attachmentId, filename, context) {
     var href = '/api/v1/notes/' + encodeURIComponent(noteId) + '/attachments/' + safeId;
     var label = name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     var kindClass = 'attachment-card attachment-card-' + attachmentCardKind(name);
-    // The Markdown line is the exact form its parsers read back; the rich text
-    // card is not editable, the name being the file's: the caret steps over
-    // it as one block, and Backspace removes it whole
-    var markdown = '<a class="' + kindClass + '" href="' + href + '">' + label + '</a>';
+    // A Markdown note gets the plain link alone on its line, which its parsers
+    // and editor views draw as the card while the setting is on: the source
+    // reads like any other link, and like the one "Link to attachment" writes
+    // with the setting off. The HTML card line written before is still read.
+    // The rich text card is not editable, the name being the file's: the
+    // caret steps over it as one block, and Backspace removes it whole
+    var markdown = '[' + name.replace(/([\\\[\]])/g, '\\$1') + '](' + href + ')';
     var html = '<a class="' + kindClass + '" contenteditable="false" href="' + href + '">' + label + '</a>';
 
     window.noteid = noteId;

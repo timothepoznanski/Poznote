@@ -557,6 +557,23 @@ body:not(.markdown-colored) .markdown-codemirror-host .cm-live-preview .poznote-
     max-width: 100%;
 }
 
+/* An attachment card, or the plain link it becomes with "Attachment links as
+   cards" off: on the line, not below it. CodeMirror flanks a widget with two
+   inline buffer images (cm-widgetBuffer), and next to a block each of them
+   opens a line box of its own, a full empty line above the card and another
+   below it that the preview does not have. Inline-block keeps the buffers and
+   the card on one line, which is as tall as the card. As wide as the card, so
+   a click on its right half puts the caret at the end of the line, and one
+   beside it lands on the line itself. */
+.markdown-codemirror-host .cm-live-preview .cm-live-media:has(> .attachment-card-line, > a) {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.markdown-codemirror-host .cm-live-preview .cm-live-media:has(> .attachment-card-line) {
+    padding: 6px 0;
+}
+
 /* Tables and Mermaid diagrams, rendered by the preview's parser and standing
    in for their source until the caret enters them. The table rules of this
    file reach them through .noteentry; a click anywhere in the block brings

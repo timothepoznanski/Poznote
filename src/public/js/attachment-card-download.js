@@ -18,8 +18,14 @@
     var CARD = 'a.attachment-card[href]';
     var HOVER_CLASS = 'pz-attachment-card-download-hover';
 
+    // In the Live preview of a Markdown note a card is a line of source: a
+    // plain click puts the caret on it and brings the source back, so its
+    // arrow is not a button there (build/markdown-editor/src/live-preview.js)
     function cardAt(target) {
-        return target && target.closest ? target.closest(CARD) : null;
+        var card = target && target.closest ? target.closest(CARD) : null;
+        if (card && card.closest('.cm-live-attachment-card') &&
+            document.body.getAttribute('data-markdown-live-syntax') === '1') return null;
+        return card;
     }
 
     function onArrow(card, clientX) {
