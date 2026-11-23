@@ -53,7 +53,7 @@ test('the shared note page sets the class and the colours, and the rules reach i
     $page = file_get_contents(__DIR__ . '/../src/public/public_note.php');
     assertContains("poznoteMarkdownColoredEnabled(\$markdownColoredTheme)", $page);
     assertContains("poznoteMarkdownColoredStyle(\$markdownColoredTheme", $page);
-    assertContains("' public-note-markdown'", $page);
+    assertContains("' public-note-markdown markdown-preview'", $page);
     $css = file_get_contents(__DIR__ . '/../src/public/css/markdown.css');
     assertContains('body.markdown-colored :is(.markdown-preview, .public-note-markdown) :is(#poznote-md-colored-boost, h1)', $css);
 });

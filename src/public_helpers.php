@@ -333,12 +333,18 @@ function poznotePublicApplyAttachmentCards(DOMXPath $xpath, bool $asCards): void
         }
         $line = $link->parentNode;
         if (!($line instanceof DOMElement) || !in_array(strtolower($line->nodeName), ['p', 'div'], true)) continue;
-        foreach ($line->childNodes as $child) {
-            if ($child === $link) continue;
-            if ($child->nodeType === XML_TEXT_NODE) {
-                if (preg_replace('/[\s\x{200B}\x{FEFF}]+/u', '', $child->nodeValue) !== '') continue 2;
-            } elseif ($child->nodeType === XML_ELEMENT_NODE) {
-                if (strtolower($child->nodeName) !== 'br') continue 2;
+        // A line ends at a <br> as well as at the edge of its block (a
+        // Markdown note converted to rich text writes consecutive lines as one
+        // paragraph with <br>s): same rule as isLoneAttachmentLink() in
+        // js/attachments.js.
+        foreach (['previousSibling', 'nextSibling'] as $step) {
+            for ($node = $link->{$step}; $node !== null; $node = $node->{$step}) {
+                if ($node->nodeType === XML_TEXT_NODE) {
+                    if (preg_replace('/[\s\x{200B}\x{FEFF}]+/u', '', $node->nodeValue) !== '') continue 3;
+                } elseif ($node->nodeType === XML_ELEMENT_NODE) {
+                    if (strtolower($node->nodeName) === 'br') break;
+                    continue 3;
+                }
             }
         }
         $classes = trim($link->getAttribute('class') . ' attachment-card attachment-card-' . poznoteAttachmentCardKind($label));

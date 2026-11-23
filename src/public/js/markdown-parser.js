@@ -1938,6 +1938,12 @@ function parseMarkdown(text) {
             let previousResult = result.length > 0 ? result[result.length - 1] : '';
             let isPreviousTaskEmbed = /^<div class="tasklist-embed"/.test(previousResult);
             let isNextTaskEmbed = (i + 1 < lines.length) && /^\s*\x00PTASKEMBED\d+\x00\s*$/.test(lines[i + 1]);
+            // An attachment card line is protected the same way, a synthetic
+            // newline on each side, but it keeps the authored blank line: the
+            // card is spaced like a paragraph (its line carries the margin),
+            // so only the synthetic newline is swallowed.
+            let isPreviousAttachmentCard = /^<(?:div|p)\b[^>]*\bclass="attachment-card-line(?:-off)?"/.test(previousResult);
+            let isNextAttachmentCard = (i + 1 < lines.length) && /^\s*\x00PATTCARD\d+\x00\s*$/.test(lines[i + 1]);
 
             // The first blank line is the block separator itself: the paragraph,
             // heading, list, ... on either side already carries the margin that
@@ -1954,6 +1960,12 @@ function parseMarkdown(text) {
             }
             if (isPreviousTaskEmbed) {
                 placeholdersToAdd = Math.max(placeholdersToAdd - 2, 0);
+            }
+            if (isNextAttachmentCard) {
+                placeholdersToAdd = Math.max(placeholdersToAdd - 1, 0);
+            }
+            if (isPreviousAttachmentCard) {
+                placeholdersToAdd = Math.max(placeholdersToAdd - 1, 0);
             }
             for (let bl = 0; bl < placeholdersToAdd; bl++) {
                 result.push('<p class="blank-line">&nbsp;</p>');

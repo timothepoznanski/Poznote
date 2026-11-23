@@ -1030,7 +1030,7 @@ if (poznoteMarkdownColoredEnabled($markdownColoredTheme)) {
                       </button>
                   </div>
                 </div>
-                <div class="content<?php echo $noteType === 'markdown' ? ' public-note-markdown' : ''; ?>"><?php echo $content; ?></div>
+                <div class="content<?php echo $noteType === 'markdown' ? ' public-note-markdown markdown-preview' : ''; ?>"><?php echo $content; ?></div>
             </div>
         </div>
 

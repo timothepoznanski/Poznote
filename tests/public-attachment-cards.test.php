@@ -53,3 +53,14 @@ test('rich text: no option leaves the note as written', function () use ($rich) 
     assertContains('<a href="/api/v1/notes/5/attachments/a1?token=t">doc.xlsx</a>', $html);
     assertContains('class="attachment-card attachment-card-pdf"', $html);
 });
+
+test('rich text: a link alone between <br>s is on its own line', function () {
+    // What converting a Markdown note to rich text writes for two lines.
+    $html = sanitizePublicNoteHtml(
+        '<p><a href="/api/v1/notes/5/attachments/b1?token=t">a.pdf</a><br><a href="/api/v1/notes/5/attachments/b2?token=t">b.pptx</a></p>'
+        . '<p>Voir<br><a href="/api/v1/notes/5/attachments/b3?token=t">c.pdf</a> ici</p>',
+        'en', true);
+    assertContains('class="attachment-card attachment-card-pdf">a.pdf</a>', $html);
+    assertContains('class="attachment-card attachment-card-slides">b.pptx</a>', $html);
+    assertContains('<a href="/api/v1/notes/5/attachments/b3?token=t">c.pdf</a> ici', $html);
+});

@@ -296,9 +296,11 @@ textarea:focus {
    and reads at its own small size (css/components/code-block-fold.css). So
    is the preview an attachment card shows in its place (js/attachments.js):
    a tile like those above the note, whose name and size keep the tile's
-   small type. */
+   small type. So is a formula (.katex): KaTeX sizes every piece of it
+   itself (exponents, fractions), and flattened to the note's size it drew
+   an exponent as big as its base. */
 .noteentry,
-.noteentry *:not(.lucide):not([class*="lucide-"]):not(i):not(a):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(h1 *):not(h2 *):not(h3 *):not(h4 *):not(h5 *):not(h6 *):not(.toggle-header):not(.toggle-header *):not(.embed-blocked):not(.embed-blocked *):not(.cm-live-toggle-header):not(.code-block-collapsed-summary):not(.attachment-card-preview):not(.attachment-card-preview *):not(pre):not(pre *):not(code):not(code *):not(.code-block):not(.code-block *):not(.hljs):not(.hljs *) {
+.noteentry *:not(.lucide):not([class*="lucide-"]):not(i):not(a):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(h1 *):not(h2 *):not(h3 *):not(h4 *):not(h5 *):not(h6 *):not(.toggle-header):not(.toggle-header *):not(.embed-blocked):not(.embed-blocked *):not(.cm-live-toggle-header):not(.code-block-collapsed-summary):not(.attachment-card-preview):not(.attachment-card-preview *):not(pre):not(pre *):not(code):not(code *):not(.code-block):not(.code-block *):not(.hljs):not(.hljs *):not(.katex):not(.katex *) {
     font-size: var(--note-font-size, 15px) !important;
 }
 
@@ -700,6 +702,6 @@ figure.note-attachment-preview > iframe.note-attachment-preview-audio-frame {
 .noteentry u:not([style*='Consolas']):not([style*='Monaco']):not([style*='Courier']):not([style*='monospace']):not([style*='Segoe UI Mono']):not(pre):not(pre *):not(code):not(code *):not(.code-block):not(.code-block *):not(.hljs):not(.hljs *),
 .noteentry s:not([style*='Consolas']):not([style*='Monaco']):not([style*='Courier']):not([style*='monospace']):not([style*='Segoe UI Mono']):not(pre):not(pre *):not(code):not(code *):not(.code-block):not(.code-block *):not(.hljs):not(.hljs *),
 .noteentry a:not([style*='Consolas']):not([style*='Monaco']):not([style*='Courier']):not([style*='monospace']):not([style*='Segoe UI Mono']):not(pre):not(pre *):not(code):not(code *):not(.code-block):not(.code-block *):not(.hljs):not(.hljs *),
-.noteentry span:not([class*='poznote-cm-']):not([style*='Consolas']):not([style*='Monaco']):not([style*='Courier']):not([style*='monospace']):not([style*='Segoe UI Mono']):not(pre):not(pre *):not(code):not(code *):not(.code-block):not(.code-block *):not(.hljs):not(.hljs *) {
+.noteentry span:not([class*='poznote-cm-']):not(.katex):not(.katex *):not([style*='Consolas']):not([style*='Monaco']):not([style*='Courier']):not([style*='monospace']):not([style*='Segoe UI Mono']):not(pre):not(pre *):not(code):not(code *):not(.code-block):not(.code-block *):not(.hljs):not(.hljs *) {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji' !important;
 }

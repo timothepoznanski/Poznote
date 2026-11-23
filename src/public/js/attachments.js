@@ -1159,12 +1159,19 @@ function isLoneAttachmentLink(link) {
     if (link.children.length || (link.textContent || '').trim() === '') return false;
     var line = link.parentNode;
     if (!line || !/^(DIV|P)$/.test(line.nodeName) || line.classList.contains('noteentry')) return false;
-    for (var child = line.firstChild; child; child = child.nextSibling) {
-        if (child === link) continue;
-        if (child.nodeType === 3) {
-            if (child.nodeValue.replace(/[\s​﻿]/g, '') !== '') return false;
-        } else if (child.nodeType === 1) {
-            if (!child.matches('br, .attachment-card-preview')) return false;
+    // A line ends at a <br> as well as at the edge of its block: a Markdown
+    // note converted to rich text writes consecutive lines as one paragraph
+    // with <br>s, so two links on two lines share a <p>.
+    return lineSideIsBlank(link, 'previousSibling') && lineSideIsBlank(link, 'nextSibling');
+}
+
+function lineSideIsBlank(link, step) {
+    for (var node = link[step]; node; node = node[step]) {
+        if (node.nodeType === 3) {
+            if (node.nodeValue.replace(/[\s​﻿]/g, '') !== '') return false;
+        } else if (node.nodeType === 1) {
+            if (node.nodeName === 'BR') return true;
+            if (!node.matches('.attachment-card-preview')) return false;
         }
     }
     return true;

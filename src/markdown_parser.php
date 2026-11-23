@@ -1482,6 +1482,12 @@ function parseMarkdown($text, array $options = []) {
             $previousResult = count($result) > 0 ? $result[count($result) - 1] : '';
             $isPreviousTaskEmbed = preg_match('/^<div class="tasklist-embed"/', $previousResult) === 1;
             $isNextTaskEmbed = ($i + 1 < count($lines)) && preg_match('/^\s*\x00PTASKEMBED\d+\x00\s*$/', $lines[$i + 1]) === 1;
+            // An attachment card line is protected the same way, a synthetic
+            // newline on each side, but it keeps the authored blank line: the
+            // card is spaced like a paragraph (its line carries the margin),
+            // so only the synthetic newline is swallowed.
+            $isPreviousAttachmentCard = preg_match('/^<(?:div|p)\b[^>]*\bclass="attachment-card-line(?:-off)?"/', $previousResult) === 1;
+            $isNextAttachmentCard = ($i + 1 < count($lines)) && preg_match('/^\s*\x00PATTCARD\d+\x00\s*$/', $lines[$i + 1]) === 1;
 
             // The first blank line is the block separator itself: the paragraph,
             // heading, list, ... on either side already carries the margin that
@@ -1498,6 +1504,12 @@ function parseMarkdown($text, array $options = []) {
             }
             if ($isPreviousTaskEmbed) {
                 $placeholdersToAdd = max($placeholdersToAdd - 2, 0);
+            }
+            if ($isNextAttachmentCard) {
+                $placeholdersToAdd = max($placeholdersToAdd - 1, 0);
+            }
+            if ($isPreviousAttachmentCard) {
+                $placeholdersToAdd = max($placeholdersToAdd - 1, 0);
             }
             for ($bl = 0; $bl < $placeholdersToAdd; $bl++) {
                 $result[] = '<p class="blank-line">&nbsp;</p>';
