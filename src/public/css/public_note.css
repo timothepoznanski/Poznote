@@ -43,8 +43,10 @@ body.public-note-page {
 
 .public-note {
     max-width: 900px;
-    margin: 18px auto;
-    padding: 24px;
+    /* 40px above the title row (12px + 28px), 54px was too much. The phone
+       layout sets its own margin and padding further down. */
+    margin: 12px auto 18px;
+    padding: 28px 24px 24px;
     /* background: #fff;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(16,24,40,0.04); */
@@ -216,6 +218,198 @@ html[data-theme='dark'] .public-note .content.public-note-markdown pre code:not(
 html[data-theme='dark'] .public-note .content.public-note-markdown pre code[class*="language-"],
 html[data-theme='dark'] .public-note .content.public-note-markdown code[class*="language-"] {
     color: var(--pz-syntax-text) !important;
+}
+
+/* A rich-text (HTML) note is laid out as the editor shows it: the note's
+   font at the app's default 15px (the owner's size lives in their browser),
+   the "normal" line height, and the editor's spacing for every block. Copied
+   from the editor's sheets, which this page does not load (they also carry
+   rules for the editing itself): css/notes/noteentry.css (font, sizes,
+   headings), css/checklists.css (checklists, list spacing, hierarchical
+   numbering), css/code-blocks.css (code blocks), css/notes/editor.css (hr),
+   css/markdown.css (tables). public_note.php adds .public-note-html to the
+   content of an HTML note only. Keep these in step with their sources. */
+.public-note .content.public-note-html {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    font-size: 15px;
+    line-height: normal;
+    color: var(--pz-text);
+}
+
+/* Every element at the note's size, as in the editor (headings, code and
+   formulas keep theirs) */
+.public-note .content.public-note-html *:not(.lucide):not([class*="lucide-"]):not(i):not(a):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(h1 *):not(h2 *):not(h3 *):not(h4 *):not(h5 *):not(h6 *):not(.toggle-header):not(.toggle-header *):not(.embed-blocked):not(.embed-blocked *):not(.attachment-card-preview):not(.attachment-card-preview *):not(pre):not(pre *):not(code):not(code *):not(.code-block):not(.code-block *):not(.hljs):not(.hljs *):not(.katex):not(.katex *) {
+    font-size: 15px !important;
+}
+
+.public-note .content.public-note-html :is(p, p.blank-line) {
+    line-height: normal;
+}
+
+.public-note .content.public-note-html p.blank-line {
+    min-height: 0;
+}
+
+.public-note .content.public-note-html h1 { font-size: 2em; margin: 0.67em 0; line-height: normal; }
+.public-note .content.public-note-html h2 { font-size: 1.5em; margin: 0.83em 0; line-height: normal; }
+.public-note .content.public-note-html h3 { font-size: 1.17em; margin: 1em 0; line-height: normal; }
+.public-note .content.public-note-html h4 { font-size: 1em; margin: 1.33em 0; line-height: normal; }
+.public-note .content.public-note-html h5 { font-size: 0.83em; margin: 1.67em 0; line-height: normal; }
+.public-note .content.public-note-html h6 { font-size: 0.67em; margin: 2.33em 0; line-height: normal; }
+
+.public-note .content.public-note-html :is(ul, ol) {
+    margin: 1em 0;
+    line-height: normal;
+}
+
+.public-note .content.public-note-html ul {
+    padding-left: 40px;
+}
+
+.public-note .content.public-note-html ul:not(.checklist):not(.task-list) > li:not(.checklist-item):not(.task-list-item),
+.public-note .content.public-note-html ol > li {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.public-note .content.public-note-html :is(ul, ol) :is(ul, ol) {
+    margin-top: 4px;
+    margin-bottom: 4px;
+    padding-left: 24px;
+}
+
+/* Numbered lists number hierarchically, 1., 2.1. (css/checklists.css) */
+.public-note .content.public-note-html ol {
+    counter-reset: item;
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.public-note .content.public-note-html ol > li {
+    counter-increment: item;
+    display: block;
+}
+
+.public-note .content.public-note-html ol > li::before {
+    content: counters(item, ".") ". ";
+    font-weight: var(--pz-weight-normal);
+    margin-right: 4px;
+}
+
+.public-note .content.public-note-html ol ol {
+    counter-reset: item;
+}
+
+/* Lettered and roman lists (css/checklists.css, #1429) */
+.public-note .content.public-note-html ol:is([type="a"], [type="i"]) {
+    padding-left: 40px;
+}
+
+.public-note .content.public-note-html li > ol:is([type="a"], [type="i"]) {
+    padding-left: 1.75em;
+}
+
+.public-note .content.public-note-html ol:is([type="a"], [type="i"]) > li::before {
+    min-width: 1.75em;
+    margin-left: -1.75em;
+    margin-right: 0;
+    padding-right: 0.3em;
+}
+
+.public-note .content.public-note-html ol[type="a"] > li::before {
+    content: counter(item, lower-alpha) ")";
+}
+
+.public-note .content.public-note-html ol[type="i"] > li::before {
+    content: counter(item, lower-roman) ".";
+}
+
+/* Checklists (css/checklists.css) */
+.public-note .content.public-note-html .checklist {
+    list-style: none;
+    padding-left: 0;
+}
+
+.public-note .content.public-note-html li.checklist-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    margin: 0;
+    line-height: 1.6;
+}
+
+.public-note .content.public-note-html .checklist-checkbox {
+    /* (the editor's 18px width loses to its input[type="checkbox"] { width:
+       auto }, so its box is the browser's 13px) */
+    width: auto;
+    height: 18px;
+    flex-shrink: 0;
+    margin-top: 3px;
+}
+
+.public-note .content.public-note-html .checklist-text {
+    flex: 1;
+    margin-left: 8px;
+    min-height: 1.6em;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.public-note .content.public-note-html :is(.checklist-item-checked > .checklist-text, .checklist-checkbox:checked + .checklist-text) {
+    text-decoration: line-through;
+    opacity: 0.6;
+    color: var(--pz-text-subtle);
+}
+
+.public-note .content.public-note-html .checklist-item .checklist {
+    margin-top: 4px;
+    margin-bottom: 4px;
+    padding-left: 24px !important;
+}
+
+.public-note .content.public-note-html .checklist-item > .checklist {
+    flex-basis: 100%;
+    margin-left: 0;
+}
+
+/* A separator: the editor's thin rule, no margin (css/notes/editor.css,
+   over the browser's own inset border) */
+.public-note .content.public-note-html hr {
+    margin: 0;
+    border: 1px inset;
+    border-top: 1px solid var(--pz-border-strong);
+}
+
+/* (css/dark-mode/editor.css) */
+html[data-theme='dark'] .public-note .content.public-note-html hr {
+    border-color: var(--pz-border);
+}
+
+/* Code (css/code-blocks.css) */
+.public-note .content.public-note-html code {
+    padding: 2px 4px;
+    font-size: var(--code-block-font-size, 15px);
+}
+
+.public-note .content.public-note-html pre {
+    margin: 0;
+    padding: 36px 30px 20px !important;
+}
+
+.public-note .content.public-note-html pre code {
+    padding: 0;
+    line-height: normal;
+    font-size: inherit !important;
+}
+
+/* Tables (css/markdown.css) */
+.public-note .content.public-note-html .public-table-scroll {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.public-note .content.public-note-html table :is(td, th) {
+    padding: 8px 12px;
 }
 
 @media screen and (max-width: 800px) {
@@ -1031,7 +1225,8 @@ html[data-theme='dark'] #heading-copy-toast {
 
 .public-note-attachments-row {
     margin-top: 0;
-    margin-bottom: 14px;
+    /* (14px before, a little more air above the title, asked for) */
+    margin-bottom: 22px;
 }
 
 /* Attachments row and title on the left, the buttons on the right: they stay
@@ -1123,6 +1318,24 @@ html[data-theme='dark'] #heading-copy-toast {
 
 .public-note-header h1 i {
     flex: 0 0 auto;
+}
+
+/* The title of the editor (css/notes/editor.css .css-title,
+   css/notes/subline.css .note-title-icon): 24px semibold in the text colour,
+   or the size and colour of the title's menu, which public_note.php writes on
+   the heading (--note-title-size, an inline colour); the icon 5/6 of the
+   title's size in the icon colour, its text 7px after it (the icon's 8px
+   margin less the 1px the title field hangs out to the left). */
+.public-note-header h1 {
+    font-size: var(--note-title-size, 24px);
+    font-weight: var(--pz-weight-semibold);
+    color: var(--pz-text);
+    gap: 7px;
+}
+
+.public-note-header h1 .public-note-title-lucide {
+    font-size: calc(var(--note-title-size, 24px) * 5 / 6);
+    color: var(--pz-icon);
 }
 
 .public-note-header h1 .public-note-title-icon {

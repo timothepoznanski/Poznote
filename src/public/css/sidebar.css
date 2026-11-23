@@ -220,6 +220,15 @@
     font: inherit;
 }
 
+/* Desktop: a little room between the three buttons (demandé par le dev),
+   which touched. The phone spaces them wider (css/index-mobile.css), hence
+   the media query: this selector would outrank those rules. */
+@media (min-width: 801px) {
+    .notes-list-actions > :is(.sidebar-folder-toggle, .folder-actions-toggle) ~ :is(.sidebar-folder-toggle, .folder-actions-toggle) {
+        margin-left: 5px;
+    }
+}
+
 /* Kept lit while its menu is open, as a folder toggle is by its hovered row */
 .notes-list-actions .folder-actions-toggle.open {
     background-color: color-mix(in srgb, var(--pz-text-muted) 12%, transparent);
