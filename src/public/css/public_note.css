@@ -95,7 +95,7 @@ body.public-note-page {
     box-sizing: border-box;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     font-size: 15px;
-    line-height: normal;
+    line-height: 1.4;
     color: var(--pz-text);
 }
 
@@ -413,6 +413,13 @@ html[data-theme='dark'] .public-note .content.public-note-markdown code[class*="
 :where(.public-note .content) .public-table-scroll {
     overflow-x: auto;
     margin: 12px 0;
+}
+
+/* A Markdown note: the margin of the preview's table box (.markdown-table-scroll
+   in css/markdown.css), a full line */
+.public-note .content.public-note-markdown .public-table-scroll {
+    margin-top: 1.4em;
+    margin-bottom: 1.4em;
 }
 
 /* !important: inserted tables carry an inline margin, the scroller owns it */
