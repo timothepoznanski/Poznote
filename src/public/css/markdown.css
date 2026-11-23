@@ -30,6 +30,11 @@
     padding: 10px 10px 24px var(--pz-note-text-inset, 10px);
     box-sizing: border-box;
     min-height: 100px;
+    /* The airy spacing of the editor, which Live preview and Rich text keep
+       too (the spacing rules near the end of this file): a 1.4 line height,
+       and a full line (1.4em) between two blocks, the blank line the source
+       has there. A public share renders with these rules. */
+    line-height: 1.4;
 }
 
 /* In a note the blanket `.noteentry div { padding: 0 }` reset
@@ -430,31 +435,31 @@ html[data-theme='dark'] .markdown-editor .markdown-excalidraw-placeholder::befor
    font size of notes/noteentry.css, which reaches every element of the editor. */
 .markdown-codemirror-host .cm-live-preview .cm-line.cm-live-heading {
     font-weight: var(--pz-weight-bold);
-    line-height: 1.3;
-    padding-top: 0.35em;
-    padding-bottom: 0.15em;
 }
 
 .markdown-editor .cm-live-preview .cm-line:is(#poznote-md-live-size-boost, .cm-live-h1) {
     font-size: 2em !important;
     border-bottom: 2px solid var(--pz-border);
+    padding-bottom: 0.3em;
 }
 
 .markdown-editor .cm-live-preview .cm-line:is(#poznote-md-live-size-boost, .cm-live-h2) {
     font-size: 1.5em !important;
     border-bottom: 1px solid var(--pz-border);
+    padding-bottom: 0.3em;
 }
 
+/* The sizes of the preview's headings (css/notes/noteentry.css) */
 .markdown-editor .cm-live-preview .cm-line:is(#poznote-md-live-size-boost, .cm-live-h3) {
-    font-size: 1.25em !important;
+    font-size: 1.17em !important;
 }
 
 .markdown-editor .cm-live-preview .cm-line:is(#poznote-md-live-size-boost, .cm-live-h5) {
-    font-size: 0.875em !important;
+    font-size: 0.83em !important;
 }
 
 .markdown-editor .cm-live-preview .cm-line:is(#poznote-md-live-size-boost, .cm-live-h6) {
-    font-size: 0.75em !important;
+    font-size: 0.67em !important;
     color: var(--pz-text-muted);
 }
 
@@ -519,7 +524,9 @@ body:not(.markdown-colored) .markdown-codemirror-host .cm-live-preview .poznote-
     display: inline-block;
     width: 16px;
     height: 16px;
-    margin-right: 8px;
+    /* (the preview's 8px margin plus the 8px gap of its title row,
+       css/tasks.css) */
+    margin-right: 16px;
     vertical-align: -3px;
     opacity: 0.75;
 }
@@ -570,9 +577,6 @@ body:not(.markdown-colored) .markdown-codemirror-host .cm-live-preview .poznote-
     vertical-align: top;
 }
 
-.markdown-codemirror-host .cm-live-preview .cm-live-media:has(> .attachment-card-line) {
-    padding: 6px 0;
-}
 
 /* Tables and Mermaid diagrams, rendered by the preview's parser and standing
    in for their source until the caret enters them. The table rules of this
@@ -812,6 +816,10 @@ body.pz-toggle-marker-hover .markdown-codemirror-host .cm-live-preview .cm-line.
 
 .markdown-codemirror-host .cm-live-preview .cm-line.cm-live-hr {
     background: linear-gradient(var(--pz-border), var(--pz-border)) center / 100% 2px no-repeat;
+    /* (the space around it is the preview's 2em minus the half of this
+       height on each side, --cm-live-gap-*-hr below) */
+    height: 1.2em;
+    line-height: 1.2em;
 }
 
 .markdown-codemirror-host .cm-live-preview :is(.cm-live-hr-text, .cm-live-hr-text *) {
@@ -858,15 +866,21 @@ body.pz-toggle-marker-hover .markdown-codemirror-host .cm-live-preview .cm-line.
     position: relative;
     border-top-width: 1px;
     border-radius: var(--pz-radius-sm) var(--pz-radius-sm) 0 0;
+    /* The fence line and these paddings are the preview's 36px above the
+       first line of code (css/code-blocks.css); the space above the block
+       adds to the 4px (--cm-live-own-pt, see the spacing rules below) */
+    --cm-live-own-pt: 4px;
     padding-top: 4px;
-    /* (the 6px more the preview gives its first line of code,
-       css/code-blocks.css) */
-    padding-bottom: 10px;
+    padding-bottom: 11px;
 }
 
+/* The closing fence line is the preview's 20px under the code. A height
+   rather than a pixel line height: in Rich text the hidden fence is text of
+   no size, which a pixel line height pushed 3px below the line box. */
 .markdown-codemirror-host .cm-live-preview .cm-line.cm-live-code-close {
     border-bottom-width: 1px;
     border-radius: 0 0 var(--pz-radius-sm) var(--pz-radius-sm);
+    height: 20px;
 }
 
 .markdown-codemirror-host .cm-live-preview .cm-live-code-lang {
@@ -1191,7 +1205,8 @@ body.slash-menu-cursor-hidden * {
 .markdown-preview h1 {
     font-size: 2em;
     font-weight: var(--pz-weight-bold);
-    margin: 1em 0 0.67em;
+    margin: 1.05em 0 0.7em;
+    line-height: 1.3;
     border-bottom: 2px solid var(--pz-border);
     padding-bottom: 0.3em;
 }
@@ -1199,7 +1214,8 @@ body.slash-menu-cursor-hidden * {
 .markdown-preview h2 {
     font-size: 1.5em;
     font-weight: var(--pz-weight-bold);
-    margin: 1.15em 0 0.75em;
+    margin: 1.3em 0 0.95em;
+    line-height: 1.3;
     border-bottom: 1px solid var(--pz-border);
     padding-bottom: 0.3em;
 }
@@ -1207,26 +1223,30 @@ body.slash-menu-cursor-hidden * {
 .markdown-preview h3 {
     font-size: 1.25em;
     font-weight: var(--pz-weight-bold);
-    margin: 1.25em 0 0.83em;
+    margin: 1.55em 0 1.35em;
+    line-height: 1.3;
 }
 
 /* margin !important: see the note title h4 reset in base.css */
 .markdown-preview h4 {
     font-size: 1em;
     font-weight: var(--pz-weight-bold);
-    margin: 1.5em 0 1em !important;
+    margin: 1.75em 0 1.55em !important;
+    line-height: 1.3;
 }
 
 .markdown-preview h5 {
     font-size: 0.875em;
     font-weight: var(--pz-weight-bold);
-    margin: 2em 0 1.33em;
+    margin: 2.05em 0 1.85em;
+    line-height: 1.3;
 }
 
 .markdown-preview h6 {
     font-size: 0.75em;
     font-weight: var(--pz-weight-bold);
-    margin: 2.5em 0 1.67em;
+    margin: 2.45em 0 2.25em;
+    line-height: 1.3;
     color: var(--pz-text-muted);
 }
 
@@ -1250,7 +1270,7 @@ body.slash-menu-cursor-hidden * {
 }
 
 .markdown-preview p {
-    margin: 0 0 1em 0;
+    margin: 0 0 1.4em 0;
 }
 
 /* A toggle is a block of the note like a paragraph, so it keeps the same air
@@ -1258,7 +1278,7 @@ body.slash-menu-cursor-hidden * {
    has none (css/components/toggle-block.css); here the next line would
    otherwise come 4px under the block while two paragraphs are a line apart. */
 .markdown-preview .toggle-block {
-    margin-bottom: 1em;
+    margin-bottom: 1.4em;
 }
 
 .markdown-preview .toggle-block:last-child {
@@ -1272,7 +1292,7 @@ body.slash-menu-cursor-hidden * {
    below. Two classes, to outrank the 4px of the component and the blanket
    `.noteentry div { margin: 0 }` reset. */
 .markdown-preview .attachment-card-line {
-    margin: 0 0 1em;
+    margin: 0 0 1.4em;
 }
 
 .markdown-preview .attachment-card-line:last-child {
@@ -1282,8 +1302,8 @@ body.slash-menu-cursor-hidden * {
 /* Blank lines to preserve spacing in markdown */
 .markdown-preview p.blank-line {
     margin: 0;
-    min-height: 1em;
-    line-height: 1;
+    min-height: 1.4em;
+    line-height: 1.4;
 }
 
 .markdown-preview p:first-child {
@@ -1309,7 +1329,7 @@ body.slash-menu-cursor-hidden * {
     padding: 12px;
     border-radius: var(--pz-radius-sm);
     overflow-x: auto;
-    margin: 1em 0 !important;
+    margin: 1.4em 0 !important;
 }
 
 .noteentry pre.indented-pre,
@@ -1353,9 +1373,13 @@ html[data-theme='dark'] .markdown-preview pre.indented-pre {
     font-style: italic;
 }
 
+.markdown-preview blockquote {
+    margin: 1.4em 0;
+}
+
 .markdown-preview ul,
 .markdown-preview ol {
-    margin: 1em 0;
+    margin: 1.4em 0;
     padding-left: 2em;
 }
 
@@ -1558,7 +1582,7 @@ html[data-theme='dark'] .markdown-preview pre.indented-pre {
    allows it (#1701). Screen only: printed, the table fits the page. */
 @media screen {
     :is(.noteentry, .markdown-preview) .markdown-table-scroll {
-        margin: 1em 0;
+        margin: 1.4em 0;
         overflow-x: auto;
         scrollbar-width: thin;
         scrollbar-color: var(--pz-scrollbar) transparent;
@@ -2325,6 +2349,131 @@ body.markdown-split-preview-left:not(.markdown-split-card-view) .noteentry.markd
         animation: none;
         opacity: 1;
     }
+}
+
+/* Live preview and Rich text lay a note out as the preview does, which is
+   also what a public share shows (public_note.php renders the preview):
+   the same line height, and the same space between blocks.
+   A line of text has the height of a line of a paragraph of the preview. A
+   blank line is no line in the preview but the margin between the two blocks
+   it separates; live-preview.js tells each blank line which two kinds of
+   block it stands between (cm-live-gap-a-<kind above> cm-live-gap-b-<kind
+   below>) and the line takes the larger of the two margins, which is what
+   the preview's collapsing margins come to. A block with no blank line above
+   it takes the same space as padding (cm-live-gap-top). A second blank line
+   in a row is an empty paragraph of the preview, a line high (p.blank-line).
+   The values are the preview's margins (css/markdown.css .markdown-preview,
+   css/notes/noteentry.css for the heading sizes, css/tasks.css for callouts)
+   in ems of the note's text: a heading's own ems times its size. Kept near
+   the end of the file: the code block and callout rules above set paddings
+   these must outrank.
+   --cm-live-em is an em of the note's text, resolved once on .cm-content
+   (registered as a length, so it inherits as pixels): a heading line or a
+   code line has an em of its own, and a margin set above one in plain ems
+   came out at its size. */
+@property --cm-live-em {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: 15px;
+}
+
+.markdown-codemirror-host .cm-live-preview .cm-content {
+    --cm-live-em: 1em;
+}
+
+.markdown-codemirror-host .cm-live-preview :is(.cm-line, .cm-live-block) {
+    line-height: 1.4;
+}
+
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-heading {
+    line-height: 1.3;
+}
+
+/* Margin under a block (a) and above it (b) */
+.markdown-codemirror-host .cm-live-preview .cm-line:is(.cm-live-gap-a-p, .cm-live-gap-a-card, .cm-live-gap-a-toggle,
+    .cm-live-gap-a-quote, .cm-live-gap-a-list, .cm-live-gap-a-code, .cm-live-gap-a-table) {
+    --cm-live-gap-a: calc(1.4 * var(--cm-live-em));
+}
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-gap-a-h1 { --cm-live-gap-a: calc(0.7 * 2 * var(--cm-live-em)); }
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-gap-a-h2 { --cm-live-gap-a: calc(0.95 * 1.5 * var(--cm-live-em)); }
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-gap-a-h3 { --cm-live-gap-a: calc(1.35 * 1.17 * var(--cm-live-em)); }
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-gap-a-h4 { --cm-live-gap-a: calc(1.55 * var(--cm-live-em)); }
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-gap-a-h5 { --cm-live-gap-a: calc(1.85 * 0.83 * var(--cm-live-em)); }
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-gap-a-h6 { --cm-live-gap-a: calc(2.25 * 0.67 * var(--cm-live-em)); }
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-gap-a-callout { --cm-live-gap-a: 12px; }
+/* (the rule is drawn in the middle of its 1.2em line, the preview's 2em
+   margin counts from the rule itself) */
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-gap-a-hr { --cm-live-gap-a: calc(1.4 * var(--cm-live-em) + 1px); }
+
+.markdown-codemirror-host .cm-live-preview .cm-line:is(.cm-live-gap-b-quote, .cm-live-gap-b-list, .cm-live-gap-b-code, .cm-live-gap-b-table) {
+    --cm-live-gap-b: calc(1.4 * var(--cm-live-em));
+}
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-gap-b-h1 { --cm-live-gap-b: calc(1.05 * 2 * var(--cm-live-em)); }
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-gap-b-h2 { --cm-live-gap-b: calc(1.3 * 1.5 * var(--cm-live-em)); }
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-gap-b-h3 { --cm-live-gap-b: calc(1.55 * 1.17 * var(--cm-live-em)); }
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-gap-b-h4 { --cm-live-gap-b: calc(1.75 * var(--cm-live-em)); }
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-gap-b-h5 { --cm-live-gap-b: calc(2.05 * 0.83 * var(--cm-live-em)); }
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-gap-b-h6 { --cm-live-gap-b: calc(2.45 * 0.67 * var(--cm-live-em)); }
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-gap-b-callout { --cm-live-gap-b: 12px; }
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-gap-b-hr { --cm-live-gap-b: calc(1.4 * var(--cm-live-em) + 1px); }
+
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-gap {
+    box-sizing: border-box;
+    height: max(var(--cm-live-gap-a, 0px), var(--cm-live-gap-b, 0px));
+    line-height: var(--cm-live-em);
+}
+
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-gap-extra {
+    height: calc(1.4 * var(--cm-live-em));
+    line-height: var(--cm-live-em);
+}
+
+/* A line that already has a padding above it (the opening line of a code
+   block, the first line of a callout) says so in --cm-live-own-pt */
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-gap-top {
+    padding-top: calc(max(var(--cm-live-gap-a, 0px), var(--cm-live-gap-b, 0px)) + var(--cm-live-own-pt, 0px));
+}
+
+/* A list item is a <li> of the preview: 1.6 line height, 4px between two
+   items (0.5em between two tasks), none under the last one, whose margin is
+   the list's */
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-list {
+    line-height: 1.6;
+    padding-bottom: 4px;
+}
+
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-list.cm-live-list-task {
+    padding-bottom: 0.5em;
+}
+
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-list.cm-live-list-last {
+    padding-bottom: 0;
+}
+
+/* A callout is the preview's <aside> (css/tasks.css): 8px inside it above
+   and below, 15px under its title, its body at a 1.45 line height */
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-callout-first {
+    --cm-live-own-pt: 8px;
+    padding-top: 8px;
+    padding-bottom: 15px;
+}
+
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-callout:not(.cm-live-callout-first) {
+    line-height: 1.45;
+}
+
+.markdown-codemirror-host .cm-live-preview .cm-line.cm-live-callout.cm-live-callout-last {
+    padding-bottom: 8px;
+}
+
+/* A drawn table: its margins are the blank lines around it */
+.markdown-codemirror-host .cm-live-preview .cm-live-block.cm-live-block-table {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.markdown-codemirror-host .cm-live-preview .cm-live-block-table .markdown-table-scroll {
+    margin: 0;
 }
 
 /* Space below the note (discussion 1564, css/notes/noteentry.css): in the

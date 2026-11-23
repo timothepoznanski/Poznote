@@ -585,6 +585,30 @@ const codeCloseLineDecoration = Decoration.line({ class: 'cm-live-code-close' })
 
 const underlineDecoration = Decoration.mark({ class: 'cm-live-underline' })
 
+// The spacing of the preview, which a public share renders too: what each
+// line is part of, so that css/markdown.css can give the space between two
+// blocks the margin the preview puts there (spacingKindOf() below)
+const SPACING_NODE_KINDS = {
+  Paragraph: 'p',
+  Blockquote: 'quote',
+  BulletList: 'list',
+  OrderedList: 'list',
+  FencedCode: 'code',
+  CodeBlock: 'code',
+  HorizontalRule: 'hr',
+  Table: 'table'
+}
+const TASK_ITEM_LINE_REGEX = /^\s*(?:[-*+]|\d+[.)])\s+\[[ xX]\]/
+const spacingLineDecorations = new Map()
+function spacingLineDecoration(classes) {
+  let decoration = spacingLineDecorations.get(classes)
+  if (!decoration) {
+    decoration = Decoration.line({ class: classes })
+    spacingLineDecorations.set(classes, decoration)
+  }
+  return decoration
+}
+
 // Same schemes as the preview's links, plus anything relative to the app.
 function isSafeUrl(url) {
   const compact = String(url || '').replace(/[\u0000- \u007f]+/g, '').toLowerCase()
@@ -1636,6 +1660,103 @@ function buildLivePreviewDecorations(view, armedPair, pendingFormat) {
   const tableBlocks = getRenderedBlocks(doc).filter(block => block.kind === 'table')
   const isTableLine = line => tableBlocks.some(block => line.from >= block.from && line.from <= block.to)
 
+  // The space between blocks, as the preview lays it out (the preview's
+  // parser, js/markdown-parser.js, and css/markdown.css): a blank line is no
+  // line there but the margin between the two blocks it separates, the larger
+  // of the two since vertical margins collapse, and two blocks with no blank
+  // line between them get the same margin. Each line is told what it is part
+  // of; css/markdown.css turns that into heights. A line keeps its kind
+  // wherever the caret is, so nothing moves when the syntax comes back.
+  const toggleList = getToggles(doc)
+  const spacingCache = new Map()
+  function spacingKindOf(number) {
+    let info = spacingCache.get(number)
+    if (info) return info
+    const line = doc.line(number)
+    info = { kind: 'p', from: line.from, to: line.to }
+    const toggle = toggleList.find(candidate => number >= candidate.firstLine && number <= candidate.lastLine)
+    if (toggle) {
+      info = { kind: 'toggle', from: doc.line(toggle.firstLine).from, to: doc.line(toggle.lastLine).to }
+    } else if (isTableLine(line)) {
+      const block = tableBlocks.find(candidate => line.from >= candidate.from && line.from <= candidate.to)
+      info = { kind: 'table', from: block.from, to: block.to }
+    } else {
+      const indent = /^\s*/.exec(line.text)[0].length
+      let node = tree.resolveInner(Math.min(line.from + indent, line.to), 1)
+      while (node.parent && node.parent.parent) node = node.parent
+      const top = node.parent ? node : null
+      const blank = !line.text.trim()
+      if (top && (top.name === 'FencedCode' || top.name === 'CodeBlock') && (!blank || (line.from > top.from && line.to < top.to))) {
+        info = { kind: 'code', from: top.from, to: top.to }
+      } else if (blank) {
+        info = { kind: 'blank', from: line.from, to: line.to }
+      } else if (top) {
+        const heading = /^(?:ATX|Setext)Heading([1-6])$/.exec(top.name)
+        let kind = heading ? 'h' + heading[1] : (SPACING_NODE_KINDS[top.name] || 'p')
+        if (kind === 'quote') {
+          const firstText = doc.lineAt(top.from).text.replace(/^\s*>\s?/, '')
+          if (parseCalloutHeader(firstText)) kind = 'callout'
+        }
+        info = { kind, from: top.from, to: top.to }
+        // A card, a player, an embed: a block of its own in the preview, even
+        // with text on the next line (each card of a run is one)
+        if (kind === 'p' && ((attachmentLinksAsCards() && ATTACHMENT_LINK_LINE_REGEX.test(line.text)) ||
+            MEDIA_LINE_REGEX.test(line.text) || TASKLIST_EMBED_LINE_REGEX.test(line.text) ||
+            ATTACHMENT_CARD_LINE_REGEX.test(line.text))) {
+          info = { kind: 'card', from: line.from, to: line.to }
+        }
+        if (kind === 'list') info.task = TASK_ITEM_LINE_REGEX.test(line.text)
+      }
+    }
+    spacingCache.set(number, info)
+    return info
+  }
+  // The nearest line above or below that is not blank (a few hundred lines
+  // at most: past that the margin is a guess nobody will see)
+  function spacingNeighbour(number, step) {
+    for (let n = number + step, seen = 0; n >= 1 && n <= doc.lines && seen < 400; n += step, seen++) {
+      const info = spacingKindOf(n)
+      if (info.kind !== 'blank') return info
+    }
+    return null
+  }
+  const sameBlock = (a, b) => a.from === b.from && a.to === b.to
+  function decorateSpacing(from, to) {
+    const last = doc.lineAt(to).number
+    for (let number = doc.lineAt(from).number; number <= last; number++) {
+      const info = spacingKindOf(number)
+      if (info.kind === 'toggle' || info.kind === 'table') continue
+      const previous = number > 1 ? spacingKindOf(number - 1) : null
+      const classes = []
+      if (info.kind === 'blank') {
+        const above = spacingNeighbour(number, -1)
+        const below = spacingNeighbour(number, 1)
+        // A second blank line in a row is an empty paragraph of the
+        // preview (p.blank-line), and so is one before the first block
+        // or after the last
+        if (!above || !below || (previous && previous.kind === 'blank')) {
+          classes.push('cm-live-gap-extra')
+        } else {
+          classes.push('cm-live-gap', 'cm-live-gap-a-' + above.kind, 'cm-live-gap-b-' + below.kind)
+        }
+      } else {
+        if (previous && previous.kind !== 'blank' && !sameBlock(previous, info)) {
+          classes.push('cm-live-gap-top', 'cm-live-gap-a-' + previous.kind, 'cm-live-gap-b-' + info.kind)
+        }
+        if (info.kind === 'list') {
+          classes.push('cm-live-list')
+          if (info.task) classes.push('cm-live-list-task')
+          const next = number < doc.lines ? spacingKindOf(number + 1) : null
+          if (!next || !sameBlock(next, info)) classes.push('cm-live-list-last')
+        } else if (info.kind === 'callout') {
+          if (doc.lineAt(info.from).number === number) classes.push('cm-live-callout-first')
+          if (doc.lineAt(info.to).number === number) classes.push('cm-live-callout-last')
+        }
+      }
+      if (classes.length) decorations.push(spacingLineDecoration(classes.join(' ')).range(doc.line(number).from))
+    }
+  }
+
   for (const visible of view.visibleRanges) {
     tree.iterate({
       from: visible.from,
@@ -1764,7 +1885,7 @@ function buildLivePreviewDecorations(view, armedPair, pendingFormat) {
                   ? 'margin-left:' + TOGGLE_BODY_MARGIN + 'px;padding-left:' + (TOGGLE_BODY_PADDING + indent) + 'px'
                   : 'margin-left:' + indent + 'px'
                 decorations.push(Decoration.line({
-                  attributes: { style: offset + ';padding-top:3px;padding-bottom:3px' }
+                  attributes: { style: offset }
                 }).range(lineFrom))
               }
               if (list.name === 'OrderedList') decorations.push(listNumberDecoration.range(node.from, node.to))
@@ -1822,6 +1943,7 @@ function buildLivePreviewDecorations(view, armedPair, pendingFormat) {
     })
 
     decorateToggles(visible.from, visible.to)
+    decorateSpacing(visible.from, visible.to)
 
     for (let pos = visible.from; pos <= visible.to;) {
       const line = doc.lineAt(pos)
