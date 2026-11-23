@@ -82,9 +82,140 @@ body.public-note-page {
     color: inherit;
 }
 
+/* A Markdown note is rendered exactly as its preview in the app: the content
+   carries .markdown-preview, so css/markdown.css styles it, and the generic
+   content rules of this file are kept for rich text notes
+   (:not(.markdown-preview)). What the preview gets from the editor around it
+   (css/notes/noteentry.css: the note's font, colour and size, at the 15px
+   default since the owner's own size lives in their browser, and the heading
+   sizes) is given here. */
 .public-note .content.public-note-markdown {
-    padding-bottom: 16px;
+    padding: 0 0 16px;
+    min-height: 0;
     box-sizing: border-box;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    font-size: 15px;
+    line-height: normal;
+    color: var(--pz-text);
+}
+
+.public-note .content.public-note-markdown h1 { font-size: 2em; }
+.public-note .content.public-note-markdown h2 { font-size: 1.5em; }
+.public-note .content.public-note-markdown h3 { font-size: 1.17em; }
+.public-note .content.public-note-markdown h4 { font-size: 1em; }
+.public-note .content.public-note-markdown h5 { font-size: 0.83em; }
+.public-note .content.public-note-markdown h6 { font-size: 0.67em; }
+
+/* The rest of what the preview gets from the editor's sheets, which this page
+   does not load (they also carry rules for the editor itself, its fields and
+   its own code block buttons). Keep in step with them. */
+
+/* css/notes/noteentry.css: every element of a note at the note's size,
+   headings, links, icons and code apart */
+.public-note .content.public-note-markdown *:not(.lucide):not([class*="lucide-"]):not(i):not(a):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(h1 *):not(h2 *):not(h3 *):not(h4 *):not(h5 *):not(h6 *):not(.toggle-header):not(.toggle-header *):not(.embed-blocked):not(.embed-blocked *):not(.attachment-card-preview):not(.attachment-card-preview *):not(pre):not(pre *):not(code):not(code *):not(.code-block):not(.code-block *):not(.hljs):not(.hljs *):not(.katex):not(.katex *) {
+    font-size: 15px !important;
+}
+
+/* css/checklists.css: list items and nested lists */
+.public-note .content.public-note-markdown ul:not(.checklist):not(.task-list) > li:not(.checklist-item):not(.task-list-item),
+.public-note .content.public-note-markdown ol > li {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.public-note .content.public-note-markdown :is(ul, ol) :is(ul, ol) {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.public-note .content.public-note-markdown :is(ul, ol) ul {
+    padding-left: 24px;
+}
+
+/* css/markdown.css (.noteentry .markdown-preview ol): numbered lists keep
+   the native hanging marker but number hierarchically, 1., 2.1., 2.2. */
+.public-note .content.public-note-markdown ol {
+    list-style-type: decimal;
+    padding-left: 2em;
+    counter-reset: item;
+}
+
+.public-note .content.public-note-markdown ol > li {
+    display: list-item;
+    counter-increment: item;
+}
+
+.public-note .content.public-note-markdown ol > li::marker {
+    content: counters(item, ".") ". ";
+}
+
+/* css/code-blocks.css: inline code and code blocks */
+.public-note .content.public-note-markdown code {
+    font-family: "Segoe UI Mono", "SF Mono", Monaco, Menlo, Consolas, "Ubuntu Mono", "Liberation Mono", "Courier New", monospace !important;
+    border-radius: var(--pz-radius-sm);
+    font-size: 15px !important;
+}
+
+.public-note .content.public-note-markdown pre {
+    font-family: "Segoe UI Mono", "SF Mono", Monaco, Menlo, Consolas, "Ubuntu Mono", "Liberation Mono", "Courier New", monospace !important;
+    background: var(--pz-surface);
+    border: 1px solid var(--pz-border-light);
+    border-radius: var(--pz-radius-sm);
+    padding: 36px 30px 20px !important;
+    color: var(--pz-text);
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    overflow-x: auto;
+    font-size: 15px !important;
+    position: relative;
+    max-width: 100%;
+}
+
+.public-note .content.public-note-markdown pre.plain-block,
+.public-note .content.public-note-markdown pre:not([data-language]):not(.code-block):not(.indented-pre):not(:has(code[data-language])) {
+    padding-top: 20px !important;
+}
+
+.public-note .content.public-note-markdown pre code {
+    padding: 0 !important;
+    border-radius: 0 !important;
+    font-size: inherit !important;
+    white-space: inherit !important;
+}
+
+/* css/dark-mode/editor.css: the dark themes paint every element of a note in
+   the text colour (inline colours, links, highlighted code and Mermaid labels
+   apart), links in the lighter accent, and code in the editor's colours */
+html[data-theme='dark'] .public-note .content.public-note-markdown *:not([style*="color"]):not(:is(b, strong, i, em, u, s, strike, del, ins, sub, sup, small, span, font):is([style*="color"] *)):not(a):not([class*="hljs"]):not(code[class*="language-"]):not(.code-line):not(.search-highlight):not(.search-highlight-active):not([class^="md-"]):not([class*=" md-"]):not(.mermaid *):not(:where(.code-block-actions-host > :not(pre), .code-block-actions-host > :not(pre) *)) {
+    color: var(--pz-text) !important;
+}
+
+html[data-theme='dark'] .public-note .content.public-note-markdown a {
+    color: var(--pz-accent-text-hover) !important;
+}
+
+html[data-theme='dark'] .public-note .content.public-note-markdown pre {
+    background-color: var(--pz-code-bg) !important;
+    border-color: var(--pz-border) !important;
+    color: var(--pz-text-muted) !important;
+}
+
+html[data-theme='dark'] .public-note .content.public-note-markdown code:not([class*="hljs"]):not([class*="language-"]) {
+    background-color: var(--pz-surface) !important;
+    color: var(--pz-text);
+    border-color: var(--pz-border) !important;
+}
+
+html[data-theme='dark'] .public-note .content.public-note-markdown pre code:not([class*="hljs"]):not([class*="language-"]) {
+    background-color: transparent !important;
+    color: var(--pz-text-muted) !important;
+    border-color: transparent !important;
+}
+
+html[data-theme='dark'] .public-note .content.public-note-markdown pre code[class*="language-"],
+html[data-theme='dark'] .public-note .content.public-note-markdown code[class*="language-"] {
+    color: var(--pz-syntax-text) !important;
 }
 
 @media screen and (max-width: 800px) {
@@ -331,7 +462,7 @@ body.public-note-page {
 }
 
 /* Code block styles for public notes */
-.public-note .content code {
+.public-note .content:where(:not(.markdown-preview)) code {
     background-color: transparent;
     padding: 2px 6px;
     font-family: "Segoe UI Mono", "SF Mono", Monaco, Menlo, Consolas, "Ubuntu Mono", "Liberation Mono", "Courier New", monospace !important;
@@ -340,7 +471,7 @@ body.public-note-page {
     border-radius: var(--pz-radius-sm);
 }
 
-.public-note .content pre {
+.public-note .content:where(:not(.markdown-preview)) pre {
     font-family: "Segoe UI Mono", "SF Mono", Monaco, Menlo, Consolas, "Ubuntu Mono", "Liberation Mono", "Courier New", monospace !important;
     background: var(--pz-surface);
     padding: 30px !important;
@@ -360,11 +491,11 @@ body.public-note-page {
 }
 
 /* Extra padding for code blocks with language badge */
-.public-note .content pre[data-language] {
+.public-note .content:where(:not(.markdown-preview)) pre[data-language] {
     padding-top: 32px;
 }
 
-.public-note .content pre code {
+.public-note .content:where(:not(.markdown-preview)) pre code {
     background-color: transparent;
     padding: 0 !important;
     color: inherit;
@@ -443,7 +574,7 @@ body.public-note-page {
 }
 
 /* Blockquote styles */
-.public-note .content blockquote {
+.public-note .content:where(:not(.markdown-preview)) blockquote {
     border-left: 4px solid var(--pz-border);
     padding-left: 16px;
     margin: 1em 0;
@@ -452,14 +583,14 @@ body.public-note-page {
 }
 
 /* List styles */
-.public-note .content ul,
-.public-note .content ol {
+.public-note .content:where(:not(.markdown-preview)) ul,
+.public-note .content:where(:not(.markdown-preview)) ol {
     margin: 1em 0;
     padding-left: 2em;
     line-height: 1.6;
 }
 
-.public-note .content li {
+.public-note .content:where(:not(.markdown-preview)) li {
     margin: 0.5em 0;
 }
 
@@ -498,18 +629,18 @@ body.public-note-page {
 }
 
 /* Task list styles */
-.public-note .content ul.task-list {
+.public-note .content:where(:not(.markdown-preview)) ul.task-list {
     list-style: none;
     padding-left: 0;
 }
 
-.public-note .content li.task-list-item {
+.public-note .content:where(:not(.markdown-preview)) li.task-list-item {
     list-style: none;
     position: relative;
     padding-left: 0;
 }
 
-.public-note .content li.task-list-item input[type="checkbox"] {
+.public-note .content:where(:not(.markdown-preview)) li.task-list-item input[type="checkbox"] {
     margin-right: 0.8em;
     cursor: pointer;
     vertical-align: middle;
@@ -517,15 +648,15 @@ body.public-note-page {
 }
 
 /* Nested task lists need indentation */
-.public-note .content li.task-list-item>ul.task-list,
-.public-note .content li.task-list-item>ul,
-.public-note .content li.task-list-item>ol {
+.public-note .content:where(:not(.markdown-preview)) li.task-list-item>ul.task-list,
+.public-note .content:where(:not(.markdown-preview)) li.task-list-item>ul,
+.public-note .content:where(:not(.markdown-preview)) li.task-list-item>ol {
     padding-left: 1.5em;
     margin: 0.5em 0;
 }
 
 /* Style for checked task items */
-.public-note .content li.task-list-item input[type="checkbox"]:checked+span {
+.public-note .content:where(:not(.markdown-preview)) li.task-list-item input[type="checkbox"]:checked+span {
     text-decoration: line-through;
     color: var(--pz-text-muted);
 }
@@ -711,22 +842,22 @@ body.public-note-page {
 
 
 /* Horizontal rule */
-.public-note .content hr {
+.public-note .content:where(:not(.markdown-preview)) hr {
     border: 0;
     border-top: 2px solid var(--pz-border);
     margin: 2em 0;
 }
 
 /* Text formatting */
-.public-note .content strong {
+.public-note .content:where(:not(.markdown-preview)) strong {
     font-weight: var(--pz-weight-bold);
 }
 
-.public-note .content em {
+.public-note .content:where(:not(.markdown-preview)) em {
     font-style: italic;
 }
 
-.public-note .content del {
+.public-note .content:where(:not(.markdown-preview)) del {
     text-decoration: line-through;
     color: var(--pz-text-subtle);
 }
@@ -748,16 +879,16 @@ body.public-note-page {
 }
 
 /* Headings in content */
-.public-note .content h1 {
+.public-note .content:where(:not(.markdown-preview)) h1 {
     font-size: 2em;
     font-weight: var(--pz-weight-bold);
-    margin: 0.67em 0;
+    margin: 1em 0 0.67em;
 }
 
-.public-note .content h2 {
+.public-note .content:where(:not(.markdown-preview)) h2 {
     font-size: 1.5em;
     font-weight: var(--pz-weight-bold);
-    margin: 0.75em 0;
+    margin: 1.15em 0 0.75em;
 }
 
 /* Line under H1 and H2: markdown notes only, like in the app, where HTML
@@ -773,29 +904,43 @@ body:not(.markdown-no-heading-underline) .public-note .content.public-note-markd
     padding-bottom: 0.3em;
 }
 
-.public-note .content h3 {
+.public-note .content:where(:not(.markdown-preview)) h3 {
     font-size: 1.25em;
     font-weight: var(--pz-weight-bold);
-    margin: 0.83em 0;
+    margin: 1.25em 0 0.83em;
 }
 
-.public-note .content h4 {
+.public-note .content:where(:not(.markdown-preview)) h4 {
     font-size: 1em;
     font-weight: var(--pz-weight-bold);
-    margin: 1em 0;
+    margin: 1.5em 0 1em;
 }
 
-.public-note .content h5 {
+.public-note .content:where(:not(.markdown-preview)) h5 {
     font-size: 0.875em;
     font-weight: var(--pz-weight-bold);
-    margin: 1.33em 0;
+    margin: 2em 0 1.33em;
 }
 
-.public-note .content h6 {
+.public-note .content:where(:not(.markdown-preview)) h6 {
     font-size: 0.75em;
     font-weight: var(--pz-weight-bold);
-    margin: 1.67em 0;
+    margin: 2.5em 0 1.67em;
     color: var(--pz-text-muted);
+}
+
+/* Callout text at the size of the note, as in the app, where the note's font
+   size reaches every element of a note: the 14px of css/tasks.css made the
+   title and the body of a callout smaller here than in the note. */
+.public-note .content .callout :is(.callout-title-text, .callout-body) {
+    font-size: inherit;
+}
+
+/* About 50% more air above a heading than below it, so a heading reads as
+   the start of the next section. A heading that opens the note keeps none:
+   the space under the title is already there. */
+.public-note .content > :is(h1, h2, h3, h4, h5, h6):first-child {
+    margin-top: 0;
 }
 
 /* Section link after each heading (js/public-note.js): copies the page URL
@@ -865,43 +1010,16 @@ html[data-theme='dark'] #heading-copy-toast {
 }
 
 /* Paragraphs */
-.public-note .content p {
+.public-note .content:where(:not(.markdown-preview)) p {
     margin: 0;
     line-height: 1.2;
 }
 
 /* Blank lines to preserve spacing in markdown */
-.public-note .content p.blank-line {
+.public-note .content:where(:not(.markdown-preview)) p.blank-line {
     margin: 0;
     min-height: 1.2em; /* Match the line-height */
     line-height: 1.2;
-}
-
-/* Markdown notes: a blank source line is a block separator, not content, so
-   the parser stops emitting a placeholder for it and paragraphs carry the gap
-   themselves (same spacing as .markdown-preview). Rich-text notes keep the
-   flush paragraphs of the editor above. */
-.public-note .content.public-note-markdown p {
-    margin: 0 0 1em 0;
-}
-
-/* A toggle is a block of the note like a paragraph, so it keeps the same air
-   under it. Its own margin is the tight one of the editor, where a paragraph
-   has none (css/components/toggle-block.css). */
-.public-note .content.public-note-markdown .toggle-block {
-    margin-bottom: 1em;
-}
-
-.public-note .content.public-note-markdown .toggle-block:last-child {
-    margin-bottom: 0;
-}
-
-.public-note .content.public-note-markdown p.blank-line {
-    margin: 0;
-}
-
-.public-note .content.public-note-markdown p:last-child {
-    margin-bottom: 0;
 }
 
 .public-note-attachments-row {
@@ -916,7 +1034,7 @@ html[data-theme='dark'] #heading-copy-toast {
     display: flex;
     align-items: center;
     gap: 16px;
-    margin-bottom: 16px;
+    margin-bottom: 24px;
 }
 
 .public-note-top:has(.public-note-attachments-row) {
@@ -1048,26 +1166,26 @@ html[data-theme='dark'] .public-note audio::-webkit-media-controls-panel {
     background: var(--pz-surface-strong);
 }
 
-html[data-theme='dark'] .public-note .content pre {
+html[data-theme='dark'] .public-note .content:where(:not(.markdown-preview)) pre {
     background-color: var(--pz-code-bg);
     border-color: var(--pz-border);
     color: var(--pz-text-muted);
 }
 
-html[data-theme='dark'] .public-note .content code:not([class*="hljs"]):not([class*="language-"]) {
+html[data-theme='dark'] .public-note .content:where(:not(.markdown-preview)) code:not([class*="hljs"]):not([class*="language-"]) {
     background-color: var(--pz-surface);
     color: var(--pz-text);
     border-color: var(--pz-border);
 }
 
-html[data-theme='dark'] .public-note .content pre code:not([class*="hljs"]):not([class*="language-"]) {
+html[data-theme='dark'] .public-note .content:where(:not(.markdown-preview)) pre code:not([class*="hljs"]):not([class*="language-"]) {
     background-color: transparent;
     color: var(--pz-text-muted);
     border-color: transparent;
 }
 
-html[data-theme='dark'] .public-note .content pre code[class*="language-"],
-html[data-theme='dark'] .public-note .content code[class*="language-"] {
+html[data-theme='dark'] .public-note .content:where(:not(.markdown-preview)) pre code[class*="language-"],
+html[data-theme='dark'] .public-note .content:where(:not(.markdown-preview)) code[class*="language-"] {
     color: var(--pz-syntax-text);
 }
 
@@ -1105,7 +1223,7 @@ html[data-theme='dark'] .public-task-edit-cancel:hover {
     background-color: var(--pz-surface);
 }
 
-html[data-theme='dark'] .public-note .content blockquote {
+html[data-theme='dark'] .public-note .content:where(:not(.markdown-preview)) blockquote {
     border-left-color: var(--pz-border);
     color: var(--pz-text);
 }

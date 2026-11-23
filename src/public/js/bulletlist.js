@@ -286,7 +286,11 @@
   function handleKeyDown(event) {
     // Only handle Tab key
     if (event.key !== 'Tab') return;
-    
+
+    // While the slash menu is open, Tab and Shift+Tab move through it
+    // (js/slash-command.js), so the list item must stay where it is
+    if (document.querySelector('.slash-command-menu')) return;
+
     // Only handle if in a contenteditable context
     const target = event.target;
     if (!target.isContentEditable && target.contentEditable !== 'true') {

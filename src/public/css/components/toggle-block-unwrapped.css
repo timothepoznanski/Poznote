@@ -19,3 +19,11 @@
     margin-left: 6px;
     border-left: 1px solid var(--pz-border);
 }
+
+/* The air above and below the body of .toggle-content
+   (css/components/toggle-block.css), open only: a closed <details> still
+   draws the padding of its content box. */
+.toggle-block[open]:not(:has(> .toggle-content))::details-content {
+    padding-top: var(--pz-toggle-pad-y);
+    padding-bottom: var(--pz-toggle-pad-y);
+}

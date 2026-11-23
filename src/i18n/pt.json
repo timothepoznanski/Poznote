@@ -5751,6 +5751,7 @@
     "slash_menu_hint": "Alt + / ou nenhum atalho, conforme a opção nas Configurações. Um clique com o botão direito numa nota abre-o sempre",
     "emoji": "Inserir um emoji pelo nome",
     "indent": "Aumentar ou diminuir o recuo de um item de lista",
+    "list_item_move": "Mover um item de lista para cima ou para baixo",
     "checklist_toggle": "Marcar ou desmarcar um item da checklist",
     "note_reference_open": "Num [[link de nota]]: abrir a nota ou criá-la",
     "tree_move": "Ir para a nota ou pasta acima ou abaixo",

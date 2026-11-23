@@ -158,6 +158,13 @@ html body a.attachment-card[href]:has(+ .attachment-card-preview) {
     margin: 4px 0;
 }
 
+/* The tile is a block, so the <br> that ends the card's line (several lines
+   in one paragraph, what converting a Markdown note to rich text writes)
+   would draw an empty line under it. */
+.attachment-card-preview + br {
+    display: none;
+}
+
 /* A link to an attachment that is shown as a link, whatever the "Attachment
    links as cards" setting (a link in a sentence, which never becomes a card,
    and every attachment link once the setting is off, cards included) gets a

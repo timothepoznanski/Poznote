@@ -1191,7 +1191,7 @@ body.slash-menu-cursor-hidden * {
 .markdown-preview h1 {
     font-size: 2em;
     font-weight: var(--pz-weight-bold);
-    margin: 0.67em 0;
+    margin: 1em 0 0.67em;
     border-bottom: 2px solid var(--pz-border);
     padding-bottom: 0.3em;
 }
@@ -1199,7 +1199,7 @@ body.slash-menu-cursor-hidden * {
 .markdown-preview h2 {
     font-size: 1.5em;
     font-weight: var(--pz-weight-bold);
-    margin: 0.75em 0;
+    margin: 1.15em 0 0.75em;
     border-bottom: 1px solid var(--pz-border);
     padding-bottom: 0.3em;
 }
@@ -1207,27 +1207,36 @@ body.slash-menu-cursor-hidden * {
 .markdown-preview h3 {
     font-size: 1.25em;
     font-weight: var(--pz-weight-bold);
-    margin: 0.83em 0;
+    margin: 1.25em 0 0.83em;
 }
 
 /* margin !important: see the note title h4 reset in base.css */
 .markdown-preview h4 {
     font-size: 1em;
     font-weight: var(--pz-weight-bold);
-    margin: 1em 0 !important;
+    margin: 1.5em 0 1em !important;
 }
 
 .markdown-preview h5 {
     font-size: 0.875em;
     font-weight: var(--pz-weight-bold);
-    margin: 1.33em 0;
+    margin: 2em 0 1.33em;
 }
 
 .markdown-preview h6 {
     font-size: 0.75em;
     font-weight: var(--pz-weight-bold);
-    margin: 1.67em 0;
+    margin: 2.5em 0 1.67em;
     color: var(--pz-text-muted);
+}
+
+/* About 50% more air above a heading than below it, so a heading reads as
+   the start of the next section (same spacing as a public share, which
+   renders a Markdown note with these rules). A heading that opens the note
+   keeps none: the title is right above it. !important for the h4, whose
+   margin above is !important (the note title reset in base.css). */
+.markdown-preview > :is(h1, h2, h3, h4, h5, h6):first-child {
+    margin-top: 0 !important;
 }
 
 /* Heading anchor links (GitHub-style) */
@@ -1253,6 +1262,20 @@ body.slash-menu-cursor-hidden * {
 }
 
 .markdown-preview .toggle-block:last-child {
+    margin-bottom: 0;
+}
+
+/* An attachment card line is a block of the note too: the same air as a
+   paragraph under it, and the blank line typed above it gives the paragraph
+   before it its own margin (the parsers no longer turn that blank line into
+   a spacer), so the card sits as far from the text above as from the text
+   below. Two classes, to outrank the 4px of the component and the blanket
+   `.noteentry div { margin: 0 }` reset. */
+.markdown-preview .attachment-card-line {
+    margin: 0 0 1em;
+}
+
+.markdown-preview .attachment-card-line:last-child {
     margin-bottom: 0;
 }
 

@@ -6248,14 +6248,14 @@
     function handleKeydown(e) {
         if (!slashMenuElement) return;
 
-        // Tab confirms the highlighted entry like Enter (issue #1785), at every
-        // level. Shift+Tab is left alone.
-        const key = (e.key === 'Tab' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && !e.isComposing)
-            ? 'Enter' : e.key;
+        // Tab moves down the list like ArrowDown and Shift+Tab moves up like
+        // ArrowUp (discussion #1820), at every level; Enter confirms.
+        const isPlainTab = e.key === 'Tab' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.isComposing;
+        const key = isPlainTab ? (e.shiftKey ? 'ArrowUp' : 'ArrowDown') : e.key;
 
         // Ensure Enter key doesn't leak to underlying inputs when menu is open
         // (nor Tab to the list indent or the Markdown editor's own Tab)
-        if (key === 'Enter') {
+        if (key === 'Enter' || isPlainTab) {
             e.preventDefault();
             e.stopPropagation();
         }
@@ -7544,6 +7544,9 @@
     window.POZNOTE_QUOTE_CHOICES = QUOTE_CHOICES;
     window.applyQuoteToSelection = applyQuoteToSelection;
     window.getSelectionQuoteType = getSelectionQuoteType;
+    // The undo steps of DOM edits in an HTML note, also used by the list
+    // item move of js/list-item-move.js (discussion #1819)
+    window.poznoteHtmlUndoableStep = performHtmlUndoableStep;
 
     // Opens the menu from a button instead of a typed '/' (mobile editor bar):
     // the formatting menu on a selection, the insert menu at a bare caret. The

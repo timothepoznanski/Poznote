@@ -1017,7 +1017,7 @@ function generatePublicLookHtml($content, $title, $noteType, $referenceResolver 
     }
 
     $cleanContent = cleanExportContent($content, $referenceResolver);
-    $markdownClass = $noteType === 'markdown' ? ' markdown-preview' : '';
+    $markdownClass = $noteType === 'markdown' ? ' public-note-markdown markdown-preview' : '';
 
     return '<!DOCTYPE html>
 <html lang="' . htmlspecialchars(getUserLanguage(), ENT_QUOTES) . '" data-theme="light" class="theme-light">
