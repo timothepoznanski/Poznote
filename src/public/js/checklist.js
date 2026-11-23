@@ -1183,10 +1183,10 @@
       return;
     }
 
-    // While the slash menu is open, Enter and the arrows are its own: this
-    // listener runs first, and Enter used to split the item instead of
-    // running the command (issue #1686)
-    if ((event.key === 'Enter' || event.key === 'ArrowUp' || event.key === 'ArrowDown')
+    // While the slash menu is open, Enter, the arrows and Tab are its own:
+    // this listener runs first, and Enter used to split the item instead of
+    // running the command (issue #1686), Tab to indent it (discussion #1820)
+    if ((event.key === 'Enter' || event.key === 'ArrowUp' || event.key === 'ArrowDown' || event.key === 'Tab')
       && document.querySelector('.slash-command-menu')) return;
     if (event.isComposing) return;
 

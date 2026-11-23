@@ -6248,14 +6248,14 @@
     function handleKeydown(e) {
         if (!slashMenuElement) return;
 
-        // Tab confirms the highlighted entry like Enter (issue #1785), at every
-        // level. Shift+Tab is left alone.
-        const key = (e.key === 'Tab' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && !e.isComposing)
-            ? 'Enter' : e.key;
+        // Tab moves down the list like ArrowDown and Shift+Tab moves up like
+        // ArrowUp (discussion #1820), at every level; Enter confirms.
+        const isPlainTab = e.key === 'Tab' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.isComposing;
+        const key = isPlainTab ? (e.shiftKey ? 'ArrowUp' : 'ArrowDown') : e.key;
 
         // Ensure Enter key doesn't leak to underlying inputs when menu is open
         // (nor Tab to the list indent or the Markdown editor's own Tab)
-        if (key === 'Enter') {
+        if (key === 'Enter' || isPlainTab) {
             e.preventDefault();
             e.stopPropagation();
         }
