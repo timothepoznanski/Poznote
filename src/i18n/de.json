@@ -5750,6 +5750,7 @@
     "slash_menu_hint": "Alt + / oder gar kein Tastenkürzel, je nach Option in den Einstellungen. Ein Rechtsklick in einer Notiz öffnet es immer",
     "emoji": "Emoji über seinen Namen einfügen",
     "indent": "Listenelement ein- oder ausrücken",
+    "list_item_move": "Listenelement nach oben oder unten verschieben",
     "checklist_toggle": "Checklistenelement abhaken oder zurücksetzen",
     "note_reference_open": "Auf einem [[Notizlink]]: Notiz öffnen oder erstellen",
     "tree_move": "Zur Notiz oder zum Ordner darüber oder darunter wechseln",

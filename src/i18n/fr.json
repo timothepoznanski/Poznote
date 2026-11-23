@@ -5855,6 +5855,7 @@
     "slash_menu_hint": "Alt + / ou aucun raccourci, selon l'option dans les paramètres. Un clic droit dans une note l'ouvre toujours",
     "emoji": "Insérer un emoji par son nom",
     "indent": "Indenter ou désindenter un élément de liste",
+    "list_item_move": "Monter ou descendre un élément de liste",
     "checklist_toggle": "Cocher ou décocher un élément de checklist",
     "note_reference_open": "Sur un [[lien de note]] : ouvrir la note, ou la créer",
     "tree_move": "Aller à la note ou au dossier au-dessus ou en dessous",

@@ -5586,6 +5586,7 @@
     "slash_menu_hint": "Alt + / of helemaal geen sneltoets, afhankelijk van de optie in Instellingen. Met de rechtermuisknop in een notitie open je het altijd",
     "emoji": "Een emoji invoegen op naam",
     "indent": "Een lijstitem laten inspringen of uitspringen",
+    "list_item_move": "Een lijstitem omhoog of omlaag verplaatsen",
     "checklist_toggle": "Een checklistitem aan- of uitvinken",
     "note_reference_open": "Op een [[notitielink]]: de notitie openen of aanmaken",
     "tree_move": "Naar de notitie of map erboven of eronder gaan",

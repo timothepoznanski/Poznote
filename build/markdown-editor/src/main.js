@@ -24,6 +24,7 @@ import { powerShell } from '@codemirror/legacy-modes/mode/powershell'
 import { ruby } from '@codemirror/legacy-modes/mode/ruby'
 import { shell } from '@codemirror/legacy-modes/mode/shell'
 import { hclMode, tomlMode } from './config-languages.js'
+import { listMoveKeymap } from './list-move.js'
 import { highlightSelectionMatches, searchKeymap } from '@codemirror/search'
 // searchKeymap includes Mod-f (Ctrl+F) which would intercept the browser's native find.
 // We filter it out so Ctrl+F opens the browser find dialog instead of CodeMirror's panel.
@@ -2160,6 +2161,9 @@ function createEditor(host, options = {}) {
         { key: 'Enter', run: insertNewlineContinueMarkup },
         { key: 'Enter', run: insertNewlineAtColumnZero },
         { key: 'Mod-Shift-b', run: toggleFencedCodeBlock },
+        // Before defaultKeymap, whose Cmd+Shift+Arrow selects to the start
+        // or the end of the document on a Mac (discussion #1819)
+        ...listMoveKeymap,
         { key: 'Mod-b', run: wrapSelection('**', '**') },
         { key: 'Backspace', run: deleteMarkerPair },
         ...closeBracketsKeymap,

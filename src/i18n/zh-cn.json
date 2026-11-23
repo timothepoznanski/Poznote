@@ -5847,6 +5847,7 @@
     "slash_menu_hint": "Alt + / 或完全不用快捷键，取决于设置中的选项。在笔记中点击右键始终可以打开它",
     "emoji": "按名称插入表情",
     "indent": "增加或减少列表项缩进",
+    "list_item_move": "上移或下移列表项",
     "checklist_toggle": "勾选或取消勾选清单项",
     "note_reference_open": "在 [[笔记链接]] 上:打开笔记,或创建笔记",
     "tree_move": "移动到上方或下方的笔记或文件夹",

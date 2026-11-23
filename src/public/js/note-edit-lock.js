@@ -759,6 +759,10 @@
     function isCheckingEditKey(event) {
         var key = String(event.key || '');
         if (event.ctrlKey || event.metaKey) {
+            // Ctrl/Cmd+Shift+Up/Down moves a list item (discussion #1819)
+            if (event.shiftKey && (key === 'ArrowUp' || key === 'ArrowDown')) {
+                return true;
+            }
             return CHECKING_EDIT_SHORTCUTS[key.toLowerCase()] === 1;
         }
         return key.length === 1 || CHECKING_EDIT_KEYS[key] === 1;

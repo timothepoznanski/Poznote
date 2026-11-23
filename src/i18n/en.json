@@ -5586,6 +5586,7 @@
     "slash_menu_hint": "Alt + / or no shortcut at all, depending on the option in Settings. A right-click in a note always opens it",
     "emoji": "Insert an emoji by its name",
     "indent": "Indent or outdent a list item",
+    "list_item_move": "Move a list item up or down",
     "checklist_toggle": "Check or uncheck a checklist item",
     "note_reference_open": "On a [[note link]]: open the note, or create it",
     "tree_move": "Move to the note or folder above or below",

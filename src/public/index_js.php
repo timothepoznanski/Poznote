@@ -47,6 +47,7 @@ function poznoteGetIndexJsGroups(): array {
         'js/markdown-formatting.js',
         'js/checklist.js',
         'js/bulletlist.js',
+        'js/list-item-move.js',
         'js/note-dom-cache.js',
         'js/note-loader.js',
         'js/note-image-menu.js',

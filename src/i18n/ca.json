@@ -5586,6 +5586,7 @@
     "slash_menu_hint": "Alt + / o cap drecera, segons l'opció de Paràmetres. Un clic amb el botó dret en una nota sempre l'obre",
     "emoji": "Insereix un emoji pel nom",
     "indent": "Augmenta o redueix el sagnat d'un element de llista",
+    "list_item_move": "Puja o baixa un element de llista",
     "checklist_toggle": "Marca o desmarca un element d'una llista de comprovació",
     "note_reference_open": "En un [[enllaç de nota]]: obre la nota o crea-la",
     "tree_move": "Ves a la nota o la carpeta de dalt o de baix",

@@ -7544,6 +7544,9 @@
     window.POZNOTE_QUOTE_CHOICES = QUOTE_CHOICES;
     window.applyQuoteToSelection = applyQuoteToSelection;
     window.getSelectionQuoteType = getSelectionQuoteType;
+    // The undo steps of DOM edits in an HTML note, also used by the list
+    // item move of js/list-item-move.js (discussion #1819)
+    window.poznoteHtmlUndoableStep = performHtmlUndoableStep;
 
     // Opens the menu from a button instead of a typed '/' (mobile editor bar):
     // the formatting menu on a selection, the insert menu at a bare caret. The
