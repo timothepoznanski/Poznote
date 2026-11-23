@@ -1831,7 +1831,7 @@
   },
   "update": {
     "new_available": "🎉 Hi ha una actualització nova disponible.",
-    "new_version_available": "Si gestioneu vós mateix aquesta instal·lació, seguiu les instruccions de GitHub <a href=\"https://github.com/timothepoznanski/poznote#update-application\" target=\"_blank\">aquí</a> per actualitzar-la. Si no, l'ha d'actualitzar el vostre proveïdor d'allotjament.",
+    "new_version_available": "Si gestioneu vós mateix aquesta instal·lació, seguiu les instruccions de GitHub <a href=\"https://github.com/timothepoznanski/poznote/blob/main/docs/README.ca.md#actualització-de-laplicació\" target=\"_blank\">aquí</a> per actualitzar-la. Si no, l'ha d'actualitzar el vostre proveïdor d'allotjament.",
     "description": "Les dades es conservaran durant l'actualització.",
     "up_to_date": "✅ El Poznote està actualitzat",
     "error_loading_version": "S'ha produït un error en carregar la versió",

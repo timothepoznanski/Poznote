@@ -1,7 +1,7 @@
 // Update checking for Poznote.
 // 
 // Polls for a newer release, shows the update badge on the sidebar and settings entries,
-// and renders the update instructions (self-hosted vs cloud).
+// and fills the update modal (versions, and the link to the update instructions).
 
 // Update management
 function checkForUpdates() {
@@ -265,14 +265,6 @@ function closeUpdateModal() {
     if (modal) {
         modal.style.display = 'none';
     }
-}
-
-function goToSelfHostedUpdateInstructions() {
-    window.open('https://github.com/timothepoznanski/poznote#update-application', '_blank');
-}
-
-function goToCloudUpdateInstructions() {
-    window.open('https://github.com/timothepoznanski/poznote/blob/main/docs/POZNOTE-CLOUD.md', '_blank');
 }
 
 function showUpdateCheckModal() {

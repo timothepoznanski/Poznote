@@ -27,16 +27,6 @@
                 break;
 
             // Update modal actions
-            case 'go-to-self-hosted-update':
-                if (typeof goToSelfHostedUpdateInstructions === 'function') {
-                    goToSelfHostedUpdateInstructions();
-                }
-                break;
-            case 'go-to-cloud-update':
-                if (typeof goToCloudUpdateInstructions === 'function') {
-                    goToCloudUpdateInstructions();
-                }
-                break;
             case 'close-update-modal':
                 if (typeof closeUpdateModal === 'function') {
                     closeUpdateModal();
