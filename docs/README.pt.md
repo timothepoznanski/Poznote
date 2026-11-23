@@ -444,6 +444,38 @@ Salve o arquivo e inicie os contêineres novamente para aplicar as alterações:
 docker compose up -d
 ```
 
+### Segredos em arquivos (`_FILE`)
+
+Tudo o que é definido no `.env` vai parar na configuração do contêiner, onde `docker inspect` o mostra em texto puro para qualquer pessoa com acesso ao Docker. Esses segredos podem ser lidos de um arquivo: defina o mesmo nome seguido de `_FILE` com o caminho do arquivo dentro do contêiner, e deixe a própria variável vazia.
+
+- `POZNOTE_OIDC_CLIENT_SECRET_FILE`
+- `POZNOTE_SETTINGS_PASSWORD_FILE`
+- `POZNOTE_MCP_AUTH_TOKEN_FILE`, `POZNOTE_MCP_AUTH_CLIENT_SECRET_FILE` (a adicionar com o respectivo secret ao serviço `mcp-server` do `docker-compose.yml`, pois esse contêiner só recebe as variáveis listadas ali)
+
+Por exemplo, com um secret do Docker Compose para o client secret do OIDC, no `docker-compose.yml`:
+
+```yaml
+services:
+  webserver:
+    environment:
+      POZNOTE_OIDC_CLIENT_SECRET_FILE: /run/secrets/oidc_client_secret
+    secrets:
+      - oidc_client_secret
+
+secrets:
+  oidc_client_secret:
+    file: ./secrets/oidc_client_secret
+```
+
+O Docker Compose monta o arquivo com o dono e as permissões que ele tem no host, então ele precisa ser legível dentro do contêiner: pelo uid 82 no contêiner `webserver` (uid 1000 com a imagem rootless), e pelo uid 1000 no contêiner `mcp-server`.
+
+```bash
+sudo chown 82:82 secrets/oidc_client_secret
+sudo chmod 400 secrets/oidc_client_secret
+```
+
+Uma quebra de linha no fim do arquivo é ignorada. Se o arquivo não puder ser lido, ou se a variável e a sua versão `_FILE` estiverem definidas ao mesmo tempo, o contêiner para na inicialização com um erro que indica a variável e o caminho (veja `docker compose logs`), em vez de funcionar com um segredo vazio.
+
 ## Atualizar o aplicativo
 
 Entre no diretório do Poznote:
@@ -1113,8 +1145,10 @@ Um **backup completo do sistema**, que inclui a configuração mestre (contas, c
 
 ```bash
 # Backup completo do sistema pela linha de comando
-tar -czvf poznote-full-backup.tar.gz data/
+sudo tar -czvf poznote-full-backup.tar.gz data/
 ```
+
+Execute-o com `sudo`: alguns arquivos de `data/` são reservados ao contêiner, entre eles a chave de criptografia `data/.app_secret`. Uma instância restaurada sem essa chave não consegue mais ler o token do Git nem as chaves de API de IA salvos, que precisam ser digitados de novo.
 
 </details>
 

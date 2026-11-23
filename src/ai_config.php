@@ -14,6 +14,7 @@
  */
 
 require_once __DIR__ . '/users/db_master.php';
+require_once __DIR__ . '/lib/app-secret.php';
 require_once __DIR__ . '/lib/ai-upstream.php';
 require_once __DIR__ . '/lib/ai-mcp.php';
 
@@ -63,34 +64,7 @@ function poznoteAiNormalizeReasoningEffort($value): string {
  * share passwords use, so personal API keys are never stored in clear text.
  */
 function poznoteAiEncryptionKey(): string {
-    $keyFile = __DIR__ . '/data/.app_secret';
-    $envSecret = getenv('POZNOTE_APP_SECRET');
-
-    if ($envSecret) {
-        if (!file_exists($keyFile)) {
-            $dir = dirname($keyFile);
-            if (!is_dir($dir)) {
-                mkdir($dir, 0755, true);
-            }
-            file_put_contents($keyFile, $envSecret);
-            chmod($keyFile, 0600);
-        }
-        return hash('sha256', $envSecret, true);
-    }
-
-    if (file_exists($keyFile)) {
-        $secret = trim((string)file_get_contents($keyFile));
-    } else {
-        $dir = dirname($keyFile);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-        $secret = bin2hex(random_bytes(32));
-        file_put_contents($keyFile, $secret);
-        chmod($keyFile, 0600);
-    }
-
-    return hash('sha256', $secret, true);
+    return poznoteAppSecretKey();
 }
 
 function poznoteAiEncryptSecret(string $plain): string {

@@ -19,7 +19,10 @@ class GlobalSettingKeysTests(unittest.TestCase):
     def test_every_php_global_setting_is_known_to_the_mcp_server(self):
         block = re.search(r"private \$globalSettings = \[(.*?)\];", PHP.read_text(encoding="utf-8"), re.S)
         self.assertIsNotNone(block, "SettingsController::$globalSettings not found")
-        php_keys = set(re.findall(r"'([a-z0-9_]+)'", block.group(1)))
+        # Comments in the block quote setting VALUES ('all' or 'minor'), not keys.
+        entries = re.sub(r"//[^\n]*", "", block.group(1))
+        php_keys = set(re.findall(r"'([a-z0-9_]+)'", entries))
+        self.assertIn("smtp_app_url", php_keys, "the block was not read")
         self.assertEqual(sorted(php_keys - server.GLOBAL_SETTING_KEYS), [])
 
 

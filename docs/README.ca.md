@@ -444,6 +444,38 @@ Deseu el fitxer i torneu a iniciar els contenidors per aplicar els canvis:
 docker compose up -d
 ```
 
+### Secrets en fitxers (`_FILE`)
+
+Tot el que es defineix a `.env` acaba a la configuració del contenidor, on `docker inspect` ho mostra en text pla a qualsevol persona amb accés a Docker. Aquests secrets es poden llegir d'un fitxer: definiu el mateix nom seguit de `_FILE` amb el camí del fitxer dins del contenidor, i deixeu buida la variable mateixa.
+
+- `POZNOTE_OIDC_CLIENT_SECRET_FILE`
+- `POZNOTE_SETTINGS_PASSWORD_FILE`
+- `POZNOTE_MCP_AUTH_TOKEN_FILE`, `POZNOTE_MCP_AUTH_CLIENT_SECRET_FILE` (que cal afegir amb el seu secret al servei `mcp-server` de `docker-compose.yml`, ja que aquest contenidor només rep les variables que hi figuren)
+
+Per exemple, amb un secret de Docker Compose per al secret de client OIDC, a `docker-compose.yml`:
+
+```yaml
+services:
+  webserver:
+    environment:
+      POZNOTE_OIDC_CLIENT_SECRET_FILE: /run/secrets/oidc_client_secret
+    secrets:
+      - oidc_client_secret
+
+secrets:
+  oidc_client_secret:
+    file: ./secrets/oidc_client_secret
+```
+
+Docker Compose munta el fitxer amb el propietari i els permisos que té a l'amfitrió, per tant ha de ser llegible dins del contenidor: per l'uid 82 al contenidor `webserver` (uid 1000 amb la imatge rootless), i per l'uid 1000 al contenidor `mcp-server`.
+
+```bash
+sudo chown 82:82 secrets/oidc_client_secret
+sudo chmod 400 secrets/oidc_client_secret
+```
+
+Un salt de línia al final del fitxer s'ignora. Si el fitxer no es pot llegir, o si la variable i la seva versió `_FILE` estan definides alhora, el contenidor s'atura en iniciar-se amb un error que indica la variable i el camí (vegeu `docker compose logs`), en lloc de funcionar amb un secret buit.
+
 ## Actualització de l'aplicació
 
 Aneu al directori del Poznote:
@@ -1113,8 +1145,10 @@ Una **còpia de seguretat completa del sistema**, que inclou la configuració pr
 
 ```bash
 # Complete system backup via CLI
-tar -czvf poznote-full-backup.tar.gz data/
+sudo tar -czvf poznote-full-backup.tar.gz data/
 ```
+
+Executeu-la amb `sudo`: alguns fitxers de `data/` estan reservats al contenidor, entre ells la clau de xifratge `data/.app_secret`. Una instància restaurada sense aquesta clau ja no pot llegir el testimoni de Git ni les claus d'API d'IA desats, que caldrà tornar a introduir.
 
 </details>
 

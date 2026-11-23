@@ -60,6 +60,7 @@ from starlette.middleware import Middleware
 from .client import PoznoteClient
 from . import note_sections, note_text
 from .guide import GUIDE, GUIDE_RESOURCE_NAME, GUIDE_URI
+from .env import env_or_file
 from fastmcp.server.auth import AuthContext
 from fastmcp.server.middleware import AuthMiddleware
 
@@ -354,11 +355,12 @@ def _build_http_middleware(token: str | None, external: bool = False) -> list[Mi
 def _load_inbound_auth_token(env_value: str | None = None) -> str | None:
     """Return the bearer token clients must present, or None when auth is off.
 
-    Reads POZNOTE_MCP_AUTH_TOKEN. An unset or blank value disables inbound
-    authentication (the historical behaviour); whitespace is stripped so a
-    trailing newline from a secrets file does not lock everyone out.
+    Reads POZNOTE_MCP_AUTH_TOKEN, or the file POZNOTE_MCP_AUTH_TOKEN_FILE
+    names (#1815). An unset or blank value disables inbound authentication
+    (the historical behaviour); whitespace is stripped so a trailing newline
+    from a secrets file does not lock everyone out.
     """
-    raw = os.getenv(AUTH_TOKEN_ENV) if env_value is None else env_value
+    raw = env_or_file(AUTH_TOKEN_ENV) if env_value is None else env_value
     token = (raw or "").strip()
     return token or None
 
@@ -4320,6 +4322,8 @@ GLOBAL_SETTING_KEYS = frozenset({
     'smtp_password', 'smtp_from_email', 'smtp_from_name', 'smtp_app_url',
     'smtp_reminder_cutoff_at', 'outbound_allowed_hosts',
     'ai_chat_mcp_enabled', 'ai_chat_mcp_user_servers_enabled',
+    'login_disabled_user_ids', 'remember_me_days', 'embed_providers_disabled',
+    'update_badge_level', 'update_check_interval_days',
 })
 
 

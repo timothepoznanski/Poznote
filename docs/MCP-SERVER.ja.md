@@ -223,7 +223,7 @@ POZNOTE_MCP_AUTH_TOKEN=paste-the-token-here
 docker compose up -d --force-recreate mcp-server
 ```
 
-そのうえで、クライアントの設定にも同じヘッダーを追加します。[VS Code Copilot](VSCODE-COPILOT.ja.md#認証トークンを使う)と[Claude CLI](CLAUDE-CLI.ja.md#認証トークンを使う)を参照してください。前後の空白は無視されるので、シークレットのファイルから読み込んだトークンの末尾に改行があっても動作します。値が空の場合、エンドポイントは誰でも接続できる状態のままになります。どちらのモードが有効かは、起動時のログの行でわかります。
+そのうえで、クライアントの設定にも同じヘッダーを追加します。[VS Code Copilot](VSCODE-COPILOT.ja.md#認証トークンを使う)と[Claude CLI](CLAUDE-CLI.ja.md#認証トークンを使う)を参照してください。前後の空白は無視されるので、シークレットのファイルから読み込んだトークンの末尾に改行があっても動作します。値が空の場合、エンドポイントは誰でも接続できる状態のままになります。どちらのモードが有効かは、起動時のログの行でわかります。トークンを `docker inspect` に表示させたくない場合は、ファイルに保存し、代わりに `POZNOTE_MCP_AUTH_TOKEN_FILE` にそのパスを設定してください。[ファイルからシークレットを読み込む](README.ja.md#ファイルからシークレットを読み込む_file)を参照してください。
 
 このトークンは`data/.mcp_token`とは別物です。`data/.mcp_token`は、MCPサーバーがPoznote APIに*アクセスする*ために使うもので、こちらは*AIアシスタント*がMCPサーバーに提示しなければならないものです。
 

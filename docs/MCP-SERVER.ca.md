@@ -223,7 +223,7 @@ POZNOTE_MCP_AUTH_TOKEN=paste-the-token-here
 docker compose up -d --force-recreate mcp-server
 ```
 
-Després afegiu la mateixa capçalera a la configuració del client: vegeu [VS Code Copilot](VSCODE-COPILOT.ca.md#ús-dun-testimoni-dautenticació) i [Claude CLI](CLAUDE-CLI.ca.md#ús-dun-testimoni-dautenticació). Els espais en blanc inicials i finals s'ignoren, de manera que un testimoni llegit d'un fitxer de secrets amb un salt de línia final continua funcionant. Un valor buit manté el punt final obert. La línia del registre d'inici indica quin mode està actiu.
+Després afegiu la mateixa capçalera a la configuració del client: vegeu [VS Code Copilot](VSCODE-COPILOT.ca.md#ús-dun-testimoni-dautenticació) i [Claude CLI](CLAUDE-CLI.ca.md#ús-dun-testimoni-dautenticació). Els espais en blanc inicials i finals s'ignoren, de manera que un testimoni llegit d'un fitxer de secrets amb un salt de línia final continua funcionant. Un valor buit manté el punt final obert. La línia del registre d'inici indica quin mode està actiu. Perquè el testimoni no aparegui a `docker inspect`, poseu-lo en un fitxer i definiu en canvi `POZNOTE_MCP_AUTH_TOKEN_FILE` amb el seu camí, vegeu [Secrets en fitxers](README.ca.md#secrets-en-fitxers-_file).
 
 Aquest testimoni és diferent de `data/.mcp_token`: aquell el fa servir el servidor MCP per comunicar-se *amb* l'API del Poznote, i aquest és el que *el vostre assistent d'IA* ha de presentar al servidor MCP.
 

@@ -444,6 +444,38 @@ Speichern Sie die Datei und starten Sie die Container erneut, um die Änderungen
 docker compose up -d
 ```
 
+### Geheimnisse in Dateien (`_FILE`)
+
+Alles, was in `.env` steht, landet in der Konfiguration des Containers, wo `docker inspect` es jedem mit Zugriff auf Docker im Klartext anzeigt. Diese Geheimnisse können stattdessen aus einer Datei gelesen werden: Setzen Sie denselben Namen mit angehängtem `_FILE` auf den Pfad der Datei im Container, und lassen Sie die Variable selbst leer.
+
+- `POZNOTE_OIDC_CLIENT_SECRET_FILE`
+- `POZNOTE_SETTINGS_PASSWORD_FILE`
+- `POZNOTE_MCP_AUTH_TOKEN_FILE`, `POZNOTE_MCP_AUTH_CLIENT_SECRET_FILE` (zusammen mit ihrem Secret beim Dienst `mcp-server` in `docker-compose.yml` einzutragen, dieser Container erhält nur die dort aufgeführten Variablen)
+
+Zum Beispiel mit einem Docker-Compose-Secret für das OIDC-Client-Secret, in `docker-compose.yml`:
+
+```yaml
+services:
+  webserver:
+    environment:
+      POZNOTE_OIDC_CLIENT_SECRET_FILE: /run/secrets/oidc_client_secret
+    secrets:
+      - oidc_client_secret
+
+secrets:
+  oidc_client_secret:
+    file: ./secrets/oidc_client_secret
+```
+
+Docker Compose bindet die Datei mit dem Eigentümer und den Rechten ein, die sie auf dem Host hat, sie muss also im Container lesbar sein: für uid 82 im Container `webserver` (uid 1000 mit dem Rootless-Image) und für uid 1000 im Container `mcp-server`.
+
+```bash
+sudo chown 82:82 secrets/oidc_client_secret
+sudo chmod 400 secrets/oidc_client_secret
+```
+
+Ein Zeilenumbruch am Ende der Datei wird ignoriert. Kann die Datei nicht gelesen werden, oder sind die Variable und ihre `_FILE`-Version beide gesetzt, hält der Container beim Start mit einer Fehlermeldung an, die die Variable und den Pfad nennt (siehe `docker compose logs`), statt mit einem leeren Geheimnis zu laufen.
+
 ## Anwendung aktualisieren
 
 Wechseln Sie in Ihr Poznote-Verzeichnis:
@@ -1113,8 +1145,10 @@ Eine **vollständige Systemsicherung**, die die Master-Konfiguration (Konten, gl
 
 ```bash
 # Vollständige Systemsicherung über die Kommandozeile
-tar -czvf poznote-full-backup.tar.gz data/
+sudo tar -czvf poznote-full-backup.tar.gz data/
 ```
+
+Führen Sie ihn mit `sudo` aus: Einige Dateien in `data/` sind dem Container vorbehalten, darunter der Schlüssel `data/.app_secret`. Eine ohne diesen Schlüssel wiederhergestellte Instanz kann ihr gespeichertes Git-Token und ihre KI-API-Schlüssel nicht mehr lesen, sie müssen dann neu eingegeben werden.
 
 </details>
 

@@ -8,6 +8,7 @@
  */
 
 require_once __DIR__ . '/users/db_master.php';
+require_once __DIR__ . '/lib/app-secret.php';
 require_once __DIR__ . '/lib/outbound-url.php';
 require_once __DIR__ . '/lib/note-lock.php';
 
@@ -78,34 +79,9 @@ class GitSync {
         // session-free prevents async sync jobs from blocking progress polling.
     }
     
-    /**
-     * Derive a 32-byte encryption key from the instance secret.
-     * Auto-generates and persists a key in data/.app_secret.
-     * For backward compat, POZNOTE_APP_SECRET env var is still honoured
-     * and its value is migrated to the key file so users can remove it.
-     */
+    /** 32-byte key derived from data/.app_secret (lib/app-secret.php). */
     private function getEncryptionKey(): string {
-        $keyFile = __DIR__ . '/data/.app_secret';
-        $envSecret = getenv('POZNOTE_APP_SECRET');
-
-        if ($envSecret) {
-            // Migrate env-var value to file so users can drop the env var later
-            if (!file_exists($keyFile)) {
-                file_put_contents($keyFile, $envSecret);
-                chmod($keyFile, 0600);
-            }
-            return hash('sha256', $envSecret, true);
-        }
-
-        if (file_exists($keyFile)) {
-            $secret = trim(file_get_contents($keyFile));
-        } else {
-            $secret = bin2hex(random_bytes(32));
-            file_put_contents($keyFile, $secret);
-            chmod($keyFile, 0600);
-        }
-
-        return hash('sha256', $secret, true);
+        return poznoteAppSecretKey();
     }
 
     private function encryptToken(string $plain): string {

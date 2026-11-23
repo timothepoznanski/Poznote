@@ -444,6 +444,38 @@ Lưu tệp và khởi động lại các container để áp dụng thay đổi:
 docker compose up -d
 ```
 
+### Bí mật trong tệp (`_FILE`)
+
+Mọi thứ đặt trong `.env` đều nằm trong cấu hình của container, nơi `docker inspect` hiển thị dưới dạng văn bản thô cho bất kỳ ai có quyền truy cập Docker. Các bí mật sau có thể được đọc từ một tệp thay thế: đặt biến cùng tên kèm hậu tố `_FILE` bằng đường dẫn của tệp bên trong container, và để trống chính biến đó.
+
+- `POZNOTE_OIDC_CLIENT_SECRET_FILE`
+- `POZNOTE_SETTINGS_PASSWORD_FILE`
+- `POZNOTE_MCP_AUTH_TOKEN_FILE`, `POZNOTE_MCP_AUTH_CLIENT_SECRET_FILE` (cần thêm cùng với secret của chúng vào dịch vụ `mcp-server` trong `docker-compose.yml`, vì container này chỉ nhận các biến được liệt kê ở đó)
+
+Ví dụ, dùng một secret của Docker Compose cho client secret OIDC, trong `docker-compose.yml`:
+
+```yaml
+services:
+  webserver:
+    environment:
+      POZNOTE_OIDC_CLIENT_SECRET_FILE: /run/secrets/oidc_client_secret
+    secrets:
+      - oidc_client_secret
+
+secrets:
+  oidc_client_secret:
+    file: ./secrets/oidc_client_secret
+```
+
+Docker Compose gắn tệp với chủ sở hữu và quyền mà tệp có trên máy chủ, vì vậy tệp phải đọc được bên trong container: bởi uid 82 trong container `webserver` (uid 1000 với image rootless), và bởi uid 1000 trong container `mcp-server`.
+
+```bash
+sudo chown 82:82 secrets/oidc_client_secret
+sudo chmod 400 secrets/oidc_client_secret
+```
+
+Ký tự xuống dòng ở cuối tệp được bỏ qua. Nếu không đọc được tệp, hoặc nếu cả biến lẫn phiên bản `_FILE` của nó đều được đặt, container sẽ dừng khi khởi động với lỗi nêu tên biến và đường dẫn (xem `docker compose logs`), thay vì chạy với một bí mật rỗng.
+
 ## Cập nhật ứng dụng
 
 Di chuyển vào thư mục Poznote của bạn:
@@ -1114,8 +1146,10 @@ Tất cả các cách trên tạo ra **bản sao lưu theo từng người dùng
 
 ```bash
 # Complete system backup via CLI
-tar -czvf poznote-full-backup.tar.gz data/
+sudo tar -czvf poznote-full-backup.tar.gz data/
 ```
+
+Hãy chạy lệnh với `sudo`: một số tệp trong `data/` chỉ dành riêng cho container, trong đó có khóa mã hóa `data/.app_secret`. Một instance được khôi phục mà thiếu khóa này sẽ không còn đọc được token Git và các khóa API AI đã lưu, và phải nhập lại.
 
 </details>
 

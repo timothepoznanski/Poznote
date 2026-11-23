@@ -8,18 +8,8 @@ require_once __DIR__ . '/lib/color-palette.php';
 require_once __DIR__ . '/lib/search-toggle.php';
 require_once __DIR__ . '/lib/workspace-accent.php';
 
-// ============================================================
-// HELPER: Read environment variable safely
-// ============================================================
-// getenv() returns false (not null) when a variable is not set.
-// The ?? operator only checks for null, so getenv('X') ?? 'default'
-// would yield false instead of 'default'. This helper fixes that.
-function _env(string $key, $default = '') {
-    $val = $_ENV[$key] ?? null;
-    if ($val !== null) return $val;
-    $val = getenv($key);
-    return ($val !== false) ? $val : $default;
-}
+// _env(): read an environment variable safely, or the file <KEY>_FILE names
+require_once __DIR__ . '/lib/env.php';
 
 /**
  * Return a cache version that changes when theme-critical assets change.
