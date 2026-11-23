@@ -518,7 +518,7 @@ try {
     
     // A trashed note must not be served publicly: the share goes dormant and
     // comes back if the note is restored from the trash.
-    $stmt = $con->prepare('SELECT heading, entry, created, updated, type, attachments, icon, icon_color, linked_note_id FROM entries WHERE id = ? AND trash = 0');
+    $stmt = $con->prepare('SELECT heading, entry, created, updated, type, attachments, icon, icon_color, title_color, title_size, linked_note_id FROM entries WHERE id = ? AND trash = 0');
     $stmt->execute([$note_id]);
     $note = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -989,6 +989,9 @@ if (poznoteMarkdownColoredEnabled($markdownColoredTheme)) {
                   <?php endif; ?>
                   <div class="public-note-header">
                       <?php
+                      // The title as the editor shows it (note_display.php): the
+                      // note's icon, or the icon of its type when it has none,
+                      // and the size and colour set from the title's menu
                       $pnShowIcons = getSetting('show_note_icons', '1') === '1';
                       $pnIconRaw = ($pnShowIcons && !empty($note['icon'])) ? convertFontAwesomeToLucide($note['icon']) : null;
                       $pnIconColor = ($pnShowIcons && !empty($note['icon_color'])) ? $note['icon_color'] : null;
@@ -996,14 +999,24 @@ if (poznoteMarkdownColoredEnabled($markdownColoredTheme)) {
                       $pnIconClasses = null;
                       $pnIconStyle = '';
                       $pnIconColorAttr = '';
-                      if (!$pnIsEmoji && $pnIconRaw) {
-                          $pnIconClasses = str_contains($pnIconRaw, 'lucide ') ? $pnIconRaw : 'lucide ' . $pnIconRaw;
+                      if ($pnShowIcons && !$pnIsEmoji) {
+                          $pnDefaultIcon = defaultNoteIconForType($note['type'] ?? 'note');
+                          $pnIconClasses = buildNoteIconClass($pnIconRaw ?: $pnDefaultIcon, $pnDefaultIcon) . ' public-note-title-lucide';
                           $pnIconColorCss = poznoteIconColorCss($pnIconColor);
                           $pnIconStyle = $pnIconColorCss !== '' ? ' style="color: ' . htmlspecialchars($pnIconColorCss, ENT_QUOTES) . ' !important;"' : '';
                           $pnIconColorAttr = $pnIconColor ? ' data-icon-color="' . htmlspecialchars($pnIconColor, ENT_QUOTES) . '"' : '';
                       }
+                      $pnTitleStyle = [];
+                      $pnTitleColorCss = poznoteIconColorCss($note['title_color'] ?? '');
+                      if ($pnTitleColorCss !== '') {
+                          $pnTitleStyle[] = 'color: ' . $pnTitleColorCss . ' !important';
+                      }
+                      if (isset($note['title_size']) && $note['title_size'] !== null && $note['title_size'] !== '') {
+                          $pnTitleStyle[] = '--note-title-size: ' . min(64, max(12, (int)$note['title_size'])) . 'px';
+                      }
+                      $pnTitleStyleAttr = $pnTitleStyle ? ' style="' . htmlspecialchars(implode('; ', $pnTitleStyle) . ';', ENT_QUOTES) . '"' : '';
                       ?>
-                      <h1>
+                      <h1<?php echo $pnTitleStyleAttr; ?>>
                           <?php if ($pnIsEmoji): ?>
                               <span class="public-note-title-icon"><?php echo htmlspecialchars($pnIconRaw); ?></span>
                           <?php elseif ($pnIconClasses): ?>
@@ -1030,7 +1043,7 @@ if (poznoteMarkdownColoredEnabled($markdownColoredTheme)) {
                       </button>
                   </div>
                 </div>
-                <div class="content<?php echo $noteType === 'markdown' ? ' public-note-markdown markdown-preview' : ''; ?>"><?php echo $content; ?></div>
+                <div class="content<?php echo $noteType === 'markdown' ? ' public-note-markdown markdown-preview' : ($noteType === 'note' ? ' public-note-html' : ''); ?>"><?php echo $content; ?></div>
             </div>
         </div>
 

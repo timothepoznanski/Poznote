@@ -209,8 +209,11 @@ body.show-note-created .note-subline {
 .innernote .note-title-heading .note-title-icon {
     grid-column: 1;
     grid-row: 1;
-    /* 20px next to the default 24px title, in proportion to a resized one. */
-    font-size: calc(var(--note-title-size, 24px) * 5 / 6);
+    /* 20px next to the default 24px title, in proportion to a resized one.
+       !important: css/icons.css sizes the star and the plus in ems with
+       !important, which here are ems of the heading box (16px), so a star
+       chosen as the note's icon stayed at 15px whatever the title's size. */
+    font-size: calc(var(--note-title-size, 24px) * 5 / 6) !important;
     margin: 15px 8px 20px 0;
 }
 
