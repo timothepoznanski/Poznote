@@ -1209,6 +1209,18 @@ $localRestoreCardVisible = !empty(LocalBackupService::restorePageBackups());
                 </div>
             </div>
 
+            <!-- Display profiles: the font sizes, icon sizes and fonts above,
+                 saved under a name and applied in one go (js/display-profiles.js
+                 builds the dialog). Kept in this browser like what they hold. -->
+            <div class="home-card" id="display-profiles-card">
+                <span class="setting-help" data-tooltip="<?php echo t_h('settings.card_help.display_profiles', [], 'Save the font sizes, icon sizes and fonts of this browser under a name: one profile per screen (laptop, large screen) or for a presentation. Switch between them in one click with the monitor button of the icon sidebar, on any page.'); ?>"><i class="lucide lucide-help-circle"></i></span>
+                <div class="home-card-icon"><i class="lucide lucide-monitor"></i></div>
+                <div class="home-card-content">
+                    <span class="home-card-title"><?php echo t_h('display.cards.display_profiles', [], 'Display profiles'); ?></span>
+                    <span id="display-profiles-status" class="setting-status disabled"><?php echo t_h('common.loading'); ?></span>
+                </div>
+            </div>
+
             <!-- Note Color Palette -->
             <div class="home-card" id="note-color-palette-card">
                 <span class="setting-help" data-tooltip="<?php echo t_h('settings.card_help.note_color_palette', [], 'Customize the color palette available for notes.'); ?>"><i class="lucide lucide-help-circle"></i></span>

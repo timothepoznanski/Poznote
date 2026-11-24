@@ -582,7 +582,8 @@
       "session_lifetime": "没有任何操作时登录状态能保持多久。通过 .env 文件中的 POZNOTE_SESSION_LIFETIME_DAYS 设置，所以这里只显示，不能在本页面修改。使用“保持登录”登录会保持更久，通过 SSO 登录则不会。",
       "attachments_single_line": "将笔记的附件显示在一行中，而不是换成多行。可用手指或鼠标滑动该行；被截断时以“…”结尾。",
       "attachment_links_as_cards": "将单独占一行的附件链接显示为卡片；句子中的链接带有一个小回形针。笔记内容不会被修改。",
-      "remember_me_days": "在登录页面勾选“保持登录”后，登录状态保持多久。仅适用于密码登录。通过 SSO 登录的会话时长以“设置 > 关于”中“会话有效期”卡片显示的为准，该值在 .env 文件中设置。无论此处设置的时长为何，更改密码或在“已连接的设备”中退出某台设备，都会让该设备立即退出登录。"
+      "remember_me_days": "在登录页面勾选“保持登录”后，登录状态保持多久。仅适用于密码登录。通过 SSO 登录的会话时长以“设置 > 关于”中“会话有效期”卡片显示的为准，该值在 .env 文件中设置。无论此处设置的时长为何，更改密码或在“已连接的设备”中退出某台设备，都会让该设备立即退出登录。",
+      "display_profiles": "将此浏览器的字体大小、图标大小和字体以名称保存:每个屏幕一个配置(笔记本、大屏幕),或用于演示。在任意页面用图标栏的显示器按钮一键切换。"
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "在移动设备上，键盘上方的工具栏有一个 + 按钮，无论此设置为何，它都会打开同一个菜单。"
@@ -1000,7 +1001,8 @@
       "update_badge_level": "更新小红点",
       "update_check_interval": "更新检查",
       "attachments_single_line": "附件单行显示",
-      "attachment_links_as_cards": "附件链接显示为卡片"
+      "attachment_links_as_cards": "附件链接显示为卡片",
+      "display_profiles": "显示配置"
     },
     "badges": {
       "font_size_default": "默认 ({{size}}px)",
@@ -6327,5 +6329,30 @@
     "empty": "此笔记为空",
     "drawing": "此处无法预览绘图",
     "open": "在新标签页中打开"
+  },
+  "display_profiles": {
+    "title": "显示配置",
+    "manage": "管理显示配置",
+    "description": "配置会保存此浏览器的字体大小、图标大小和字体。为每种工作方式(笔记本、大屏幕、演示)各保存一个,然后在任意页面用图标栏的显示器按钮切换。",
+    "name_label": "配置名称",
+    "name_placeholder": "名称,例如:笔记本",
+    "save_current": "保存当前显示",
+    "empty": "还没有配置。",
+    "current": "使用中",
+    "show_details": "显示详情",
+    "update": "用当前显示替换",
+    "rename": "重命名",
+    "delete": "删除",
+    "delete_title": "删除此配置?",
+    "delete_message": "显示配置“{{name}}”将被删除。当前显示不会改变。",
+    "name_required": "请为配置命名。",
+    "name_taken": "已有同名配置。",
+    "limit": "已达上限:请先删除一个配置再保存新的配置。",
+    "saved": "显示配置“{{name}}”已保存",
+    "applied": "显示配置“{{name}}”已应用",
+    "updated": "显示配置“{{name}}”已更新",
+    "status_none": "无配置",
+    "status_one": "1 个配置",
+    "status_count": "{{count}} 个配置"
   }
 }

@@ -96,7 +96,8 @@
    positioned menu would be cut off. The theme button's menu is built the same
    way (js/theme-manager.js) and shares the look. */
 #iconSidebarOverflowMenu,
-#themePickerMenu {
+#themePickerMenu,
+#displayProfilesMenu {
     display: none;
     position: fixed;
     z-index: 10000;
@@ -112,14 +113,16 @@
 }
 
 #iconSidebarOverflowMenu.icon-sidebar-overflow-open,
-#themePickerMenu.icon-sidebar-overflow-open {
+#themePickerMenu.icon-sidebar-overflow-open,
+#displayProfilesMenu.icon-sidebar-overflow-open {
     display: block;
 }
 
 /* The theme menu lists choices, not the rail's own entries: its labels read in
    the text colour rather than the rail's resting grey. Hover, focus and the
    theme in use keep their accent. */
-#themePickerMenu .icon-sidebar-overflow-item:not(.icon-sidebar-overflow-item-active):not(:hover):not(:focus-visible) {
+#themePickerMenu .icon-sidebar-overflow-item:not(.icon-sidebar-overflow-item-active):not(:hover):not(:focus-visible),
+#displayProfilesMenu .icon-sidebar-overflow-item:not(.icon-sidebar-overflow-item-active):not(:hover):not(:focus-visible) {
     color: var(--pz-text);
 }
 

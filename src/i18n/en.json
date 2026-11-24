@@ -226,7 +226,8 @@
       "session_lifetime": "How long a sign-in lasts without activity. Set with POZNOTE_SESSION_LIFETIME_DAYS in the .env file, so it is shown here but cannot be changed from this page. Signing in with \"Remember me\" lasts longer; signing in through SSO does not.",
       "attachments_single_line": "Show the note's attachments on a single line instead of wrapping them onto several lines. Slide the line with a finger or the mouse; when it is cut, it ends with \"…\".",
       "attachment_links_as_cards": "Show attachment links that are alone on their line as cards; in a sentence they get a small paperclip. Notes are not changed.",
-      "remember_me_days": "How long ticking \"Remember me\" on the login page keeps someone signed in. It only applies to password sign-ins. An SSO sign-in lasts as long as the Session lifetime shown in Settings > About, which is set in the .env file. Changing a password, or signing a device out from Connected devices, signs it out right away, whatever the duration set here."
+      "remember_me_days": "How long ticking \"Remember me\" on the login page keeps someone signed in. It only applies to password sign-ins. An SSO sign-in lasts as long as the Session lifetime shown in Settings > About, which is set in the .env file. Changing a password, or signing a device out from Connected devices, signs it out right away, whatever the duration set here.",
+      "display_profiles": "Save the font sizes, icon sizes and fonts of this browser under a name: one profile per screen (laptop, large screen) or for a presentation. Switch between them in one click with the monitor button of the icon sidebar, on any page."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "On mobile, the toolbar above the keyboard has a + button that opens the same menu, whatever this is set to."
@@ -609,7 +610,8 @@
       "update_badge_level": "Update dot",
       "update_check_interval": "Update check",
       "attachments_single_line": "Attachments on one line",
-      "attachment_links_as_cards": "Attachment links as cards"
+      "attachment_links_as_cards": "Attachment links as cards",
+      "display_profiles": "Display profiles"
     },
     "badges": {
       "font_size_default": "default ({{size}}px)",
@@ -6075,5 +6077,30 @@
     "empty": "This note is empty",
     "drawing": "A drawing cannot be previewed here",
     "open": "Open in a new tab"
+  },
+  "display_profiles": {
+    "title": "Display profiles",
+    "manage": "Manage display profiles",
+    "description": "A profile keeps the font sizes, the icon sizes and the fonts of this browser. Save one for each way you work (laptop, large screen, presentation), then switch between them with the monitor button of the icon sidebar, on any page.",
+    "name_label": "Profile name",
+    "name_placeholder": "Name, e.g. Laptop",
+    "save_current": "Save current display",
+    "empty": "No profile yet.",
+    "current": "In use",
+    "show_details": "Show details",
+    "update": "Replace with the current display",
+    "rename": "Rename",
+    "delete": "Delete",
+    "delete_title": "Delete this profile?",
+    "delete_message": "The display profile \"{{name}}\" will be deleted. The current display does not change.",
+    "name_required": "Give the profile a name.",
+    "name_taken": "A profile already has this name.",
+    "limit": "Limit reached: delete a profile before saving another.",
+    "saved": "Display profile \"{{name}}\" saved",
+    "applied": "Display profile \"{{name}}\" applied",
+    "updated": "Display profile \"{{name}}\" updated",
+    "status_none": "No profile",
+    "status_one": "1 profile",
+    "status_count": "{{count}} profiles"
   }
 }

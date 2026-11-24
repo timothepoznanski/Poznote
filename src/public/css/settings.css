@@ -329,6 +329,166 @@ body:not(.dark-mode) #changePasswordModal .change-password-description {
     color: var(--pz-text-muted);
 }
 
+/* Display profiles modal (js/display-profiles.js): a create row, then one row
+   per profile. Same shape as the app passwords dialog above. */
+#displayProfilesModal .modal-content {
+    max-width: 600px;
+}
+
+#displayProfilesModal .display-profiles-description {
+    color: var(--pz-text-muted);
+    line-height: 1.45;
+    margin: 0 0 14px 0;
+}
+
+#displayProfilesModal .display-profiles-create {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+/* modals/base.css gives modal inputs vertical margins that a flex row does
+   not need (see the app passwords form above) */
+#displayProfilesModal .display-profiles-create input[type="text"] {
+    flex: 1 1 200px;
+    min-width: 0;
+    box-sizing: border-box;
+    margin: 0;
+}
+
+#displayProfilesModal .display-profiles-create .btn {
+    flex: 0 0 auto;
+    padding: 9px 16px;
+}
+
+#displayProfilesModal .display-profiles-error {
+    color: var(--pz-danger-text);
+    margin: 0 0 10px 0;
+    font-size: 0.9rem;
+}
+
+/* Scrolls when the profiles are many or unfolded, without a visible bar */
+#displayProfilesModal .display-profiles-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--pz-border);
+    max-height: 40vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+#displayProfilesModal .display-profiles-list::-webkit-scrollbar {
+    display: none;
+}
+
+#displayProfilesModal .display-profile-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--pz-border);
+}
+
+#displayProfilesModal .display-profile-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-right: 4px;
+}
+
+#displayProfilesModal .display-profile-name {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#displayProfilesModal .display-profile-rename-input {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 4px 8px;
+}
+
+/* The profile the display matches */
+#displayProfilesModal .display-profile-current {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 6px;
+    font-size: 0.85rem;
+    color: var(--pz-accent-text);
+}
+
+#displayProfilesModal .display-profile-icon-btn {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: var(--pz-radius-sm);
+    background: transparent;
+    color: var(--pz-text-muted);
+    cursor: pointer;
+}
+
+#displayProfilesModal .display-profile-icon-btn:hover,
+#displayProfilesModal .display-profile-icon-btn:focus-visible {
+    background: var(--pz-surface-hover);
+    color: var(--pz-text);
+    outline: none;
+}
+
+#displayProfilesModal .display-profile-delete:hover,
+#displayProfilesModal .display-profile-delete:focus-visible {
+    color: var(--pz-danger-text);
+}
+
+/* Chevron before the name: unfolds every value of the profile under its row */
+#displayProfilesModal .display-profile-toggle .lucide {
+    transition: transform 0.15s ease;
+}
+
+#displayProfilesModal .display-profile-row.is-expanded .display-profile-toggle .lucide {
+    transform: rotate(90deg);
+}
+
+#displayProfilesModal .display-profile-details {
+    flex: 0 0 100%;
+    box-sizing: border-box;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 4px 16px;
+    margin: 4px 0 2px 0;
+    padding-left: 36px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+#displayProfilesModal .display-profile-details dt {
+    color: var(--pz-text-muted);
+}
+
+#displayProfilesModal .display-profile-details dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+    color: var(--pz-text);
+}
+
+#displayProfilesModal .display-profiles-empty {
+    padding: 12px 0;
+    color: var(--pz-text-muted);
+}
+
 /* Connected devices modal: one row per open session of the account. Same
    shape as the app passwords list above, minus the create form. */
 #userSessionsModal .user-sessions-description {
@@ -408,7 +568,8 @@ body:not(.dark-mode) #changePasswordModal .change-password-description {
    modals end on the same list. */
 #appPasswordsModal .modal-buttons,
 #connectedAppsModal .modal-buttons,
-#userSessionsModal .modal-buttons {
+#userSessionsModal .modal-buttons,
+#displayProfilesModal .modal-buttons {
     margin-top: 20px;
 }
 

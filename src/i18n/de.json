@@ -583,7 +583,8 @@
       "session_lifetime": "Wie lange eine Anmeldung ohne Aktivität gilt. Wird mit POZNOTE_SESSION_LIFETIME_DAYS in der .env-Datei gesetzt, hier also nur angezeigt und auf dieser Seite nicht änderbar. Eine Anmeldung mit „Angemeldet bleiben“ hält länger, eine Anmeldung über SSO nicht.",
       "attachments_single_line": "Zeigt die Anhänge der Notiz in einer einzigen Zeile statt auf mehrere Zeilen verteilt. Die Zeile lässt sich mit dem Finger oder der Maus verschieben; ist sie abgeschnitten, endet sie mit „…“.",
       "attachment_links_as_cards": "Zeigt Links zu Anhängen, die allein in ihrer Zeile stehen, als Karte; im Satz erhalten sie eine kleine Büroklammer. Die Notizen werden nicht geändert.",
-      "remember_me_days": "Wie lange das Ankreuzen von „Angemeldet bleiben“ auf der Anmeldeseite jemanden angemeldet lässt. Gilt nur für Anmeldungen mit Passwort. Eine SSO-Anmeldung dauert so lange, wie die Karte Sitzungsdauer unter Einstellungen > Über anzeigt; dieser Wert wird in der .env-Datei festgelegt. Ein geändertes Passwort oder das Abmelden eines Geräts unter Verbundene Geräte meldet es sofort ab, unabhängig von der hier eingestellten Dauer."
+      "remember_me_days": "Wie lange das Ankreuzen von „Angemeldet bleiben“ auf der Anmeldeseite jemanden angemeldet lässt. Gilt nur für Anmeldungen mit Passwort. Eine SSO-Anmeldung dauert so lange, wie die Karte Sitzungsdauer unter Einstellungen > Über anzeigt; dieser Wert wird in der .env-Datei festgelegt. Ein geändertes Passwort oder das Abmelden eines Geräts unter Verbundene Geräte meldet es sofort ab, unabhängig von der hier eingestellten Dauer.",
+      "display_profiles": "Speichern Sie die Schriftgrößen, Symbolgrößen und Schriftarten dieses Browsers unter einem Namen: ein Profil pro Bildschirm (Laptop, großer Bildschirm) oder für eine Präsentation. Wechseln Sie mit einem Klick über die Bildschirm-Schaltfläche der Symbolleiste, auf jeder Seite."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "Auf Mobilgeräten hat die Leiste über der Tastatur eine +-Schaltfläche, die unabhängig von dieser Einstellung dasselbe Menü öffnet."
@@ -1001,7 +1002,8 @@
       "update_badge_level": "Update-Punkt",
       "update_check_interval": "Update-Prüfung",
       "attachments_single_line": "Anhänge in einer Zeile",
-      "attachment_links_as_cards": "Anhang-Links als Karten"
+      "attachment_links_as_cards": "Anhang-Links als Karten",
+      "display_profiles": "Anzeigeprofile"
     },
     "badges": {
       "font_size_default": "Standard ({{size}}px)",
@@ -6230,5 +6232,30 @@
     "empty": "Diese Notiz ist leer",
     "drawing": "Eine Zeichnung kann hier nicht in der Vorschau angezeigt werden",
     "open": "In neuem Tab öffnen"
+  },
+  "display_profiles": {
+    "title": "Anzeigeprofile",
+    "manage": "Anzeigeprofile verwalten",
+    "description": "Ein Profil speichert die Schriftgrößen, die Symbolgrößen und die Schriftarten dieses Browsers. Speichern Sie eines für jede Arbeitsweise (Laptop, großer Bildschirm, Präsentation) und wechseln Sie mit der Bildschirm-Schaltfläche der Symbolleiste, auf jeder Seite.",
+    "name_label": "Profilname",
+    "name_placeholder": "Name, z. B. Laptop",
+    "save_current": "Aktuelle Anzeige speichern",
+    "empty": "Noch kein Profil.",
+    "current": "Aktiv",
+    "show_details": "Details anzeigen",
+    "update": "Durch die aktuelle Anzeige ersetzen",
+    "rename": "Umbenennen",
+    "delete": "Löschen",
+    "delete_title": "Dieses Profil löschen?",
+    "delete_message": "Das Anzeigeprofil „{{name}}“ wird gelöscht. Die aktuelle Anzeige ändert sich nicht.",
+    "name_required": "Geben Sie dem Profil einen Namen.",
+    "name_taken": "Ein Profil trägt bereits diesen Namen.",
+    "limit": "Limit erreicht: Löschen Sie ein Profil, bevor Sie ein weiteres speichern.",
+    "saved": "Anzeigeprofil „{{name}}“ gespeichert",
+    "applied": "Anzeigeprofil „{{name}}“ angewendet",
+    "updated": "Anzeigeprofil „{{name}}“ aktualisiert",
+    "status_none": "Kein Profil",
+    "status_one": "1 Profil",
+    "status_count": "{{count}} Profile"
   }
 }

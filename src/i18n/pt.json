@@ -583,7 +583,8 @@
       "session_lifetime": "Quanto tempo um login dura sem atividade. Definido com POZNOTE_SESSION_LIFETIME_DAYS no arquivo .env, por isso aparece aqui mas não pode ser alterado nesta página. Entrar com \"Lembrar-me\" dura mais; entrar por SSO, não.",
       "attachments_single_line": "Mostra os anexos da nota numa única linha em vez de os repartir por várias. Deslize a linha com o dedo ou o rato; quando está cortada, termina com «…».",
       "attachment_links_as_cards": "Mostra como cartão as ligações para anexos sozinhas na sua linha; numa frase, recebem um pequeno clipe. As notas não são alteradas.",
-      "remember_me_days": "Por quanto tempo marcar \"Lembrar-me\" na página de login mantém alguém conectado. Vale apenas para os logins com senha. Um login SSO dura o tempo indicado pelo cartão Duração das sessões, em Configurações > Sobre, que é definido no arquivo .env. Mudar uma senha, ou desconectar um dispositivo em Dispositivos conectados, o desconecta na hora, seja qual for a duração definida aqui."
+      "remember_me_days": "Por quanto tempo marcar \"Lembrar-me\" na página de login mantém alguém conectado. Vale apenas para os logins com senha. Um login SSO dura o tempo indicado pelo cartão Duração das sessões, em Configurações > Sobre, que é definido no arquivo .env. Mudar uma senha, ou desconectar um dispositivo em Dispositivos conectados, o desconecta na hora, seja qual for a duração definida aqui.",
+      "display_profiles": "Guarde os tamanhos de letra, os tamanhos dos ícones e os tipos de letra deste navegador com um nome: um perfil por ecrã (portátil, ecrã grande) ou para uma apresentação. Mude entre eles com um clique no botão de ecrã da barra de ícones, em qualquer página."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "No telemóvel, a barra de ferramentas acima do teclado tem um botão + que abre o mesmo menu, seja qual for esta definição."
@@ -1001,7 +1002,8 @@
       "update_badge_level": "Ponto de atualização",
       "update_check_interval": "Verificação de atualizações",
       "attachments_single_line": "Anexos numa linha",
-      "attachment_links_as_cards": "Links de anexos como cartões"
+      "attachment_links_as_cards": "Links de anexos como cartões",
+      "display_profiles": "Perfis de exibição"
     },
     "badges": {
       "font_size_default": "padrão ({{size}}px)",
@@ -6231,5 +6233,30 @@
     "empty": "Esta nota está vazia",
     "drawing": "Um desenho não pode ser pré-visualizado aqui",
     "open": "Abrir num novo separador"
+  },
+  "display_profiles": {
+    "title": "Perfis de exibição",
+    "manage": "Gerir os perfis de exibição",
+    "description": "Um perfil guarda os tamanhos de letra, os tamanhos dos ícones e os tipos de letra deste navegador. Guarde um para cada forma de trabalhar (portátil, ecrã grande, apresentação) e mude entre eles com o botão de ecrã da barra de ícones, em qualquer página.",
+    "name_label": "Nome do perfil",
+    "name_placeholder": "Nome, p. ex. Portátil",
+    "save_current": "Guardar a exibição atual",
+    "empty": "Ainda não há perfis.",
+    "current": "Em uso",
+    "show_details": "Mostrar os detalhes",
+    "update": "Substituir pela exibição atual",
+    "rename": "Mudar o nome",
+    "delete": "Eliminar",
+    "delete_title": "Eliminar este perfil?",
+    "delete_message": "O perfil de exibição \"{{name}}\" será eliminado. A exibição atual não muda.",
+    "name_required": "Dê um nome ao perfil.",
+    "name_taken": "Já existe um perfil com este nome.",
+    "limit": "Limite atingido: elimine um perfil antes de guardar outro.",
+    "saved": "Perfil de exibição \"{{name}}\" guardado",
+    "applied": "Perfil de exibição \"{{name}}\" aplicado",
+    "updated": "Perfil de exibição \"{{name}}\" atualizado",
+    "status_none": "Nenhum perfil",
+    "status_one": "1 perfil",
+    "status_count": "{{count}} perfis"
   }
 }
