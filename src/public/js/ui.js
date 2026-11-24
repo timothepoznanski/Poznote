@@ -265,6 +265,10 @@ function initializeBrowserHistory() {
             var workspaceName = event.state.workspace;
             updateWorkspaceNameInHeaders(workspaceName);
             selectedWorkspace = workspaceName;
+            // The refresh no longer saves it (issue #1825): save it here
+            if (typeof saveLastOpenedWorkspace === 'function') {
+                saveLastOpenedWorkspace(workspaceName);
+            }
             refreshLeftColumnForWorkspace(workspaceName);
         }
     });

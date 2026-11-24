@@ -85,9 +85,10 @@ function getFirstWorkspaceName() {
  * 1. GET/POST parameter (highest priority)
  * 2. Database setting 'default_workspace' (if set to a specific workspace name)
  *    Special value '__last_opened__' means use last_opened_workspace from database
- *    Special value '__last_opened_device__' means use the workspace this
- *    browser last opened (poznoteDeviceWorkspaceCookieName()), then fall
- *    through to last_opened_workspace on a device that has none yet
+ *    Special value '__last_opened_device__', and no value at all (the
+ *    default, issue #1825), means use the workspace this browser last opened
+ *    (poznoteDeviceWorkspaceCookieName()), then fall through to
+ *    last_opened_workspace on a device that has none yet
  * 3. Database setting 'last_opened_workspace' (the last workspace the user opened)
  * 4. Fallback to first available workspace
  * 
@@ -121,7 +122,7 @@ function getWorkspaceFilter() {
             $stmt = $con->prepare('SELECT value FROM settings WHERE key = ?');
             $stmt->execute(['default_workspace']);
             $defaultWorkspace = $stmt->fetchColumn();
-            if ($defaultWorkspace === POZNOTE_DEFAULT_WORKSPACE_LAST_OPENED_DEVICE) {
+            if (poznoteDefaultWorkspaceFollowsDevice($defaultWorkspace)) {
                 $cookieName = poznoteDeviceWorkspaceCookieName();
                 $deviceWorkspace = $cookieName !== null ? (string)($_COOKIE[$cookieName] ?? '') : '';
                 if ($deviceWorkspace !== '') {
@@ -352,6 +353,20 @@ function getWorkspaceBackgroundSegment($workspace) {
  * it in a cookie rather than in localStorage.
  */
 const POZNOTE_DEFAULT_WORKSPACE_LAST_OPENED_DEVICE = '__last_opened_device__';
+
+/**
+ * Whether a stored default_workspace value opens the workspace this browser
+ * opened last. An account that never chose (no row, or an empty value) gets
+ * the per-device behaviour since issue #1825: two browsers, or a browser and
+ * an installed app, no longer reopen on each other's last workspace. Only an
+ * explicit '__last_opened__' keeps the value shared by every device.
+ *
+ * @param mixed $value The stored value, false when there is no row.
+ */
+function poznoteDefaultWorkspaceFollowsDevice($value): bool {
+    return $value === false || $value === null || $value === ''
+        || $value === POZNOTE_DEFAULT_WORKSPACE_LAST_OPENED_DEVICE;
+}
 
 /**
  * Cookie holding the workspace this browser opened last, named after the

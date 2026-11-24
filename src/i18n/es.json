@@ -583,7 +583,10 @@
       "session_lifetime": "Cuánto dura un inicio de sesión sin actividad. Se configura con POZNOTE_SESSION_LIFETIME_DAYS en el archivo .env, así que aquí solo se muestra y no se puede cambiar desde esta página. Iniciar sesión con «Recordarme» dura más; iniciar sesión por SSO, no.",
       "attachments_single_line": "Muestra los adjuntos de la nota en una sola línea en lugar de repartirlos en varias. Desliza la línea con el dedo o el ratón; cuando está cortada, termina con «…».",
       "attachment_links_as_cards": "Muestra como tarjeta los enlaces a adjuntos que están solos en su línea; dentro de una frase llevan un pequeño clip. Las notas no se modifican.",
-      "remember_me_days": "Cuánto tiempo mantiene la sesión abierta marcar «Recordarme» en la página de inicio de sesión. Solo vale para los inicios de sesión con contraseña. Un inicio de sesión SSO dura lo que indica la tarjeta Duración de las sesiones, en Ajustes > Acerca de, que se configura en el archivo .env. Cambiar una contraseña, o cerrar la sesión de un dispositivo desde Dispositivos conectados, la cierra de inmediato, sea cual sea la duración configurada aquí."
+      "remember_me_days": "Cuánto tiempo mantiene la sesión abierta marcar «Recordarme» en la página de inicio de sesión. Solo vale para los inicios de sesión con contraseña. Un inicio de sesión SSO dura lo que indica la tarjeta Duración de las sesiones, en Ajustes > Acerca de, que se configura en el archivo .env. Cambiar una contraseña, o cerrar la sesión de un dispositivo desde Dispositivos conectados, la cierra de inmediato, sea cual sea la duración configurada aquí.",
+      "display_profiles": "Guarde los tamaños de fuente, los tamaños de iconos y las fuentes de este navegador con un nombre: un perfil por pantalla (portátil, pantalla grande) o para una presentación. Cambie entre ellos con un clic con el botón de pantalla de la barra de iconos, en cualquier página.",
+      "idle_signout": "Cerrar la sesión de esta cuenta automáticamente tras este número de minutos sin usar Poznote, hasta 1440; 0 lo desactiva. Primero se guarda la nota abierta. Las copias sin conexión de tus notas se quedan en el navegador y no se pueden abrir sin tu contraseña, salvo que elijas borrarlas con el ajuste de abajo. Solo mientras Poznote está en línea: la versión sin conexión sigue abierta hasta que cierres la sesión tú mismo.",
+      "idle_signout_erase_offline": "Eliminar también del navegador las copias sin conexión de tus notas cuando se cierra la sesión automáticamente, como hace siempre el botón Cerrar sesión. Desactivado, se conservan, pero nadie puede abrirlas sin tu contraseña: la versión sin conexión la pide, y una cuenta que inicia sesión por SSO no tiene acceso sin conexión hasta que vuelve a iniciar sesión en línea."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "En el móvil, la barra de herramientas sobre el teclado tiene un botón + que abre el mismo menú, sea cual sea este ajuste."
@@ -717,7 +720,9 @@
       "two_factor_required": "Exigir verificación en dos pasos",
       "sessions": "Dispositivos conectados",
       "session_lifetime": "Duración de las sesiones",
-      "remember_me_days": "Duración de «Recordarme»"
+      "remember_me_days": "Duración de «Recordarme»",
+      "idle_signout": "Cierre de sesión automático",
+      "idle_signout_erase_offline": "Borrar las notas sin conexión al cerrar la sesión automáticamente"
     },
     "default_credentials": {
       "both": "Esta cuenta sigue usando el nombre de usuario y la contraseña predeterminados. Cualquiera que pueda acceder a esta instancia puede iniciar sesión.",
@@ -1001,7 +1006,8 @@
       "update_badge_level": "Punto de actualización",
       "update_check_interval": "Comprobación de actualizaciones",
       "attachments_single_line": "Adjuntos en una línea",
-      "attachment_links_as_cards": "Enlaces de adjuntos como tarjetas"
+      "attachment_links_as_cards": "Enlaces de adjuntos como tarjetas",
+      "display_profiles": "Perfiles de visualización"
     },
     "badges": {
       "font_size_default": "predeterminado ({{size}}px)",
@@ -2917,7 +2923,8 @@
     "methods": {
       "password": "Iniciar sesión con contraseña",
       "sso": "Iniciar sesión con SSO"
-    }
+    },
+    "idle_signed_out": "Tu sesión se cerró automáticamente tras un periodo de inactividad. Vuelve a iniciar sesión para regresar a donde estabas."
   },
   "restore_import": {
     "page": {
@@ -6231,5 +6238,33 @@
     "empty": "Esta nota está vacía",
     "drawing": "Un dibujo no se puede previsualizar aquí",
     "open": "Abrir en una pestaña nueva"
+  },
+  "display_profiles": {
+    "title": "Perfiles de visualización",
+    "manage": "Gestionar los perfiles de visualización",
+    "description": "Un perfil guarda los tamaños de fuente, los tamaños de iconos y las fuentes de este navegador. Guarde uno para cada forma de trabajar (portátil, pantalla grande, presentación) y cambie entre ellos con el botón de pantalla de la barra de iconos, en cualquier página.",
+    "name_label": "Nombre del perfil",
+    "name_placeholder": "Nombre, p. ej. Portátil",
+    "save_current": "Guardar la visualización actual",
+    "empty": "Todavía no hay ningún perfil.",
+    "current": "En uso",
+    "show_details": "Mostrar los detalles",
+    "update": "Sustituir por la visualización actual",
+    "rename": "Renombrar",
+    "delete": "Eliminar",
+    "delete_title": "¿Eliminar este perfil?",
+    "delete_message": "Se eliminará el perfil de visualización \"{{name}}\". La visualización actual no cambia.",
+    "name_required": "Dé un nombre al perfil.",
+    "name_taken": "Ya hay un perfil con este nombre.",
+    "limit": "Límite alcanzado: elimine un perfil antes de guardar otro.",
+    "saved": "Perfil de visualización \"{{name}}\" guardado",
+    "applied": "Perfil de visualización \"{{name}}\" aplicado",
+    "updated": "Perfil de visualización \"{{name}}\" actualizado",
+    "status_none": "Ningún perfil",
+    "status_one": "1 perfil",
+    "status_count": "{{count}} perfiles"
+  },
+  "idle_signout": {
+    "unit": "minutos"
   }
 }

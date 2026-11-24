@@ -226,7 +226,10 @@
       "session_lifetime": "How long a sign-in lasts without activity. Set with POZNOTE_SESSION_LIFETIME_DAYS in the .env file, so it is shown here but cannot be changed from this page. Signing in with \"Remember me\" lasts longer; signing in through SSO does not.",
       "attachments_single_line": "Show the note's attachments on a single line instead of wrapping them onto several lines. Slide the line with a finger or the mouse; when it is cut, it ends with \"…\".",
       "attachment_links_as_cards": "Show attachment links that are alone on their line as cards; in a sentence they get a small paperclip. Notes are not changed.",
-      "remember_me_days": "How long ticking \"Remember me\" on the login page keeps someone signed in. It only applies to password sign-ins. An SSO sign-in lasts as long as the Session lifetime shown in Settings > About, which is set in the .env file. Changing a password, or signing a device out from Connected devices, signs it out right away, whatever the duration set here."
+      "remember_me_days": "How long ticking \"Remember me\" on the login page keeps someone signed in. It only applies to password sign-ins. An SSO sign-in lasts as long as the Session lifetime shown in Settings > About, which is set in the .env file. Changing a password, or signing a device out from Connected devices, signs it out right away, whatever the duration set here.",
+      "display_profiles": "Save the font sizes, icon sizes and fonts of this browser under a name: one profile per screen (laptop, large screen) or for a presentation. Switch between them in one click with the monitor button of the icon sidebar, on any page.",
+      "idle_signout": "Sign out of this account automatically after this many minutes without using Poznote, up to 1440; 0 turns it off. The open note is saved first. The offline copies of your notes stay in the browser and cannot be opened without your password, unless you choose to erase them with the setting below. Only while Poznote is online: the offline version stays open until you sign out yourself.",
+      "idle_signout_erase_offline": "Also remove the offline copies of your notes from the browser when you are signed out automatically, as the Logout button always does. Off, they are kept, but nobody can open them without your password: the offline version asks for it, and an account that signs in through SSO gets no offline access until it signs in online again."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "On mobile, the toolbar above the keyboard has a + button that opens the same menu, whatever this is set to."
@@ -337,7 +340,9 @@
       "two_factor_required": "Require two-factor",
       "sessions": "Connected devices",
       "session_lifetime": "Session lifetime",
-      "remember_me_days": "Remember me duration"
+      "remember_me_days": "Remember me duration",
+      "idle_signout": "Automatic sign-out",
+      "idle_signout_erase_offline": "Erase offline notes on automatic sign-out"
     },
     "default_credentials": {
       "both": "This account still uses the username and the password it shipped with. Anyone who can reach this instance can sign in to it.",
@@ -609,7 +614,8 @@
       "update_badge_level": "Update dot",
       "update_check_interval": "Update check",
       "attachments_single_line": "Attachments on one line",
-      "attachment_links_as_cards": "Attachment links as cards"
+      "attachment_links_as_cards": "Attachment links as cards",
+      "display_profiles": "Display profiles"
     },
     "badges": {
       "font_size_default": "default ({{size}}px)",
@@ -2496,7 +2502,8 @@
     "methods": {
       "password": "Sign in with a password",
       "sso": "Sign in with SSO"
-    }
+    },
+    "idle_signed_out": "You were signed out automatically after a period of inactivity. Sign in again to get back to where you were."
   },
   "restore_import": {
     "page": {
@@ -6075,5 +6082,33 @@
     "empty": "This note is empty",
     "drawing": "A drawing cannot be previewed here",
     "open": "Open in a new tab"
+  },
+  "display_profiles": {
+    "title": "Display profiles",
+    "manage": "Manage display profiles",
+    "description": "A profile keeps the font sizes, the icon sizes and the fonts of this browser. Save one for each way you work (laptop, large screen, presentation), then switch between them with the monitor button of the icon sidebar, on any page.",
+    "name_label": "Profile name",
+    "name_placeholder": "Name, e.g. Laptop",
+    "save_current": "Save current display",
+    "empty": "No profile yet.",
+    "current": "In use",
+    "show_details": "Show details",
+    "update": "Replace with the current display",
+    "rename": "Rename",
+    "delete": "Delete",
+    "delete_title": "Delete this profile?",
+    "delete_message": "The display profile \"{{name}}\" will be deleted. The current display does not change.",
+    "name_required": "Give the profile a name.",
+    "name_taken": "A profile already has this name.",
+    "limit": "Limit reached: delete a profile before saving another.",
+    "saved": "Display profile \"{{name}}\" saved",
+    "applied": "Display profile \"{{name}}\" applied",
+    "updated": "Display profile \"{{name}}\" updated",
+    "status_none": "No profile",
+    "status_one": "1 profile",
+    "status_count": "{{count}} profiles"
+  },
+  "idle_signout": {
+    "unit": "minutes"
   }
 }

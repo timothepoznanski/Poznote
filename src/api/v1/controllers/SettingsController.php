@@ -575,6 +575,26 @@ class SettingsController {
             return (string) $intVal;
         }
 
+        // Automatic sign-out after inactivity, in minutes, 0 = never
+        // (lib/idle-signout.php)
+        if ($key === 'idle_signout_minutes') {
+            require_once dirname(__DIR__, 3) . '/lib/idle-signout.php';
+            $text = trim((string) $value);
+            if ($text === '' || $text === '0') {
+                return '0';
+            }
+            if (!ctype_digit($text) || poznoteIdleSignoutMinutes($text) === 0) {
+                throw new InvalidArgumentException('value must be a number of minutes between 0 and ' . POZNOTE_IDLE_SIGNOUT_MAX, 400);
+            }
+            return (string) (int) $text;
+        }
+
+        // Whether the automatic sign-out erases the offline copies (it keeps
+        // them by default, lib/idle-signout.php)
+        if ($key === 'idle_signout_erase_offline') {
+            return filter_var($value, FILTER_VALIDATE_BOOLEAN) ? '1' : '0';
+        }
+
         // Step of one level of the notes tree, in px (lib/tree-indent.php)
         if ($key === 'sidebar_tree_indent') {
             $intVal = (int) $value;
@@ -1137,6 +1157,22 @@ class SettingsController {
                 // For user settings, use the user database
                 $stmt = $this->con->prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)');
                 $stmt->execute([$key, $value]);
+
+                // The new delay applies to this session at once, and the
+                // cookie tells every open tab of this browser.
+                if ($key === 'idle_signout_minutes' || $key === 'idle_signout_erase_offline') {
+                    require_once dirname(__DIR__, 3) . '/lib/idle-signout.php';
+                    if (poznoteIdleSignoutAppliesToSession()
+                        && !(function_exists('isSharedWorkspaceScopeActive') && isSharedWorkspaceScopeActive())) {
+                        $stmt = $this->con->query("SELECT key, value FROM settings WHERE key IN ('idle_signout_minutes', 'idle_signout_erase_offline')");
+                        $idleValues = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+                        poznoteRecordSessionActivity();
+                        poznoteApplyIdleSignoutMinutes(
+                            poznoteIdleSignoutMinutes($idleValues['idle_signout_minutes'] ?? ''),
+                            poznoteIdleSignoutEraseOffline($idleValues['idle_signout_erase_offline'] ?? '')
+                        );
+                    }
+                }
 
                 // The browser switching workspace also becomes this device's
                 // last opened one (default_workspace '__last_opened_device__').

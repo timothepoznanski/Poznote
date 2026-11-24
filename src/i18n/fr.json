@@ -582,7 +582,10 @@
       "session_lifetime": "Combien de temps une connexion dure sans activité. Réglée avec POZNOTE_SESSION_LIFETIME_DAYS dans le fichier .env, donc affichée ici sans pouvoir être modifiée depuis cette page. Une connexion avec « Se souvenir de moi » dure plus longtemps ; une connexion par SSO, non.",
       "attachments_single_line": "Affiche les pièces jointes de la note sur une seule ligne au lieu de les répartir sur plusieurs lignes. Faites glisser la ligne avec le doigt ou la souris ; quand elle est coupée, elle se termine par « … ».",
       "attachment_links_as_cards": "Affiche en carte les liens vers une pièce jointe seuls sur leur ligne ; dans une phrase, ils reçoivent un petit trombone. Les notes ne sont pas modifiées.",
-      "remember_me_days": "Combien de temps cocher « Se souvenir de moi » sur la page de connexion garde quelqu'un connecté. Ne vaut que pour les connexions par mot de passe. Une connexion SSO dure le temps indiqué par la carte Durée des sessions, dans Paramètres > À propos, qui se règle dans le fichier .env. Changer un mot de passe, ou déconnecter un appareil depuis Appareils connectés, le déconnecte tout de suite, quelle que soit la durée réglée ici."
+      "remember_me_days": "Combien de temps cocher « Se souvenir de moi » sur la page de connexion garde quelqu'un connecté. Ne vaut que pour les connexions par mot de passe. Une connexion SSO dure le temps indiqué par la carte Durée des sessions, dans Paramètres > À propos, qui se règle dans le fichier .env. Changer un mot de passe, ou déconnecter un appareil depuis Appareils connectés, le déconnecte tout de suite, quelle que soit la durée réglée ici.",
+      "display_profiles": "Enregistrez les tailles de police, les tailles d'icônes et les polices de ce navigateur sous un nom : un profil par écran (portable, grand écran) ou pour une présentation. Passez de l'un à l'autre en un clic avec le bouton écran de la barre d'icônes, sur n'importe quelle page.",
+      "idle_signout": "Déconnecter automatiquement ce compte après ce nombre de minutes sans utiliser Poznote, jusqu’à 1440 ; 0 désactive. La note ouverte est d’abord enregistrée. Les copies hors ligne de vos notes restent dans le navigateur et ne peuvent pas être ouvertes sans votre mot de passe, sauf si vous choisissez de les effacer avec le réglage ci-dessous. Seulement quand Poznote est en ligne : la version hors ligne reste ouverte jusqu’à ce que vous vous déconnectiez vous-même.",
+      "idle_signout_erase_offline": "Supprimer aussi du navigateur les copies hors ligne de vos notes lors d’une déconnexion automatique, comme le fait toujours le bouton Déconnexion. Désactivé, elles sont gardées, mais personne ne peut les ouvrir sans votre mot de passe : la version hors ligne le demande, et un compte qui se connecte par SSO n’a plus d’accès hors ligne avant de s’être reconnecté en ligne."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "Sur mobile, la barre d'outils au-dessus du clavier a un bouton + qui ouvre le même menu, quel que soit ce réglage."
@@ -716,7 +719,9 @@
       "two_factor_required": "Double authentification obligatoire",
       "sessions": "Appareils connectés",
       "session_lifetime": "Durée des sessions",
-      "remember_me_days": "Durée du « Se souvenir de moi »"
+      "remember_me_days": "Durée du « Se souvenir de moi »",
+      "idle_signout": "Déconnexion automatique",
+      "idle_signout_erase_offline": "Effacer les notes hors ligne à la déconnexion automatique"
     },
     "default_credentials": {
       "both": "Ce compte utilise encore le login et le mot de passe livrés par défaut. N'importe qui pouvant joindre cette instance peut s'y connecter.",
@@ -1001,7 +1006,8 @@
       "update_badge_level": "Pastille de mise à jour",
       "update_check_interval": "Vérification des mises à jour",
       "attachments_single_line": "Pièces jointes sur une ligne",
-      "attachment_links_as_cards": "Liens de pièces jointes en carte"
+      "attachment_links_as_cards": "Liens de pièces jointes en carte",
+      "display_profiles": "Profils d'affichage"
     },
     "badges": {
       "font_size_default": "par défaut ({{size}}px)",
@@ -2922,7 +2928,8 @@
     "methods": {
       "password": "Se connecter avec un mot de passe",
       "sso": "Se connecter avec le SSO"
-    }
+    },
+    "idle_signed_out": "Vous avez été déconnecté automatiquement après une période d’inactivité. Reconnectez-vous pour revenir là où vous étiez."
   },
   "restore_import": {
     "page": {
@@ -6335,5 +6342,33 @@
     "empty": "Cette note est vide",
     "drawing": "Un dessin ne peut pas être prévisualisé ici",
     "open": "Ouvrir dans un nouvel onglet"
+  },
+  "display_profiles": {
+    "title": "Profils d'affichage",
+    "manage": "Gérer les profils d'affichage",
+    "description": "Un profil garde les tailles de police, les tailles d'icônes et les polices de ce navigateur. Enregistrez-en un par façon de travailler (portable, grand écran, présentation), puis passez de l'un à l'autre avec le bouton écran de la barre d'icônes, sur n'importe quelle page.",
+    "name_label": "Nom du profil",
+    "name_placeholder": "Nom, par ex. Portable",
+    "save_current": "Enregistrer l'affichage actuel",
+    "empty": "Aucun profil pour l'instant.",
+    "current": "Utilisé",
+    "show_details": "Afficher le détail",
+    "update": "Remplacer par l'affichage actuel",
+    "rename": "Renommer",
+    "delete": "Supprimer",
+    "delete_title": "Supprimer ce profil ?",
+    "delete_message": "Le profil d'affichage « {{name}} » sera supprimé. L'affichage actuel ne change pas.",
+    "name_required": "Donnez un nom au profil.",
+    "name_taken": "Un profil porte déjà ce nom.",
+    "limit": "Limite atteinte : supprimez un profil avant d'en enregistrer un autre.",
+    "saved": "Profil d'affichage « {{name}} » enregistré",
+    "applied": "Profil d'affichage « {{name}} » appliqué",
+    "updated": "Profil d'affichage « {{name}} » mis à jour",
+    "status_none": "Aucun profil",
+    "status_one": "1 profil",
+    "status_count": "{{count}} profils"
+  },
+  "idle_signout": {
+    "unit": "minutes"
   }
 }

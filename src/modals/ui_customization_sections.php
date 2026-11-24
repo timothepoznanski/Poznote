@@ -77,6 +77,8 @@ if (!function_exists('poznoteUiCustomizationSectionHeader')) {
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:two-factor-card" checked><span><?php echo t_h('settings.cards.two_factor', [], 'Two-factor authentication'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:app-passwords-card" checked><span><?php echo t_h('settings.cards.app_passwords', [], 'App passwords'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:sessions-card" checked><span><?php echo t_h('settings.cards.sessions', [], 'Connected devices'); ?></span></label>
+        <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:idle-signout-card" checked><span><?php echo t_h('settings.cards.idle_signout', [], 'Automatic sign-out'); ?></span></label>
+        <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:idle-signout-erase-offline-card" checked><span><?php echo t_h('settings.cards.idle_signout_erase_offline', [], 'Erase offline notes on automatic sign-out'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:delete-account-card" checked><span><?php echo t_h('settings.cards.delete_account', [], 'Delete Account'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:default-workspace-card" checked><span><?php echo t_h('workspaces.default.title', [], 'Default Workspace'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:workspace-accent-card" checked><span><?php echo t_h('display.cards.workspace_color_accent', [], 'Workspace color as accent'); ?></span></label>
@@ -104,6 +106,7 @@ if (!function_exists('poznoteUiCustomizationSectionHeader')) {
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:font-size-card" checked><span><?php echo t_h('display.cards.note_font_size', [], 'Font size'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:index-icon-scale-card" checked><span><?php echo t_h('display.cards.index_icon_scale', [], 'Index icon scaling'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:icon-rail-scale-card" checked><span><?php echo t_h('display.cards.icon_rail_scale', [], 'Icon sidebar icon scaling'); ?></span></label>
+        <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:display-profiles-card" checked><span><?php echo t_h('display.cards.display_profiles', [], 'Display profiles'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:timezone-card" checked><span><?php echo t_h('display.cards.timezone', [], 'Timezone'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:date-time-format-card" checked><span><?php echo t_h('display.cards.date_time_format', [], 'Date & time format'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:workspace-activity-emails-card" checked><span><?php echo t_h('display.cards.workspace_activity_emails', [], 'Shared workspace emails'); ?></span></label>
@@ -229,6 +232,7 @@ if (!function_exists('poznoteUiCustomizationSectionHeader')) {
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:iconSidebarSpeedDialBtn" checked><span><?php echo t_h('speed_dial.title', [], 'Speed dial'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:iconSidebarGitPushBtn" checked><span>Push</span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:iconSidebarGitPullBtn" checked><span>Pull</span></label>
+    <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:iconSidebarDisplayProfilesBtn" checked><span><?php echo t_h('display_profiles.title', [], 'Display profiles'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:iconSidebarThemeToggleBtn" checked><span><?php echo t_h('modals.ui_customization.theme_toggle', [], 'Theme toggle'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:iconSidebarAboutBtn" checked><span><?php echo t_h('settings.categories.documentation', [], 'About'); ?></span></label>
     <?php if (!(function_exists('isLogoutPointless') && isLogoutPointless())): // no Logout button without a login screen ?>

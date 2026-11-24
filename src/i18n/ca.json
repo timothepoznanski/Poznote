@@ -226,7 +226,10 @@
       "session_lifetime": "Quant dura un inici de sessió sense activitat. Es configura amb POZNOTE_SESSION_LIFETIME_DAYS al fitxer .env, de manera que aquí només es mostra i no es pot canviar des d’aquesta pàgina. Iniciar la sessió amb «Recorda’m» dura més; iniciar-la amb SSO, no.",
       "attachments_single_line": "Mostra els adjunts de la nota en una sola línia en lloc de repartir-los en diverses. Llisca la línia amb el dit o el ratolí; quan està tallada, acaba amb «…».",
       "attachment_links_as_cards": "Mostra com a targeta els enllaços a un adjunt que són sols a la seva línia; dins d'una frase, porten un clip petit. Les notes no es modifiquen.",
-      "remember_me_days": "Quant de temps manté la sessió iniciada marcar «Recorda'm» a la pàgina d'inici de sessió. Només val per als inicis de sessió amb contrasenya. Un inici de sessió SSO dura el que indica la targeta Durada de les sessions, a Configuració > Quant a, que es configura al fitxer .env. Canviar una contrasenya, o tancar la sessió d'un dispositiu des de Dispositius connectats, la tanca de seguida, sigui quina sigui la durada configurada aquí."
+      "remember_me_days": "Quant de temps manté la sessió iniciada marcar «Recorda'm» a la pàgina d'inici de sessió. Només val per als inicis de sessió amb contrasenya. Un inici de sessió SSO dura el que indica la targeta Durada de les sessions, a Configuració > Quant a, que es configura al fitxer .env. Canviar una contrasenya, o tancar la sessió d'un dispositiu des de Dispositius connectats, la tanca de seguida, sigui quina sigui la durada configurada aquí.",
+      "display_profiles": "Deseu les mides de lletra, les mides de les icones i les tipografies d'aquest navegador amb un nom: un perfil per pantalla (portàtil, pantalla gran) o per a una presentació. Canvieu-hi amb un clic amb el botó de pantalla de la barra d'icones, a qualsevol pàgina.",
+      "idle_signout": "Tanca la sessió d'aquest compte automàticament després d'aquest nombre de minuts sense fer servir Poznote, fins a 1440; 0 ho desactiva. Primer es desa la nota oberta. Les còpies fora de línia de les vostres notes es queden al navegador i no es poden obrir sense la vostra contrasenya, tret que trieu esborrar-les amb el paràmetre de sota. Només mentre Poznote està en línia: la versió fora de línia continua oberta fins que tanqueu la sessió vosaltres mateixos.",
+      "idle_signout_erase_offline": "Elimina també del navegador les còpies fora de línia de les vostres notes quan la sessió es tanca automàticament, com fa sempre el botó Tanca la sessió. Desactivat, es conserven, però ningú no les pot obrir sense la vostra contrasenya: la versió fora de línia la demana, i un compte que inicia la sessió per SSO no té accés fora de línia fins que torna a iniciar la sessió en línia."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "En un mòbil, la barra d'eines de damunt del teclat té un botó + que obre el mateix menú, independentment d'aquest paràmetre."
@@ -337,7 +340,9 @@
       "two_factor_required": "Dos factors obligatoris",
       "sessions": "Dispositius connectats",
       "session_lifetime": "Durada de les sessions",
-      "remember_me_days": "Durada de «Recorda'm»"
+      "remember_me_days": "Durada de «Recorda'm»",
+      "idle_signout": "Tancament de sessió automàtic",
+      "idle_signout_erase_offline": "Esborra les notes fora de línia en tancar la sessió automàticament"
     },
     "default_credentials": {
       "both": "Aquest compte encara fa servir el nom d'usuari i la contrasenya per defecte. Qualsevol persona que pugui accedir a aquesta instància hi pot iniciar la sessió.",
@@ -609,7 +614,8 @@
       "update_badge_level": "Punt d'actualització",
       "update_check_interval": "Comprovació d'actualitzacions",
       "attachments_single_line": "Adjunts en una línia",
-      "attachment_links_as_cards": "Enllaços d'adjunts com a targetes"
+      "attachment_links_as_cards": "Enllaços d'adjunts com a targetes",
+      "display_profiles": "Perfils de visualització"
     },
     "badges": {
       "font_size_default": "per defecte ({{size}} px)",
@@ -2496,7 +2502,8 @@
     "methods": {
       "password": "Inicia la sessió amb contrasenya",
       "sso": "Inicia la sessió amb SSO"
-    }
+    },
+    "idle_signed_out": "S'ha tancat la sessió automàticament després d'un període d'inactivitat. Torneu a iniciar la sessió per tornar on éreu."
   },
   "restore_import": {
     "page": {
@@ -6075,5 +6082,33 @@
     "empty": "Aquesta nota és buida",
     "drawing": "Un dibuix no es pot previsualitzar aquí",
     "open": "Obre en una pestanya nova"
+  },
+  "display_profiles": {
+    "title": "Perfils de visualització",
+    "manage": "Gestiona els perfils de visualització",
+    "description": "Un perfil desa les mides de lletra, les mides de les icones i les tipografies d'aquest navegador. Deseu-ne un per a cada manera de treballar (portàtil, pantalla gran, presentació) i canvieu-hi amb el botó de pantalla de la barra d'icones, a qualsevol pàgina.",
+    "name_label": "Nom del perfil",
+    "name_placeholder": "Nom, p. ex. Portàtil",
+    "save_current": "Desa la visualització actual",
+    "empty": "Encara no hi ha cap perfil.",
+    "current": "En ús",
+    "show_details": "Mostra els detalls",
+    "update": "Substitueix per la visualització actual",
+    "rename": "Canvia el nom",
+    "delete": "Suprimeix",
+    "delete_title": "Voleu suprimir aquest perfil?",
+    "delete_message": "Se suprimirà el perfil de visualització \"{{name}}\". La visualització actual no canvia.",
+    "name_required": "Doneu un nom al perfil.",
+    "name_taken": "Ja hi ha un perfil amb aquest nom.",
+    "limit": "Límit assolit: suprimiu un perfil abans de desar-ne un altre.",
+    "saved": "Perfil de visualització \"{{name}}\" desat",
+    "applied": "Perfil de visualització \"{{name}}\" aplicat",
+    "updated": "Perfil de visualització \"{{name}}\" actualitzat",
+    "status_none": "Cap perfil",
+    "status_one": "1 perfil",
+    "status_count": "{{count}} perfils"
+  },
+  "idle_signout": {
+    "unit": "minuts"
   }
 }

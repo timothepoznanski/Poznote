@@ -410,11 +410,13 @@ class WorkspacesController {
             $stmt->execute([$targetWorkspace, $name]);
             $movedNotes = $stmt->rowCount();
             
-            // If the deleted workspace was the default workspace, reset to "last opened"
+            // If the deleted workspace was the default workspace, go back to
+            // "never chose", which opens each browser's own last workspace
+            // (issue #1825)
             if ($currentDefaultWorkspace === $name) {
                 try {
-                    $resetStmt = $this->con->prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)');
-                    $resetStmt->execute(['default_workspace', '__last_opened__']);
+                    $resetStmt = $this->con->prepare('DELETE FROM settings WHERE key = ?');
+                    $resetStmt->execute(['default_workspace']);
                 } catch (Exception $e) {
                     // If settings update fails, continue - it's not critical for workspace deletion
                     error_log('WorkspacesController: destroy() failed: ' . $e->getMessage());

@@ -224,14 +224,44 @@ function syncWorkspaceAccentStyle(doc) {
     }
 }
 
+// The request of the previous switch, still on its way (issue #1825).
+var workspaceRefreshController = null;
+
 function refreshLeftColumnForWorkspace(workspaceName) {
     var url = new URL(window.location.href);
     url.searchParams.delete('note');
     url.searchParams.set('workspace', workspaceName);
 
-    fetch(url.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    // Only the last switch may paint the column. Each answer replaces the
+    // whole #left_col, title and tree included, and the answers of two quick
+    // switches can arrive in either order: the earlier one landing last left
+    // the title and the tree on a workspace the URL, the menu's check mark
+    // and the next note creation no longer were on (issue #1825). The older
+    // request is abandoned, and an answer that still slips through is dropped.
+    if (workspaceRefreshController) {
+        workspaceRefreshController.abort();
+    }
+    var controller = typeof AbortController === 'function' ? new AbortController() : null;
+    workspaceRefreshController = controller;
+
+    fetch(url.toString(), {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            // The switch already saved the workspace (saveLastOpenedWorkspace),
+            // in click order: an abandoned request still runs on the server
+            // and would write its own workspace back over the new one.
+            'X-Poznote-Workspace-Refresh': '1'
+        },
+        signal: controller ? controller.signal : undefined
+    })
         .then(function (response) { return response.text(); })
         .then(function (html) {
+            if (workspaceRefreshController === controller) {
+                workspaceRefreshController = null;
+            }
+            if (workspaceName !== selectedWorkspace) {
+                return;
+            }
             var parser = new DOMParser();
             var doc = parser.parseFromString(html, 'text/html');
             var newLeftCol = doc.getElementById('left_col');
@@ -302,6 +332,7 @@ function refreshLeftColumnForWorkspace(workspaceName) {
             }
         })
         .catch(function (err) {
+            if (err && err.name === 'AbortError') return;
             console.log('Error during refresh:', err);
         });
 }

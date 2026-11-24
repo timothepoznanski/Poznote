@@ -209,6 +209,9 @@ try {
 }
 $settingsAppPasswordsActive = (int)($settingsPageConfig['appPasswords']['active_count'] ?? 0);
 
+// Automatic sign-out card: the list of delays (lib/idle-signout.php)
+require_once __DIR__ . '/../lib/idle-signout.php';
+
 // Connected devices card: same idea, the badge says how many sessions are
 // open without the page having to fetch the list.
 try {
@@ -598,6 +601,39 @@ if ($canUseUserWebhooks) {
                         ?></span>
                     </div>
                 </div>
+
+                <?php if (!isAutoLoginSession()): ?>
+                <!-- Automatic sign-out after inactivity (lib/idle-signout.php,
+                     js/session-guard.js). Not offered to a session opened
+                     without a password: it would open again at once. -->
+                <div class="home-card settings-inline-card settings-card-stacks" id="idle-signout-card">
+                    <span class="setting-help" data-tooltip="<?php echo t_h('settings.card_help.idle_signout', [], 'Sign out of this account automatically after this many minutes without using Poznote, up to 1440; 0 turns it off. The open note is saved first. The offline copies of your notes stay in the browser and cannot be opened without your password, unless you choose to erase them with the setting below. Only while Poznote is online: the offline version stays open until you sign out yourself.'); ?>"><i class="lucide lucide-help-circle"></i></span>
+                    <div class="home-card-icon"><i class="lucide lucide-clock"></i></div>
+                    <div class="home-card-content">
+                        <label class="home-card-title" for="idle-signout-input"><?php echo t_h('settings.cards.idle_signout', [], 'Automatic sign-out'); ?></label>
+                        <input type="number" id="idle-signout-input" class="settings-inline-control settings-inline-number" data-control="idle-signout-input"
+                               min="0" max="<?php echo POZNOTE_IDLE_SIGNOUT_MAX; ?>" step="1" inputmode="numeric"
+                               aria-describedby="idle-signout-unit">
+                        <span class="settings-inline-unit" id="idle-signout-unit"><?php echo t_h('idle_signout.unit', [], 'minutes'); ?></span>
+                    </div>
+                </div>
+
+                <?php if (poznoteOfflineModeEnabled()): ?>
+                <!-- Sub-setting of the card above (settings-subcard): the
+                     automatic sign-out keeps the offline copies unless this
+                     is on (Logout always erases them). Only while a delay is
+                     set: idle-signout-off hides it otherwise, and
+                     js/settings-page.js follows the delay list. -->
+                <div class="home-card settings-subcard<?php echo poznoteIdleSignoutMinutes(getSetting('idle_signout_minutes', '')) === 0 ? ' idle-signout-off' : ''; ?>" id="idle-signout-erase-offline-card">
+                    <span class="setting-help" data-tooltip="<?php echo t_h('settings.card_help.idle_signout_erase_offline', [], 'Also remove the offline copies of your notes from the browser when you are signed out automatically, as the Logout button always does. Off, they are kept, but nobody can open them without your password: the offline version asks for it, and an account that signs in through SSO does not get offline access until it signs in online again.'); ?>"><i class="lucide lucide-help-circle"></i></span>
+                    <div class="home-card-icon"><i class="lucide lucide-trash-2"></i></div>
+                    <div class="home-card-content">
+                        <span class="home-card-title"><?php echo t_h('settings.cards.idle_signout_erase_offline', [], 'Erase offline notes on automatic sign-out'); ?></span>
+                        <span id="idle-signout-erase-offline-status" class="setting-status disabled"><?php echo t_h('common.disabled'); ?></span>
+                    </div>
+                </div>
+                <?php endif; ?>
+                <?php endif; ?>
 
                 <?php if ($settingsConnectedAppsCount > 0 || $settingsConnectorUrl !== ''): ?>
                 <!-- Connected apps: chat apps signed in to the MCP server through Poznote (OAuth) -->
@@ -1206,6 +1242,18 @@ $localRestoreCardVisible = !empty(LocalBackupService::restorePageBackups());
                         <input type="range" id="icon-rail-scale-range" class="settings-inline-control" data-control="icon-rail-scale-range" min="0.5" max="2.0" step="0.1" value="1.0">
                         <output class="settings-inline-value" for="icon-rail-scale-range">1.0x</output>
                     </span>
+                </div>
+            </div>
+
+            <!-- Display profiles: the font sizes, icon sizes and fonts above,
+                 saved under a name and applied in one go (js/display-profiles.js
+                 builds the dialog). Kept in this browser like what they hold. -->
+            <div class="home-card" id="display-profiles-card">
+                <span class="setting-help" data-tooltip="<?php echo t_h('settings.card_help.display_profiles', [], 'Save the font sizes, icon sizes and fonts of this browser under a name: one profile per screen (laptop, large screen) or for a presentation. Switch between them in one click with the monitor button of the icon sidebar, on any page.'); ?>"><i class="lucide lucide-help-circle"></i></span>
+                <div class="home-card-icon"><i class="lucide lucide-monitor"></i></div>
+                <div class="home-card-content">
+                    <span class="home-card-title"><?php echo t_h('display.cards.display_profiles', [], 'Display profiles'); ?></span>
+                    <span id="display-profiles-status" class="setting-status disabled"><?php echo t_h('common.loading'); ?></span>
                 </div>
             </div>
 

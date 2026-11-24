@@ -48,6 +48,23 @@
         });
     }
 
+    // An automatic sign-out that keeps the offline copies (Settings > My
+    // Account, src/lib/idle-signout.php). They stay, but nothing may open
+    // them without a password: the offline page of this tab forgets that it
+    // was unlocked, and the "Continue as" entry of an account without a
+    // password verifier goes, since it is offered only to the account marked
+    // as the current one. The next sign-in online marks it again.
+    if (config.idleKeptOffline) {
+        try {
+            window.sessionStorage.removeItem('poznote_offline_unlocked');
+        } catch (e) {
+            console.debug('offline-login: the offline unlock could not be cleared:', e);
+        }
+        Store.deleteMeta('current').catch(function (e) {
+            console.debug('offline-login: clearing the current account failed:', e);
+        });
+    }
+
     // Only the two-factor steps (the code, or its setup and then the recovery
     // codes) follow an accepted password on this page; any other render means
     // the last attempt did not sign in.

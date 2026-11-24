@@ -295,15 +295,16 @@ function poznoteRenderWorkspacesList(array $data): void
 }
 
 /**
- * Options of the "Default workspace" list: the last workspace opened, on any
- * device or on this one (a cookie per browser, lib/workspaces.php), then each
- * workspace. js/settings-page.js selects the stored one.
+ * Options of the "Default workspace" list: the last workspace opened on this
+ * device (a cookie per browser, lib/workspaces.php, the default since issue
+ * #1825) or on any device, then each workspace. js/settings-page.js selects
+ * the stored one.
  */
 function poznoteRenderDefaultWorkspaceOptions(array $data): void
 {
     ?>
-                            <option value="__last_opened__"><?php echo t_h('workspaces.default.last_opened', [], 'Last workspace opened (all devices)'); ?></option>
                             <option value="__last_opened_device__"><?php echo t_h('workspaces.default.last_opened_device', [], 'Last workspace opened on this device'); ?></option>
+                            <option value="__last_opened__"><?php echo t_h('workspaces.default.last_opened', [], 'Last workspace opened (all devices)'); ?></option>
                             <?php foreach ($data['names'] as $name): ?>
                             <option value="<?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?></option>
                             <?php endforeach; ?>

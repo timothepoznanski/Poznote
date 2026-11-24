@@ -317,6 +317,9 @@ function applyFontSizeChangedElsewhere() {
     }
 }
 
+// js/display-profiles.js applies a profile on a page already laid out
+window.poznoteApplyStoredFontSizes = applyFontSizeChangedElsewhere;
+
 // The sizes are saved from the Settings page, usually open in another tab...
 window.addEventListener('storage', function (event) {
     if (event.key === null || /_font_size(::|$)/.test(event.key)) {

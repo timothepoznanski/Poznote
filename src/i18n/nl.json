@@ -226,7 +226,10 @@
       "session_lifetime": "Hoe lang een aanmelding duurt zonder activiteit. Ingesteld met POZNOTE_SESSION_LIFETIME_DAYS in het .env-bestand, dus het wordt hier getoond maar kan niet vanaf deze pagina worden gewijzigd. Inloggen met \"Ingelogd blijven\" duurt langer; inloggen via SSO niet.",
       "attachments_single_line": "De bijlagen van de notitie op één regel tonen in plaats van over meerdere regels. Schuif de regel met een vinger of de muis; als hij wordt afgesneden, eindigt hij met \"…\".",
       "attachment_links_as_cards": "Toont links naar bijlagen die alleen op hun regel staan als kaart; in een zin krijgen ze een kleine paperclip. Notities worden niet gewijzigd.",
-      "remember_me_days": "Hoe lang iemand ingelogd blijft als \"Ingelogd blijven\" op de inlogpagina is aangevinkt. Dit geldt alleen voor inloggen met een wachtwoord. Een aanmelding via SSO duurt zo lang als de sessieduur die in Instellingen > Over wordt getoond en in het .env-bestand is ingesteld. Een wachtwoord wijzigen, of een apparaat uitloggen via Verbonden apparaten, logt het direct uit, ongeacht de hier ingestelde duur."
+      "remember_me_days": "Hoe lang iemand ingelogd blijft als \"Ingelogd blijven\" op de inlogpagina is aangevinkt. Dit geldt alleen voor inloggen met een wachtwoord. Een aanmelding via SSO duurt zo lang als de sessieduur die in Instellingen > Over wordt getoond en in het .env-bestand is ingesteld. Een wachtwoord wijzigen, of een apparaat uitloggen via Verbonden apparaten, logt het direct uit, ongeacht de hier ingestelde duur.",
+      "display_profiles": "Sla de lettergroottes, pictogramgroottes en lettertypen van deze browser op onder een naam: een profiel per scherm (laptop, groot scherm) of voor een presentatie. Wissel er met één klik tussen via de schermknop van de pictogrambalk, op elke pagina.",
+      "idle_signout": "Automatisch uitloggen bij dit account na dit aantal minuten zonder Poznote te gebruiken, tot 1440; 0 zet het uit. De geopende notitie wordt eerst opgeslagen. De offline kopieën van je notities blijven in de browser en kunnen niet zonder je wachtwoord worden geopend, tenzij je ervoor kiest ze te wissen met de instelling hieronder. Alleen zolang Poznote online is: de offline versie blijft open tot je zelf uitlogt.",
+      "idle_signout_erase_offline": "Ook de offline kopieën van je notities uit de browser verwijderen als je automatisch wordt uitgelogd, zoals de knop Uitloggen altijd doet. Uitgeschakeld blijven ze bewaard, maar niemand kan ze openen zonder je wachtwoord: de offline versie vraagt erom, en een account dat via SSO inlogt krijgt geen offline toegang tot het weer online inlogt."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "Op mobiel heeft de werkbalk boven het toetsenbord een knop + die hetzelfde menu opent, ongeacht deze instelling."
@@ -337,7 +340,9 @@
       "two_factor_required": "Tweestapsverificatie verplichten",
       "sessions": "Verbonden apparaten",
       "session_lifetime": "Sessieduur",
-      "remember_me_days": "Duur van ingelogd blijven"
+      "remember_me_days": "Duur van ingelogd blijven",
+      "idle_signout": "Automatisch uitloggen",
+      "idle_signout_erase_offline": "Offline notities wissen bij automatisch uitloggen"
     },
     "default_credentials": {
       "both": "Dit account gebruikt nog de gebruikersnaam en het wachtwoord waarmee het is geleverd. Iedereen die deze instantie kan bereiken, kan erop inloggen.",
@@ -609,7 +614,8 @@
       "update_badge_level": "Updatestip",
       "update_check_interval": "Controle op updates",
       "attachments_single_line": "Bijlagen op één regel",
-      "attachment_links_as_cards": "Bijlagelinks als kaarten"
+      "attachment_links_as_cards": "Bijlagelinks als kaarten",
+      "display_profiles": "Weergaveprofielen"
     },
     "badges": {
       "font_size_default": "standaard ({{size}}px)",
@@ -2496,7 +2502,8 @@
     "methods": {
       "password": "Inloggen met een wachtwoord",
       "sso": "Inloggen met SSO"
-    }
+    },
+    "idle_signed_out": "Je bent automatisch uitgelogd na een periode van inactiviteit. Log opnieuw in om terug te gaan naar waar je was."
   },
   "restore_import": {
     "page": {
@@ -6075,5 +6082,33 @@
     "empty": "Deze notitie is leeg",
     "drawing": "Een tekening kan hier niet worden weergegeven",
     "open": "Openen in een nieuw tabblad"
+  },
+  "display_profiles": {
+    "title": "Weergaveprofielen",
+    "manage": "Weergaveprofielen beheren",
+    "description": "Een profiel bewaart de lettergroottes, de pictogramgroottes en de lettertypen van deze browser. Sla er een op voor elke manier van werken (laptop, groot scherm, presentatie) en wissel ertussen met de schermknop van de pictogrambalk, op elke pagina.",
+    "name_label": "Profielnaam",
+    "name_placeholder": "Naam, bijv. Laptop",
+    "save_current": "Huidige weergave opslaan",
+    "empty": "Nog geen profiel.",
+    "current": "In gebruik",
+    "show_details": "Details tonen",
+    "update": "Vervangen door de huidige weergave",
+    "rename": "Hernoemen",
+    "delete": "Verwijderen",
+    "delete_title": "Dit profiel verwijderen?",
+    "delete_message": "Het weergaveprofiel \"{{name}}\" wordt verwijderd. De huidige weergave verandert niet.",
+    "name_required": "Geef het profiel een naam.",
+    "name_taken": "Er is al een profiel met deze naam.",
+    "limit": "Limiet bereikt: verwijder een profiel voordat je een nieuw opslaat.",
+    "saved": "Weergaveprofiel \"{{name}}\" opgeslagen",
+    "applied": "Weergaveprofiel \"{{name}}\" toegepast",
+    "updated": "Weergaveprofiel \"{{name}}\" bijgewerkt",
+    "status_none": "Geen profiel",
+    "status_one": "1 profiel",
+    "status_count": "{{count}} profielen"
+  },
+  "idle_signout": {
+    "unit": "minuten"
   }
 }

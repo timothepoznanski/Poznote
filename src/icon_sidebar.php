@@ -356,6 +356,11 @@ $iconSidebarBottomItems = [
     // menu of the themes of the list on each click and shows the one in use.
     // A right-click offers to step to the next theme on each click instead, as
     // it used to: theme_button_cycle, carried as data-theme-cycle.
+    // Display profiles (js/display-profiles.js): a menu of the saved sets of
+    // font sizes, icon sizes and fonts of this browser, to switch from any
+    // page. Its "Manage" entry leads to Settings > Display, dropped below for
+    // someone who cannot open Settings.
+    ['id' => 'iconSidebarDisplayProfilesBtn', 'displayProfiles' => true, 'icon' => 'lucide-monitor', 'label' => t('display_profiles.title', [], 'Display profiles')],
     ['id' => 'iconSidebarThemeToggleBtn', 'themeToggle' => true, 'icon' => 'lucide-moon', 'label' => t('theme.toggle', [], 'Toggle theme')],
     // ?open=about lands on settings.php with the About section expanded and
     // every other section collapsed (js/settings-page.js). It is settings.php
@@ -371,7 +376,8 @@ $iconSidebarBottomItems = [
 // of the account being looked at may open (requireActiveAccountOwner): inside
 // a workspace shared with this login, or an account granted to it, the theme
 // switch and the way out are what is left.
-if (!(!function_exists('isActiveAccountOwnedByAuthenticatedUser') || isActiveAccountOwnedByAuthenticatedUser())) {
+$iconSidebarCanOpenSettings = !function_exists('isActiveAccountOwnedByAuthenticatedUser') || isActiveAccountOwnedByAuthenticatedUser();
+if (!$iconSidebarCanOpenSettings) {
     $iconSidebarBottomHidden = ['iconSidebarSettingsBtn', 'iconSidebarAboutBtn'];
     $iconSidebarBottomItems = array_values(array_filter($iconSidebarBottomItems, static function (array $item) use ($iconSidebarBottomHidden): bool {
         return !in_array($item['id'] ?? '', $iconSidebarBottomHidden, true);
@@ -511,6 +517,41 @@ window.PoznoteAccountSwitch = <?php echo json_encode($iconSidebarAccountSwitch, 
 <?php // Read by the logout dialog: changes made offline a logout would erase ?>
 <script src="<?php echo $iconSidebarAsset('js/offline-store.js'); ?>" defer></script>
 <script src="<?php echo $iconSidebarAsset('js/profile.js'); ?>" defer></script>
+<?php
+// Display profiles (js/display-profiles.js): the rail button's menu, and the
+// dialog of Settings > Display. Strings rendered here because half the pages
+// carrying the rail have no i18n runtime.
+$iconSidebarDisplayProfileStrings = [];
+foreach (['title', 'manage', 'description', 'name_label', 'name_placeholder', 'save_current', 'empty', 'current', 'show_details',
+    'update', 'rename', 'delete', 'delete_title', 'delete_message', 'name_required', 'name_taken', 'limit', 'saved',
+    'applied', 'updated', 'status_none', 'status_one', 'status_count'] as $iconSidebarDisplayProfileKey) {
+    $iconSidebarDisplayProfileStrings[$iconSidebarDisplayProfileKey] = t('display_profiles.' . $iconSidebarDisplayProfileKey, [], '');
+}
+$iconSidebarDisplayProfileStrings['close'] = t('common.close', [], 'Close');
+// The detail of a profile names each value with the label it has in Settings
+$iconSidebarDisplayProfileStrings['labels'] = [
+    'note_font_size' => t('settings.value_help.font_size_notes', [], 'Note content'),
+    'sidebar_font_size' => t('settings.value_help.font_size_sidebar', [], 'Sidebar'),
+    'code_block_font_size' => t('settings.value_help.font_size_code_blocks', [], 'Code blocks'),
+    'folder_path_font_size' => t('settings.value_help.font_size_folder_path', [], 'Folder path'),
+    'tags_font_size' => t('settings.value_help.font_size_tags', [], 'Tags'),
+    'attachments_font_size' => t('settings.value_help.font_size_attachments', [], 'Attachments'),
+    'backlinks_font_size' => t('settings.value_help.font_size_backlinks', [], 'Backlinks'),
+    'settings_font_size' => t('settings.value_help.font_size_settings', [], 'Settings page'),
+    'index_icon_scale' => t('display.cards.index_icon_scale', [], 'Index icon scaling'),
+    'icon_rail_scale' => t('display.cards.icon_rail_scale', [], 'Icon sidebar icon scaling'),
+    'main_font' => t('display.cards.main_font', [], 'App font'),
+    'markdown_font' => t('display.cards.markdown_font', [], 'Markdown editor font'),
+];
+$iconSidebarDisplayProfileStrings['font_names'] = [
+    'inter' => t('modals.main_font.options.inter', [], 'Inter (default)'),
+    'system' => t('modals.main_font.options.system', [], 'System'),
+    'inherit' => t('modals.markdown_font.options.inherit', [], 'App font (default)'),
+    'monospace' => t('modals.markdown_font.options.monospace', [], 'System monospace'),
+];
+?>
+<script type="application/json" id="displayProfilesStrings"><?php echo json_encode($iconSidebarDisplayProfileStrings, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP); ?></script>
+<script src="<?php echo $iconSidebarAsset('js/display-profiles.js'); ?>" defer></script>
 <script>
 window.PoznoteIconSidebarColorsConfig = <?php echo json_encode([
     'colors' => (object)poznoteGetIconSidebarColors(),
@@ -650,7 +691,13 @@ try {
         : (isset($iconSidebarItem['page']) && $iconSidebarItem['page'] === $iconSidebarCurrentPage);
     $iconSidebarClass = 'icon-sidebar-btn' . ($iconSidebarIsCurrent ? ' icon-sidebar-btn-active' : '');
     ?>
-    <?php if (!empty($iconSidebarItem['themeToggle'])): ?>
+    <?php if (!empty($iconSidebarItem['displayProfiles'])): ?>
+    <button type="button" id="<?php echo $iconSidebarItem['id']; ?>" class="<?php echo $iconSidebarClass; ?>" data-display-profiles-toggle aria-haspopup="menu" aria-expanded="false"
+        <?php if ($iconSidebarCanOpenSettings): ?>data-manage-url="<?php echo htmlspecialchars($iconSidebarUrl('settings.php', ['open' => 'display-profiles']), ENT_QUOTES, 'UTF-8'); ?>"<?php endif; ?>
+        title="<?php echo $iconSidebarLabel; ?>" aria-label="<?php echo $iconSidebarLabel; ?>">
+        <?php echo poznoteRenderIconSidebarIcon($iconSidebarItem['icon'], $iconSidebarItem['id']); ?>
+    </button>
+    <?php elseif (!empty($iconSidebarItem['themeToggle'])): ?>
     <?php $iconSidebarThemeCycles = function_exists('getSetting') && (string)getSetting('theme_button_cycle', '0') === '1'; ?>
     <button type="button" id="<?php echo $iconSidebarItem['id']; ?>" class="<?php echo $iconSidebarClass; ?>" data-theme-toggle<?php echo $iconSidebarThemeCycles ? ' data-theme-cycle' : ' aria-haspopup="menu" aria-expanded="false"'; ?>
         data-label-click-cycles="<?php echo t_h('common.click_toggles', [], 'Toggle on click'); ?>"
