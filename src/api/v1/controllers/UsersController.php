@@ -1698,6 +1698,22 @@ class UsersController {
     }
 
     /**
+     * The browser reports that the person is using Poznote (keys, pointer,
+     * touch), at most once a minute (js/session-guard.js). Only a signed-in
+     * browser session has a delay to keep alive; an API client gets the
+     * answer "no delay" and nothing is recorded. The session check that
+     * runs before this route has already ended a session idle for too long.
+     */
+    public function recordSessionActivity() {
+        require_once dirname(__DIR__, 3) . '/lib/idle-signout.php';
+        if (!poznoteIdleSignoutAppliesToSession()) {
+            return ['success' => true, 'minutes' => 0];
+        }
+        poznoteRecordSessionActivity();
+        return ['success' => true, 'minutes' => (int)($_SESSION['idle_signout_minutes'] ?? 0)];
+    }
+
+    /**
      * Puts the remember-me cookie of a session being ended on the list of
      * cookies that no longer sign anyone in (revoked_remember_tokens), for as
      * long as the cookie could have lasted. Without it the device comes back

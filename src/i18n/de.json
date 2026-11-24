@@ -584,7 +584,9 @@
       "attachments_single_line": "Zeigt die Anhänge der Notiz in einer einzigen Zeile statt auf mehrere Zeilen verteilt. Die Zeile lässt sich mit dem Finger oder der Maus verschieben; ist sie abgeschnitten, endet sie mit „…“.",
       "attachment_links_as_cards": "Zeigt Links zu Anhängen, die allein in ihrer Zeile stehen, als Karte; im Satz erhalten sie eine kleine Büroklammer. Die Notizen werden nicht geändert.",
       "remember_me_days": "Wie lange das Ankreuzen von „Angemeldet bleiben“ auf der Anmeldeseite jemanden angemeldet lässt. Gilt nur für Anmeldungen mit Passwort. Eine SSO-Anmeldung dauert so lange, wie die Karte Sitzungsdauer unter Einstellungen > Über anzeigt; dieser Wert wird in der .env-Datei festgelegt. Ein geändertes Passwort oder das Abmelden eines Geräts unter Verbundene Geräte meldet es sofort ab, unabhängig von der hier eingestellten Dauer.",
-      "display_profiles": "Speichern Sie die Schriftgrößen, Symbolgrößen und Schriftarten dieses Browsers unter einem Namen: ein Profil pro Bildschirm (Laptop, großer Bildschirm) oder für eine Präsentation. Wechseln Sie mit einem Klick über die Bildschirm-Schaltfläche der Symbolleiste, auf jeder Seite."
+      "display_profiles": "Speichern Sie die Schriftgrößen, Symbolgrößen und Schriftarten dieses Browsers unter einem Namen: ein Profil pro Bildschirm (Laptop, großer Bildschirm) oder für eine Präsentation. Wechseln Sie mit einem Klick über die Bildschirm-Schaltfläche der Symbolleiste, auf jeder Seite.",
+      "idle_signout": "Dieses Konto nach so vielen Minuten ohne Nutzung von Poznote automatisch abmelden, bis zu 1440; 0 schaltet es aus. Die geöffnete Notiz wird zuerst gespeichert. Die Offline-Kopien Ihrer Notizen bleiben im Browser und können nicht ohne Ihr Passwort geöffnet werden, es sei denn, Sie lassen sie mit der Einstellung darunter löschen. Nur solange Poznote online ist: Die Offline-Version bleibt geöffnet, bis Sie sich selbst abmelden.",
+      "idle_signout_erase_offline": "Bei einer automatischen Abmeldung auch die Offline-Kopien Ihrer Notizen aus dem Browser entfernen, wie es die Schaltfläche Abmelden immer tut. Ausgeschaltet bleiben sie erhalten, aber niemand kann sie ohne Ihr Passwort öffnen: Die Offline-Version fragt danach, und ein Konto, das sich per SSO anmeldet, hat keinen Offline-Zugriff, bis es sich wieder online anmeldet."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "Auf Mobilgeräten hat die Leiste über der Tastatur eine +-Schaltfläche, die unabhängig von dieser Einstellung dasselbe Menü öffnet."
@@ -718,7 +720,9 @@
       "two_factor_required": "Zwei-Faktor erzwingen",
       "sessions": "Verbundene Geräte",
       "session_lifetime": "Sitzungsdauer",
-      "remember_me_days": "Dauer von „Angemeldet bleiben“"
+      "remember_me_days": "Dauer von „Angemeldet bleiben“",
+      "idle_signout": "Automatische Abmeldung",
+      "idle_signout_erase_offline": "Offline-Notizen bei automatischer Abmeldung löschen"
     },
     "default_credentials": {
       "both": "Dieses Konto verwendet noch den mitgelieferten Benutzernamen und das mitgelieferte Passwort. Jeder, der diese Instanz erreichen kann, kann sich anmelden.",
@@ -2919,7 +2923,8 @@
     "methods": {
       "password": "Mit Passwort anmelden",
       "sso": "Mit SSO anmelden"
-    }
+    },
+    "idle_signed_out": "Sie wurden nach einer Zeit der Inaktivität automatisch abgemeldet. Melden Sie sich erneut an, um dorthin zurückzukehren, wo Sie waren."
   },
   "restore_import": {
     "page": {
@@ -6257,5 +6262,8 @@
     "status_none": "Kein Profil",
     "status_one": "1 Profil",
     "status_count": "{{count}} Profile"
+  },
+  "idle_signout": {
+    "unit": "Minuten"
   }
 }

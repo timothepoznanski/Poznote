@@ -783,7 +783,7 @@
         // Default workspace (Workspaces section): the options are the
         // workspaces of the account, after the two "last opened" choices
         initInlineControl('default-workspace-select', {
-            load: loadSettingValue('default_workspace', function (value) { return value || '__last_opened__'; }),
+            load: loadSettingValue('default_workspace', function (value) { return value || '__last_opened_device__'; }),
             save: saveSettingValue('default_workspace')
         });
 
@@ -822,6 +822,36 @@
                 return String(Math.min(days, 365));
             }),
             save: saveSettingValue('update_check_interval_days')
+        });
+
+        // Automatic sign-out after inactivity, per account (lib/idle-signout.php):
+        // a number of minutes, 0 turns it off. Typed out of range, it is brought
+        // back inside 0..1440 and the field shows what was saved; anything that
+        // is not a number reads as 0, never as a delay nobody chose (the same
+        // reading as poznoteIdleSignoutMinutes() in PHP). The server answers the
+        // save with the cookie js/session-guard.js reads, in every tab.
+        function idleSignoutMinutes(value) {
+            var minutes = parseInt(String(value === null || value === undefined ? '' : value).trim(), 10);
+            if (isNaN(minutes) || minutes < 0) return 0;
+            return Math.min(minutes, 1440);
+        }
+        function syncIdleEraseCard(minutes) {
+            var card = document.getElementById('idle-signout-erase-offline-card');
+            if (card) card.classList.toggle('idle-signout-off', idleSignoutMinutes(minutes) === 0);
+        }
+        initInlineControl('idle-signout-input', {
+            load: loadSettingValue('idle_signout_minutes', idleSignoutMinutes),
+            save: function (value, done) {
+                var minutes = idleSignoutMinutes(value);
+                setSetting('idle_signout_minutes', minutes, function (success) {
+                    if (success) {
+                        var input = document.getElementById('idle-signout-input');
+                        if (input) input.value = minutes;
+                        syncIdleEraseCard(minutes);
+                    }
+                    done(success);
+                });
+            }
         });
 
         // How long the "Remember me" box keeps someone signed in, instance
@@ -3200,6 +3230,8 @@
         setupToggleCard('attachment-previews-card', 'attachment-previews-status', 'attachment_previews_in_note', false, false);
         setupToggleCard('attachments-at-bottom-card', 'attachments-at-bottom-status', 'attachments_at_bottom', false, false);
         setupToggleCard('attachments-single-line-card', 'attachments-single-line-status', 'attachments_single_line', false, false);
+        // The automatic sign-out keeps the offline copies unless this is on
+        setupToggleCard('idle-signout-erase-offline-card', 'idle-signout-erase-offline-status', 'idle_signout_erase_offline', false, false);
         setupToggleCard('attachment-links-as-cards-card', 'attachment-links-as-cards-status', 'attachment_links_as_cards', false, false);
         setupToggleCard('attachments-inserted-images-card', 'attachments-inserted-images-status', 'attachments_show_inserted_images', false, false);
         setupToggleCard('backlinks-at-bottom-card', 'backlinks-at-bottom-status', 'backlinks_at_bottom', false, false);

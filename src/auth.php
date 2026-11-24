@@ -393,6 +393,10 @@ function setAuthenticatedIdentity(array $authUser, ?string $authMethod = null): 
     // agent is kept as the browser sent it, trimmed, and only ever turned into
     // a "Chrome, Android" label for display; no address is stored.
     $_SESSION['session_created_at'] = time();
+    // Signing in is activity: the automatic sign-out delay starts here, and
+    // the delay itself is read again for this identity (lib/idle-signout.php).
+    $_SESSION['last_user_activity'] = time();
+    unset($_SESSION['idle_signout_user_id']);
     // Whichever cookie the previous identity of this session travelled with
     // is not this one's; the paths that sign in with a cookie set it again.
     unset($_SESSION['remember_token']);
@@ -736,6 +740,10 @@ function isAuthenticated() {
         }
 
         if (sessionMatchesCurrentCredentials()) {
+            if (poznoteEndSessionIfIdle()) {
+                return false;
+            }
+
             poznoteBindSessionToRememberMeCookie();
 
             if (!sessionMeetsRequiredTwoFactor()) {
@@ -1232,7 +1240,7 @@ function enforceSharedWorkspaceReadOnly(string $scriptName): void {
         return;
     }
     $path = (string)parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
-    if (preg_match('#/api/v1/(mentions/\d+/\d+/handled|notes/\d+/opened|system/whats-new/seen|users/me/push/subscriptions)/?$#', $path)) {
+    if (preg_match('#/api/v1/(mentions/\d+/\d+/handled|notes/\d+/opened|system/whats-new/seen|users/me/push/subscriptions|users/me/activity)/?$#', $path)) {
         return;
     }
     denyAccountAccessResponse('This workspace is shared with you in read-only mode', 403);
@@ -2100,6 +2108,50 @@ function sessionMatchesCurrentCredentials(): bool {
 }
 
 /**
+ * Automatic sign-out, server half (lib/idle-signout.php): a session that has
+ * reported no activity for longer than its delay ends here, the way Logout
+ * ends it (remember-me cookie revoked on the server and removed), so nothing
+ * opens it again on this request. The browser normally signs out first,
+ * after saving the open note; this is for the browser put to sleep or the
+ * frozen tab. Otherwise a page navigation counts as activity.
+ *
+ * Returns true only when it has just ended the session.
+ */
+function poznoteEndSessionIfIdle(): bool {
+    require_once __DIR__ . '/lib/idle-signout.php';
+    if (!poznoteIdleSignoutAppliesToSession()) {
+        return false;
+    }
+    if (!poznoteSessionIdleExpired($_SESSION, time())) {
+        if (!isset($_SESSION['last_user_activity']) || poznoteRequestIsUserNavigation($_SERVER)) {
+            poznoteRecordSessionActivity();
+        }
+        return false;
+    }
+
+    $method = (string)($_SESSION['auth_method'] ?? 'password');
+    require_once __DIR__ . '/ActivityLog.php';
+    logActivity(
+        ACTIVITY_LOGOUT,
+        ['method' => $method, 'reason' => 'idle'],
+        $method === 'oidc' ? 'oidc' : 'web',
+        isset($_SESSION['login_user_id']) ? (int)$_SESSION['login_user_id'] : null,
+        $_SESSION['login_user']['username'] ?? null
+    );
+
+    poznoteEndRememberMeCookieOnLogout();
+    if (isset($_COOKIE[REMEMBER_ME_COOKIE])) {
+        if (!headers_sent()) {
+            setRememberMeCookie('', time() - 3600);
+        }
+        unset($_COOKIE[REMEMBER_ME_COOKIE]);
+    }
+    $_SESSION = [];
+    poznoteWriteIdleSignoutCookie(0);
+    return true;
+}
+
+/**
  * After a password change, keeps the current session (and its remember-me
  * cookie) signed in when it belongs to that profile; every other session of
  * the profile ends on its next request (sessionMatchesCurrentCredentials()).
@@ -2143,7 +2195,16 @@ function rememberedLoginMeetsRequiredTwoFactor(int $userId): bool {
     }
 }
 
-function logout() {
+/**
+ * Ends the session and goes to the login page (or the identity provider's
+ * sign-out for an SSO session).
+ *
+ * $idle: the automatic sign-out after inactivity (js/session-guard.js) asked
+ * for it. The login page then says why, and $redirect (a relative path,
+ * checked like every login redirect) brings the person back to the page they
+ * were on once signed in again.
+ */
+function logout(bool $idle = false, ?string $redirect = null) {
     // Must run before session_destroy(): the actor is read from the session,
     // and there is no identity left to record afterwards.
     $logoutMethod = $_SESSION['auth_method'] ?? 'password';
@@ -2151,7 +2212,7 @@ function logout() {
         require_once __DIR__ . '/ActivityLog.php';
         logActivity(
             ACTIVITY_LOGOUT,
-            ['method' => $logoutMethod],
+            $idle ? ['method' => $logoutMethod, 'reason' => 'idle'] : ['method' => $logoutMethod],
             $logoutMethod === 'oidc' ? 'oidc' : 'web',
             isset($_SESSION['login_user_id']) ? (int)$_SESSION['login_user_id'] : null,
             $_SESSION['login_user']['username'] ?? null
@@ -2173,20 +2234,38 @@ function logout() {
     // this browser. Before session_destroy(): the session says which cookie.
     poznoteEndRememberMeCookieOnLogout();
 
+    // An automatic sign-out keeps the offline copies unless the account chose
+    // to erase them (lib/idle-signout.php); Logout always erases them. Read
+    // before the session goes.
+    require_once __DIR__ . '/lib/idle-signout.php';
+    $keepOfflineCopies = $idle && poznoteIdleSignoutKeepsOffline();
+
     session_destroy();
     // Remove remember me cookie
     if (isset($_COOKIE[REMEMBER_ME_COOKIE])) {
         setRememberMeCookie('', time() - 3600);
     }
     clearUserPreferenceCookie();
-    setJustLoggedOutCookie();
+    // The cookie that has the login page forget the offline copies
+    // (js/offline-login.js), except when they are kept.
+    if (!$keepOfflineCopies) {
+        setJustLoggedOutCookie();
+    }
+    poznoteWriteIdleSignoutCookie(0);
 
     if (is_string($oidcLogoutUrl) && $oidcLogoutUrl !== '') {
         header('Location: ' . $oidcLogoutUrl);
         exit;
     }
 
-    header('Location: login.php');
+    $params = [];
+    if ($idle) {
+        $params['idle'] = '1';
+        if ($redirect !== null && $redirect !== '') {
+            $params['redirect'] = $redirect;
+        }
+    }
+    header('Location: login.php' . ($params === [] ? '' : '?' . http_build_query($params)));
     exit;
 }
 

@@ -1110,6 +1110,12 @@ $router->delete('/users/me/sessions/{id}', function($params) use ($usersControll
     echo json_encode($usersController->revokeSession($params['id']));
 });
 
+// Activity report of the automatic sign-out after inactivity
+// (js/session-guard.js, src/lib/idle-signout.php)
+$router->post('/users/me/activity', function($params) use ($usersController) {
+    echo json_encode($usersController->recordSessionActivity());
+});
+
 // Connected apps: chat apps signed in to the MCP server through the OAuth
 // consent page (oauth/authorize.php), see src/lib/oauth-server.php
 $router->get('/users/me/connected-apps', function($params) use ($usersController) {

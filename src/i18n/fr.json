@@ -583,7 +583,9 @@
       "attachments_single_line": "Affiche les pièces jointes de la note sur une seule ligne au lieu de les répartir sur plusieurs lignes. Faites glisser la ligne avec le doigt ou la souris ; quand elle est coupée, elle se termine par « … ».",
       "attachment_links_as_cards": "Affiche en carte les liens vers une pièce jointe seuls sur leur ligne ; dans une phrase, ils reçoivent un petit trombone. Les notes ne sont pas modifiées.",
       "remember_me_days": "Combien de temps cocher « Se souvenir de moi » sur la page de connexion garde quelqu'un connecté. Ne vaut que pour les connexions par mot de passe. Une connexion SSO dure le temps indiqué par la carte Durée des sessions, dans Paramètres > À propos, qui se règle dans le fichier .env. Changer un mot de passe, ou déconnecter un appareil depuis Appareils connectés, le déconnecte tout de suite, quelle que soit la durée réglée ici.",
-      "display_profiles": "Enregistrez les tailles de police, les tailles d'icônes et les polices de ce navigateur sous un nom : un profil par écran (portable, grand écran) ou pour une présentation. Passez de l'un à l'autre en un clic avec le bouton écran de la barre d'icônes, sur n'importe quelle page."
+      "display_profiles": "Enregistrez les tailles de police, les tailles d'icônes et les polices de ce navigateur sous un nom : un profil par écran (portable, grand écran) ou pour une présentation. Passez de l'un à l'autre en un clic avec le bouton écran de la barre d'icônes, sur n'importe quelle page.",
+      "idle_signout": "Déconnecter automatiquement ce compte après ce nombre de minutes sans utiliser Poznote, jusqu’à 1440 ; 0 désactive. La note ouverte est d’abord enregistrée. Les copies hors ligne de vos notes restent dans le navigateur et ne peuvent pas être ouvertes sans votre mot de passe, sauf si vous choisissez de les effacer avec le réglage ci-dessous. Seulement quand Poznote est en ligne : la version hors ligne reste ouverte jusqu’à ce que vous vous déconnectiez vous-même.",
+      "idle_signout_erase_offline": "Supprimer aussi du navigateur les copies hors ligne de vos notes lors d’une déconnexion automatique, comme le fait toujours le bouton Déconnexion. Désactivé, elles sont gardées, mais personne ne peut les ouvrir sans votre mot de passe : la version hors ligne le demande, et un compte qui se connecte par SSO n’a plus d’accès hors ligne avant de s’être reconnecté en ligne."
     },
     "card_notes": {
       "slash_menu_trigger_mobile": "Sur mobile, la barre d'outils au-dessus du clavier a un bouton + qui ouvre le même menu, quel que soit ce réglage."
@@ -717,7 +719,9 @@
       "two_factor_required": "Double authentification obligatoire",
       "sessions": "Appareils connectés",
       "session_lifetime": "Durée des sessions",
-      "remember_me_days": "Durée du « Se souvenir de moi »"
+      "remember_me_days": "Durée du « Se souvenir de moi »",
+      "idle_signout": "Déconnexion automatique",
+      "idle_signout_erase_offline": "Effacer les notes hors ligne à la déconnexion automatique"
     },
     "default_credentials": {
       "both": "Ce compte utilise encore le login et le mot de passe livrés par défaut. N'importe qui pouvant joindre cette instance peut s'y connecter.",
@@ -2924,7 +2928,8 @@
     "methods": {
       "password": "Se connecter avec un mot de passe",
       "sso": "Se connecter avec le SSO"
-    }
+    },
+    "idle_signed_out": "Vous avez été déconnecté automatiquement après une période d’inactivité. Reconnectez-vous pour revenir là où vous étiez."
   },
   "restore_import": {
     "page": {
@@ -6362,5 +6367,8 @@
     "status_none": "Aucun profil",
     "status_one": "1 profil",
     "status_count": "{{count}} profils"
+  },
+  "idle_signout": {
+    "unit": "minutes"
   }
 }

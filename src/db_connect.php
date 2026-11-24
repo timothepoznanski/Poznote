@@ -1175,6 +1175,15 @@ try {
         $_SESSION['language_synced_user_id'] = $activeUserId;
     }
 
+    // Automatic sign-out delay of the account, into the session and the
+    // cookie the page scripts read (lib/idle-signout.php).
+    if ($activeUserId
+        && session_status() === PHP_SESSION_ACTIVE
+        && (int)($_SESSION['user_id'] ?? 0) === $activeUserId) {
+        require_once __DIR__ . '/lib/idle-signout.php';
+        poznoteSyncIdleSignout($con, (int)$activeUserId);
+    }
+
     // A workspace shared for reading only: whatever a request tries to write
     // to the owner's database fails (auth.php, enforceSharedWorkspaceReadOnly).
     if (function_exists('isSharedWorkspaceReadOnly') && isSharedWorkspaceReadOnly()) {

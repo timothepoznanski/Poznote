@@ -244,7 +244,9 @@ if ($_POST) {
         try {
                 $resetStmt = $con->prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)');
                 if ($currentDefaultWorkspace === $name) {
-                    $resetStmt->execute(['default_workspace', '__last_opened__']);
+                    // Back to "never chose", which opens each browser's own
+                    // last workspace (issue #1825)
+                    $con->prepare('DELETE FROM settings WHERE key = ?')->execute(['default_workspace']);
                 }
                 if ($currentLastOpened === $name && $targetWorkspace) {
                     $resetStmt->execute(['last_opened_workspace', $targetWorkspace]);

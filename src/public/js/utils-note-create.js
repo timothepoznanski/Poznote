@@ -4,13 +4,32 @@
 // across the page load that follows creation, the creation loading indicator, and the
 // per-note actions reachable from the tree (download, info, favourite, duplicate).
 
+// One save at a time, the last workspace asked for winning (issue #1825):
+// the server runs a browser's requests one after the other but not
+// necessarily in the order they were sent, so two saves sent together could
+// leave the earlier workspace stored.
+var lastOpenedWorkspaceSaveInFlight = false;
+var lastOpenedWorkspacePending = null;
+
 /**
- * Save the last opened workspace to the database
- * This replaces localStorage for workspace persistence
+ * Save the last opened workspace (database, and this browser's cookie).
  * @param {string} workspaceName - The workspace name to save
  */
 function saveLastOpenedWorkspace(workspaceName) {
     if (!workspaceName) return;
+
+    if (lastOpenedWorkspaceSaveInFlight) {
+        lastOpenedWorkspacePending = workspaceName;
+        return;
+    }
+    lastOpenedWorkspaceSaveInFlight = true;
+
+    var done = function () {
+        lastOpenedWorkspaceSaveInFlight = false;
+        var next = lastOpenedWorkspacePending;
+        lastOpenedWorkspacePending = null;
+        if (next) saveLastOpenedWorkspace(next);
+    };
 
     fetch('/api/v1/settings/last_opened_workspace', {
         method: 'PUT',
@@ -22,7 +41,8 @@ function saveLastOpenedWorkspace(workspaceName) {
         .catch(function (e) {
             // Silently fail - this is a best-effort save
             console.debug && console.debug('Failed to save last opened workspace:', e);
-        });
+        })
+        .then(done, done);
 }
 
 // Expose globally

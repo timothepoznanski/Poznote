@@ -77,6 +77,8 @@ if (!function_exists('poznoteUiCustomizationSectionHeader')) {
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:two-factor-card" checked><span><?php echo t_h('settings.cards.two_factor', [], 'Two-factor authentication'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:app-passwords-card" checked><span><?php echo t_h('settings.cards.app_passwords', [], 'App passwords'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:sessions-card" checked><span><?php echo t_h('settings.cards.sessions', [], 'Connected devices'); ?></span></label>
+        <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:idle-signout-card" checked><span><?php echo t_h('settings.cards.idle_signout', [], 'Automatic sign-out'); ?></span></label>
+        <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:idle-signout-erase-offline-card" checked><span><?php echo t_h('settings.cards.idle_signout_erase_offline', [], 'Erase offline notes on automatic sign-out'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:delete-account-card" checked><span><?php echo t_h('settings.cards.delete_account', [], 'Delete Account'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:default-workspace-card" checked><span><?php echo t_h('workspaces.default.title', [], 'Default Workspace'); ?></span></label>
         <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:workspace-accent-card" checked><span><?php echo t_h('display.cards.workspace_color_accent', [], 'Workspace color as accent'); ?></span></label>

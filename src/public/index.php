@@ -192,8 +192,13 @@ if (!isset($_GET['workspace']) && !isset($_POST['workspace'])) {
     }
 }
 
-// Save the currently opened workspace to database for "last opened" feature
-if (isset($_GET['workspace']) && $_GET['workspace'] !== '') {
+// Save the currently opened workspace to database for "last opened" feature.
+// Not for the partial refresh of a workspace switch (js/workspaces-create.js):
+// the switch saved it already, and a refresh the browser abandoned still runs
+// here, after the next switch maybe, and would put its workspace back
+// (issue #1825).
+if (isset($_GET['workspace']) && $_GET['workspace'] !== ''
+    && ($_SERVER['HTTP_X_POZNOTE_WORKSPACE_REFRESH'] ?? '') !== '1') {
     saveLastOpenedWorkspace($_GET['workspace']);
 }
 

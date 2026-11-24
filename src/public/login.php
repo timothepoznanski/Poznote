@@ -339,6 +339,8 @@ $loginMethodCount = $renderLoginStep ? 1 : max(1, (int)$passwordLoginVisible + (
 
         <?php if ($showTwoFactorSetupNotice): ?>
         <div class="info session-expired-notice"><?php echo t_h('login.two_factor.setup_notice', [], 'Two-factor authentication is now required on this instance. Sign in to set it up.', $currentLang); ?></div>
+        <?php elseif (($_GET['idle'] ?? '') === '1' && !$renderLoginStep): ?>
+        <div class="info session-expired-notice"><?php echo t_h('login.idle_signed_out', [], 'You were signed out automatically after a period of inactivity. Sign in again to get back to where you were.', $currentLang); ?></div>
         <?php elseif (isset($_GET['expired']) && !$renderLoginStep): ?>
         <div class="info session-expired-notice"><?php echo t_h('login.session_expired', [], 'Your session has ended. Sign in again to get back to where you were.', $currentLang); ?></div>
         <?php endif; ?>
@@ -671,7 +673,10 @@ $loginMethodCount = $renderLoginStep ? 1 : max(1, (int)$passwordLoginVisible + (
         'hidePasswordTitle' => t('login.hide_password', [], 'Hide password', $currentLang ?? 'en'),
         'redirectAfter' => $redirectAfter,
         // js/offline-login.js forgets this device's offline copies after a sign-out
-        'justLoggedOut' => $justLoggedOut
+        'justLoggedOut' => $justLoggedOut,
+        // ...or, after an automatic sign-out that keeps them, removes what
+        // would open them without a password (lib/idle-signout.php)
+        'idleKeptOffline' => !$justLoggedOut && ($_GET['idle'] ?? '') === '1'
     ];
     ?>
     <script type="application/json" id="login-config"><?php echo json_encode($loginConfig); ?></script>
