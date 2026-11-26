@@ -1388,8 +1388,17 @@ html[data-theme='dark'] .markdown-preview pre.indented-pre {
     padding-left: 2em;
 }
 
+/* List items are spaced like those of a rich text note (css/checklists.css):
+   a "normal" line height and 4px between two bullets or numbers (the 4px
+   margins of the .noteentry rules), a 1.6 line height and no margin between
+   two tasks, like .checklist-item */
 .markdown-preview li {
     margin: 0.5em 0;
+    line-height: normal;
+}
+
+.markdown-preview li.task-list-item {
+    margin: 0;
     line-height: 1.6;
 }
 
@@ -2483,16 +2492,18 @@ body.markdown-split-preview-left:not(.markdown-split-card-view) .noteentry.markd
     padding-top: calc(max(var(--cm-live-gap-a, 0px), var(--cm-live-gap-b, 0px)) + var(--cm-live-own-pt, 0px));
 }
 
-/* A list item is a <li> of the preview: 1.6 line height, 4px between two
-   items (0.5em between two tasks), none under the last one, whose margin is
-   the list's */
+/* A list item is a <li> of the preview, spaced like a rich text note: a
+   "normal" line height and 4px between two items, a 1.6 line height and
+   nothing between two tasks, none under the last one, whose margin is the
+   list's */
 .markdown-codemirror-host .cm-live-preview .cm-line.cm-live-list {
-    line-height: 1.6;
+    line-height: normal;
     padding-bottom: 4px;
 }
 
 .markdown-codemirror-host .cm-live-preview .cm-line.cm-live-list.cm-live-list-task {
-    padding-bottom: 0.5em;
+    line-height: 1.6;
+    padding-bottom: 0;
 }
 
 .markdown-codemirror-host .cm-live-preview .cm-line.cm-live-list.cm-live-list-last {

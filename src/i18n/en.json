@@ -2071,7 +2071,9 @@
       "formula_remove": "Remove the formula",
       "formula_incompatible": "Incompatible formula",
       "delete_row": "Delete row",
+      "delete_rows": "Delete rows",
       "delete_column": "Delete column",
+      "delete_columns": "Delete columns",
       "delete_table": "Delete table",
       "errors": {
         "cannot_delete_last_row": "Cannot delete the last row of the table.",

@@ -582,6 +582,10 @@
         const cell = what === 'row'
             ? rows[rows.length - 1].children[0]
             : rows[0].children[rows[0].children.length - 1];
+        // The table is redrawn (a Markdown one is a new element): once it is,
+        // the buttons come back if the mouse is still on one of them, or on
+        // the table, without waiting for the mouse to move
+        revealAfterRedraw();
         if (html) {
             const target = getHtmlTarget(table, cell);
             if (target) runOnHtmlTable(target, what === 'row' ? 'insertRowBelow' : 'insertColRight');
@@ -619,19 +623,15 @@
         hoverHideTimer = setTimeout(hideHandles, 250);
     }
 
-    function positionHandles() {
-        if (!hoverTable || !rowHandle) return;
-        if (!hoverTable.isConnected) {
-            hideHandles();
-            return;
-        }
-        const rect = hoverTable.getBoundingClientRect();
+    // Where the two buttons go around a table, in viewport pixels
+    function handleRects(table) {
+        const rect = table.getBoundingClientRect();
         // A wide Markdown table scrolls in its box (#1701): the buttons go around
         // the box, the row button under its scrollbar and the column button
         // beside it, wherever the table is scrolled to
-        const box = hoverTable.closest('.markdown-table-scroll');
+        const box = table.closest('.markdown-table-scroll');
         const edges = box ? box.getBoundingClientRect() : rect;
-        const clip = getClipRect(box || hoverTable);
+        const clip = getClipRect(box || table);
         const size = 16;
         // (clear of the column resize grip along an HTML table's edge)
         const gap = 6;
@@ -639,18 +639,121 @@
         const rowTop = edges.bottom + gap;
         const rowLeft = Math.max(edges.left, clip.left);
         const rowWidth = Math.min(edges.right, clip.right) - rowLeft;
-        rowHandle.hidden = rowTop + size > clip.bottom || rowTop < clip.top || rowWidth < size;
-        rowHandle.style.top = Math.round(rowTop) + 'px';
-        rowHandle.style.left = Math.round(rowLeft) + 'px';
-        rowHandle.style.width = Math.round(rowWidth) + 'px';
-
         const columnLeft = box ? Math.min(edges.right + gap, clip.right - size) : rect.right + gap;
         const columnTop = Math.max(rect.top, clip.top);
         const columnHeight = Math.min(rect.bottom, clip.bottom) - columnTop;
-        columnHandle.hidden = columnLeft + size > clip.right || columnHeight < size;
-        columnHandle.style.left = Math.round(columnLeft) + 'px';
-        columnHandle.style.top = Math.round(columnTop) + 'px';
-        columnHandle.style.height = Math.round(columnHeight) + 'px';
+        return {
+            row: {
+                top: rowTop, left: rowLeft, width: rowWidth, height: size,
+                hidden: rowTop + size > clip.bottom || rowTop < clip.top || rowWidth < size
+            },
+            column: {
+                top: columnTop, left: columnLeft, width: size, height: columnHeight,
+                hidden: columnLeft + size > clip.right || columnHeight < size
+            }
+        };
+    }
+
+    function positionHandles() {
+        if (!hoverTable || !rowHandle) return;
+        if (!hoverTable.isConnected) {
+            hideHandles();
+            return;
+        }
+        const rects = handleRects(hoverTable);
+        rowHandle.hidden = rects.row.hidden;
+        rowHandle.style.top = Math.round(rects.row.top) + 'px';
+        rowHandle.style.left = Math.round(rects.row.left) + 'px';
+        rowHandle.style.width = Math.round(rects.row.width) + 'px';
+
+        columnHandle.hidden = rects.column.hidden;
+        columnHandle.style.left = Math.round(rects.column.left) + 'px';
+        columnHandle.style.top = Math.round(rects.column.top) + 'px';
+        columnHandle.style.height = Math.round(rects.column.height) + 'px';
+    }
+
+    function showHandlesFor(table) {
+        createHandles();
+        hoverTable = table;
+        watchHoverTable(table);
+        positionHandles();
+    }
+
+    // The buttons also come up when the mouse reaches the place they take,
+    // without crossing the table first (coming from below, or from the right)
+    let zoneProbeFrame = 0;
+    let zoneProbePoint = null;
+
+    function tableAtPoint(x, y) {
+        const element = document.elementFromPoint(x, y);
+        if (!element) return null;
+        // (the scrollbar of a wide table's box is the box, not the table)
+        const box = element.closest && element.closest('.markdown-table-scroll');
+        return getEditableTable(box ? box.querySelector('table') || element : element);
+    }
+
+    function inRect(x, y, r) {
+        return !r.hidden && x >= r.left && x <= r.left + r.width && y >= r.top && y <= r.top + r.height;
+    }
+
+    function probeHandleZone() {
+        zoneProbeFrame = 0;
+        const point = zoneProbePoint;
+        zoneProbePoint = null;
+        if (!point || hoverTable) return;
+        const { x, y } = point;
+        // The row button sits 6 to 22px under the table, the column button
+        // 6 to 22px right of it: look back that far for the table
+        const offsets = [7, 15, 23, 31];
+        const seen = new Set();
+        for (const offset of offsets) {
+            for (const [px, py] of [[x, y - offset], [x - offset, y]]) {
+                const table = tableAtPoint(px, py);
+                if (!table || seen.has(table)) continue;
+                seen.add(table);
+                const rects = handleRects(table);
+                if (inRect(x, y, rects.row) || inRect(x, y, rects.column)) {
+                    showHandlesFor(table);
+                    return;
+                }
+            }
+        }
+    }
+
+    // Shows the buttons of the table under the point, or of the table whose
+    // button is at the point. True when shown.
+    function revealAtPoint(x, y) {
+        const table = tableAtPoint(x, y);
+        if (table) {
+            showHandlesFor(table);
+            return true;
+        }
+        zoneProbePoint = { x, y };
+        probeHandleZone();
+        return !!hoverTable;
+    }
+
+    let lastPointer = null;
+    let revealTimers = [];
+
+    function revealAfterRedraw() {
+        revealTimers.forEach(clearTimeout);
+        // (a Markdown preview is drawn again a little later than an editor)
+        revealTimers = [0, 80, 200, 400, 700].map(delay => setTimeout(() => {
+            if (hoverTable && hoverTable.isConnected) return;
+            if (hoverTable) hideHandles();
+            if (lastPointer) revealAtPoint(lastPointer.x, lastPointer.y);
+        }, delay));
+    }
+
+    function onMouseMove(e) {
+        lastPointer = { x: e.clientX, y: e.clientY };
+        if (hoverTable || (canHover && !canHover.matches)) return;
+        const target = e.target;
+        const column = target && target.closest ? target.closest('#right_col') : null;
+        if (!column || !column.querySelector('table')) return;
+        zoneProbePoint = { x: e.clientX, y: e.clientY };
+        if (!zoneProbeFrame) zoneProbeFrame = requestAnimationFrame(probeHandleZone);
     }
 
     function onMouseOver(e) {
@@ -663,10 +766,7 @@
         }
         clearTimeout(hoverHideTimer);
         if (table === hoverTable) return;
-        createHandles();
-        hoverTable = table;
-        watchHoverTable(table);
-        positionHandles();
+        showHandlesFor(table);
     }
 
     // ─── Sideways bar of a table's source ────────────────────────────────────
@@ -914,6 +1014,7 @@
         document.addEventListener('contextmenu', onContextMenu, true);
         document.addEventListener('keydown', onKeyDown, true);
         document.addEventListener('mouseover', onMouseOver);
+        document.addEventListener('mousemove', onMouseMove, { passive: true });
         document.addEventListener('scroll', schedulePosition, true);
         window.addEventListener('resize', schedulePosition);
         ['scroll', 'mouseover', 'selectionchange', 'input'].forEach(type => {

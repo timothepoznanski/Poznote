@@ -2067,7 +2067,9 @@
       "formula_remove": "Удалить формулу",
       "formula_incompatible": "Формула несовместима",
       "delete_row": "Удалить строку",
+      "delete_rows": "Удалить строки",
       "delete_column": "Удалить столбец",
+      "delete_columns": "Удалить столбцы",
       "delete_table": "Удалить таблицу",
       "errors": {
         "cannot_delete_last_row": "Нельзя удалить последнюю строку таблицы.",

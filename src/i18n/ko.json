@@ -2071,7 +2071,9 @@
       "formula_remove": "수식 제거",
       "formula_incompatible": "호환되지 않는 수식",
       "delete_row": "행 삭제",
+      "delete_rows": "행 삭제",
       "delete_column": "열 삭제",
+      "delete_columns": "열 삭제",
       "delete_table": "표 삭제",
       "errors": {
         "cannot_delete_last_row": "표의 마지막 행을 삭제할 수 없습니다.",

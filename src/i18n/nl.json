@@ -2071,7 +2071,9 @@
       "formula_remove": "Formule verwijderen",
       "formula_incompatible": "Incompatibele formule",
       "delete_row": "Rij verwijderen",
+      "delete_rows": "Rijen verwijderen",
       "delete_column": "Kolom verwijderen",
+      "delete_columns": "Kolommen verwijderen",
       "delete_table": "Tabel verwijderen",
       "errors": {
         "cannot_delete_last_row": "Kan de laatste rij van de tabel niet verwijderen.",

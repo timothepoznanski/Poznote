@@ -2613,7 +2613,9 @@
       "formula_remove": "Remover a fórmula",
       "formula_incompatible": "Fórmula não compatível",
       "delete_row": "Excluir linha",
+      "delete_rows": "Excluir linhas",
       "delete_column": "Excluir coluna",
+      "delete_columns": "Excluir colunas",
       "delete_table": "Excluir tabela",
       "errors": {
         "cannot_delete_last_row": "Não é possível excluir a última linha da tabela.",

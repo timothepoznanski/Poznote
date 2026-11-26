@@ -2071,7 +2071,9 @@
       "formula_remove": "Elimina la fórmula",
       "formula_incompatible": "Fórmula incompatible",
       "delete_row": "Suprimeix la fila",
+      "delete_rows": "Suprimeix les files",
       "delete_column": "Suprimeix la columna",
+      "delete_columns": "Suprimeix les columnes",
       "delete_table": "Suprimeix la taula",
       "errors": {
         "cannot_delete_last_row": "No es pot suprimir l'última fila de la taula.",

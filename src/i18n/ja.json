@@ -2071,7 +2071,9 @@
       "formula_remove": "数式を削除",
       "formula_incompatible": "互換性のない数式",
       "delete_row": "行を削除",
+      "delete_rows": "行を削除",
       "delete_column": "列を削除",
+      "delete_columns": "列を削除",
       "delete_table": "表を削除",
       "errors": {
         "cannot_delete_last_row": "表の最後の行は削除できません。",

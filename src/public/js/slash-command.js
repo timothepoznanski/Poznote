@@ -6814,6 +6814,10 @@
         // text: a right-click on one belongs to the Hide menu of Element
         // visibility (js/hide-element-menu.js), not to the commands of the note
         if (e.target && e.target.closest && e.target.closest(CODE_BLOCK_CONTROLS_SELECTOR)) return;
+        // Highlighted cells of a table (a drag from cell to cell) belong to
+        // the table menu (js/table-context-menu.js): Copy, Delete rows / columns
+        if (e.target && e.target.closest && e.target.closest('.noteentry .pz-cell-selected') &&
+            window.pzTableCellSelection && window.pzTableCellSelection.isActive()) return;
 
         // A link under the pointer: its "Manage link" dialog (js/toolbar-links.js)
         if (typeof window.openLinkModalFromContextMenu === 'function' && window.openLinkModalFromContextMenu(e)) {

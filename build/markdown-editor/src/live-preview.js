@@ -2681,6 +2681,18 @@ function startTableCellEdit(view, block, cell, select, point) {
       // edge: the browser took the caret out of the cell to the top of the note
       event.preventDefault()
       finish(true, 'arrow-' + event.key.slice(5).toLowerCase())
+    } else if ((event.ctrlKey || event.metaKey) && !event.altKey &&
+      (event.key.toLowerCase() === 'z' || event.key.toLowerCase() === 'y') && readCell() === raw) {
+      // Ctrl+Z / Ctrl+Y in a cell nothing was typed in yet (the cell a row
+      // or column deletion opens, a cell just clicked): the editor's history,
+      // the cell having nothing of its own to take back. Typed text is first
+      // undone by the cell itself, until it reads as it did when opened.
+      event.preventDefault()
+      const isRedo = event.key.toLowerCase() === 'y' || event.shiftKey
+      finish(false)
+      view.focus()
+      if (isRedo) redo(view)
+      else undo(view)
     } else if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'a') {
       // Select all: all of the cell (the browser would take the whole note,
       // and the next key would replace it)

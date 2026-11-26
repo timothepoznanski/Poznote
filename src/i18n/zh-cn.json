@@ -2611,7 +2611,9 @@
       "formula_remove": "移除公式",
       "formula_incompatible": "公式不兼容",
       "delete_row": "删除行",
+      "delete_rows": "删除行",
       "delete_column": "删除列",
+      "delete_columns": "删除列",
       "delete_table": "删除表格",
       "errors": {
         "cannot_delete_last_row": "无法删除表格的最后一行。",

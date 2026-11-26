@@ -4,6 +4,8 @@
     // Global variables
     let activeTable = null;
     let activeCell = null;
+    // The rows and columns of the selected cells the menu was opened on (getCellSpan)
+    let activeSpan = null;
     let contextMenu = null;
     let htmlCopyText = '';
 
@@ -46,8 +48,13 @@
         contextMenu = document.createElement('div');
         contextMenu.className = 'table-context-menu';
 
-        // (a click in the menu must not take away the selection Copy is for)
-        contextMenu.addEventListener('mousedown', (e) => e.preventDefault());
+        // (a click in the menu must not take away the selection Copy is for,
+        // nor the highlighted cells, which js/table-cell-selection.js drops
+        // on a mousedown elsewhere)
+        contextMenu.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
 
         const menuItems = [
             { label: tr('table.context_menu.copy', 'Copy'), action: 'copy', icon: '<i class="lucide lucide-copy"></i>', id: 'copy' },
@@ -89,15 +96,22 @@
                 const menuItem = document.createElement('div');
                 menuItem.className = 'table-context-menu-item' + (item.danger ? ' danger' : '');
                 if (item.id) menuItem.dataset.item = item.id;
-                menuItem.innerHTML = `<span style="width:20px;text-align:center">${item.icon}</span><span>${item.label}</span>`;
+                menuItem.dataset.action = item.action;
+                menuItem.innerHTML = `<span style="width:20px;text-align:center">${item.icon}</span><span class="table-context-menu-label">${item.label}</span>`;
 
                 menuItem.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    const cellSelection = window.pzTableCellSelection;
                     if (item.action === 'copy') {
-                        if (htmlCopyText) copyMdText(htmlCopyText);
+                        // Highlighted cells are copied as cells (HTML table + text)
+                        if (cellSelection && cellSelection.getTable() === activeTable) cellSelection.copy();
+                        else if (htmlCopyText) copyMdText(htmlCopyText);
                     } else {
-                        runTableAction(activeTable, activeCell, item.action);
+                        const span = item.action === 'deleteRow' || item.action === 'deleteCol' ? activeSpan : null;
+                        // (before the change: the undo step compares the note as it leaves it)
+                        if (cellSelection && cellSelection.getTable() === activeTable) cellSelection.clear();
+                        runTableAction(activeTable, activeCell, item.action, span);
                     }
                     hideTableContextMenu();
                 });
@@ -311,9 +325,12 @@
         activeTable = table;
         activeCell = cell;
         htmlCopyText = copyText || '';
+        activeSpan = getCellSpan(table, cell);
         
         const menu = createTableContextMenu();
         refreshTableContextMenu(menu, table, cell);
+        setDeleteLabels(menu, activeSpan ? activeSpan.rowEnd - activeSpan.rowStart + 1 : 1,
+            activeSpan ? activeSpan.colEnd - activeSpan.colStart + 1 : 1);
         menu.querySelectorAll('[data-item="copy"]').forEach(el => {
             el.style.display = htmlCopyText ? '' : 'none';
         });
@@ -348,7 +365,78 @@
         }
         activeTable = null;
         activeCell = null;
+        activeSpan = null;
         htmlCopyText = '';
+    }
+
+    // ─── Several rows or columns selected ────────────────────────────────────
+
+    /**
+     * The rows and columns that several selected cells cover, when the menu
+     * is opened on one of them: the highlighted cells (a drag from one cell
+     * to another, js/table-cell-selection.js in an HTML note, the rich text
+     * view of a Markdown note), or the cells a text selection runs across.
+     * Indexes as drawn (row 0: the first row, a header included).
+     * Null when the menu is about the clicked cell's row and column only.
+     */
+    function getCellSpan(table, cell) {
+        if (!table || !cell) return null;
+        const rows = getTableRows(table);
+        const ownCells = Array.from(table.querySelectorAll('td, th')).filter(c => c.closest('table') === table);
+        const place = c => {
+            const row = c.parentElement;
+            return [rows.indexOf(row), Array.from(row.children).indexOf(c)];
+        };
+        let cells = ownCells.filter(c => c.classList.contains('pz-cell-selected'));
+        if (!cells.length) {
+            const sel = window.getSelection();
+            if (sel && !sel.isCollapsed && sel.rangeCount) {
+                const range = sel.getRangeAt(0);
+                const cellOf = node => {
+                    const el = node && (node.nodeType === 1 ? node : node.parentElement);
+                    const found = el && el.closest ? el.closest('td, th') : null;
+                    return found && ownCells.indexOf(found) >= 0 ? found : null;
+                };
+                const first = cellOf(range.startContainer);
+                let last = cellOf(range.endContainer);
+                // A selection that ends at the very start of a cell (a triple
+                // click) does not take that cell in
+                if (first && last && last !== first) {
+                    const lead = document.createRange();
+                    lead.setStart(last, 0);
+                    lead.setEnd(range.endContainer, range.endOffset);
+                    if (lead.toString() === '') last = ownCells[ownCells.indexOf(last) - 1] || first;
+                }
+                if (first && last) cells = [first, last];
+            }
+        }
+        if (cells.length < 2) return null;
+        const points = cells.map(place).filter(p => p[0] >= 0 && p[1] >= 0);
+        if (points.length < 2) return null;
+        const span = {
+            rowStart: Math.min(...points.map(p => p[0])),
+            rowEnd: Math.max(...points.map(p => p[0])),
+            colStart: Math.min(...points.map(p => p[1])),
+            colEnd: Math.max(...points.map(p => p[1]))
+        };
+        const [rowIndex, cellIndex] = place(cell);
+        if (rowIndex < span.rowStart || rowIndex > span.rowEnd || cellIndex < span.colStart || cellIndex > span.colEnd) return null;
+        if (span.rowStart === span.rowEnd && span.colStart === span.colEnd) return null;
+        return span;
+    }
+
+    // "Delete row" / "Delete rows", "Delete column" / "Delete columns"
+    function setDeleteLabels(menu, rowCount, columnCount) {
+        const label = (action, text) => {
+            const el = menu.querySelector(`[data-action="${action}"] .table-context-menu-label`);
+            if (el) el.textContent = text;
+        };
+        label('deleteRow', rowCount > 1
+            ? tr('table.context_menu.delete_rows', 'Delete rows')
+            : tr('table.context_menu.delete_row', 'Delete row'));
+        label('deleteCol', columnCount > 1
+            ? tr('table.context_menu.delete_columns', 'Delete columns')
+            : tr('table.context_menu.delete_column', 'Delete column'));
     }
 
     // The rows of a table, header (thead) included, not those of a table
@@ -365,7 +453,44 @@
      */
     function runTableAction(table, cell, action, value) {
         if (!table || !cell || !table.contains(cell)) return null;
+        if (action === 'deleteTable') {
+            // Asynchronous (styled confirmation): it saves the note itself
+            deleteTable(table);
+            return null;
+        }
 
+        // Ctrl+Z / Ctrl+Y: the browser's undo history never sees a change made
+        // on the DOM, so the change is a step of the note's own history
+        // (js/slash-command.js): the table as it was is kept aside, and the
+        // two tables swap places back and forth
+        const noteentry = table.closest('.noteentry');
+        const undoStep = noteentry && noteentry.getAttribute('data-note-type') !== 'markdown'
+            ? window.poznoteHtmlUndoableStep : null;
+        const before = undoStep ? table.cloneNode(true) : null;
+        if (before) {
+            // (no highlighted cell comes back with it)
+            before.classList.remove('pz-cell-selecting');
+            before.querySelectorAll('.pz-cell-selected').forEach(c => c.classList.remove('pz-cell-selected'));
+        }
+
+        const changed = applyTableAction(table, cell, action, value);
+        if (!changed) return null;
+
+        if (before) {
+            table.replaceWith(before);
+            // (the first apply puts the changed table back; it saves the note)
+            undoStep(noteentry, () => before.replaceWith(table), () => table.replaceWith(before));
+        } else if (noteentry) {
+            noteentry.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+
+        if (changed.focus) placeCaretInCell(changed.focus);
+        return changed.focus || cell;
+    }
+
+    // The change itself, on the DOM: { focus } (the cell the user is left in,
+    // or null), null when nothing changed
+    function applyTableAction(table, cell, action, value) {
         const row = cell.parentElement;
         const rows = getTableRows(table);
         const rowIndex = rows.indexOf(row);
@@ -389,15 +514,32 @@
                 focus = cellOf(row, cellIndex + 1);
                 break;
             case 'deleteRow': {
-                const neighbour = rows[rowIndex + 1] || rows[rowIndex - 1];
-                if (!deleteRow(rows, row)) return null;
+                // value: the rows of a selection (getCellSpan), else this row
+                const first = value && value.rowEnd > value.rowStart ? value.rowStart : rowIndex;
+                const last = value && value.rowEnd > value.rowStart ? value.rowEnd : rowIndex;
+                if (last - first + 1 >= rows.length) {
+                    alert(tr('table.context_menu.errors.cannot_delete_last_row', 'Cannot delete the last row of the table.'));
+                    return null;
+                }
+                const neighbour = rows[last + 1] || rows[first - 1];
+                rows.slice(first, last + 1).forEach(doomed => doomed.remove());
                 focus = cellOf(neighbour, cellIndex);
                 break;
             }
-            case 'deleteCol':
-                if (!deleteColumn(rows, cellIndex)) return null;
-                focus = cellOf(row, cellIndex);
+            case 'deleteCol': {
+                const first = value && value.colEnd > value.colStart ? value.colStart : cellIndex;
+                const last = value && value.colEnd > value.colStart ? value.colEnd : cellIndex;
+                if (last - first + 1 >= rows[0].querySelectorAll('td, th').length) {
+                    alert(tr('table.context_menu.errors.cannot_delete_last_column', 'Cannot delete the last column of the table.'));
+                    return null;
+                }
+                // (from the right, so that the indexes still to delete stay put)
+                for (let index = last; index >= first; index--) {
+                    if (!deleteColumn(rows, index)) return null;
+                }
+                focus = cellOf(row, first);
                 break;
+            }
             case 'align':
                 if (!window.pzTableColumns) return null;
                 window.pzTableColumns.alignCells(table, cell, value.scope, value.align);
@@ -412,22 +554,10 @@
             case 'formula':
                 if (!window.pzTableFormulas || !window.pzTableFormulas.setFormula(table, cell, value)) return null;
                 break;
-            case 'deleteTable':
-                // Asynchronous (styled confirmation): it saves the note itself
-                deleteTable(table);
-                return null;
             default:
                 return null;
         }
-
-        // Trigger input event to save
-        const noteentry = table.closest('.noteentry');
-        if (noteentry) {
-            noteentry.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-
-        if (focus) placeCaretInCell(focus);
-        return focus || cell;
+        return { focus: focus };
     }
 
     // The caret at the start of a cell, the note keeping the focus
@@ -646,13 +776,9 @@
             // otherwise the table menu opens and offers Copy for it
             if (e.defaultPrevented) return;
 
-            // Keep the browser's default menu when a range of cells is
-            // highlighted (blue selection) so the user can copy the cells
-            if (window.pzTableCellSelection &&
-                window.pzTableCellSelection.isActive() &&
-                window.pzTableCellSelection.getTable() === table) {
-                return;
-            }
+            // Highlighted cells (a drag from cell to cell) get the menu too:
+            // its Copy copies them as cells, and Delete rows / Delete columns
+            // takes every row or column they cover
 
             e.preventDefault();
             e.stopPropagation();
@@ -868,7 +994,8 @@
                 const el = document.createElement('div');
                 el.className = 'table-context-menu-item' + (item.danger ? ' danger' : '');
                 if (item.item) el.dataset.item = item.item;
-                el.innerHTML = `<span style="width:20px;text-align:center">${item.icon}</span><span>${item.label}</span>`;
+                el.dataset.action = item.action;
+                el.innerHTML = `<span style="width:20px;text-align:center">${item.icon}</span><span class="table-context-menu-label">${item.label}</span>`;
                 el.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -892,6 +1019,10 @@
 
         const isHeader = target.rowIndex === 0;
         const menu = createMdTableContextMenu(isHeader);
+        const span = target.span;
+        // (the header row is never deleted with the others)
+        setDeleteLabels(menu, span ? span.rowEnd - Math.max(1, span.rowStart) + 1 : 1,
+            span ? span.colEnd - span.colStart + 1 : 1);
         menu.querySelectorAll('.table-context-menu-align-btn').forEach(button => {
             button.classList.toggle('active', button.dataset.align === target.align);
         });
@@ -917,6 +1048,7 @@
         const target = getMdTableTarget(cell);
         if (!target) return false;
         const copyText = getMdSelectedText(cell.closest('table'));
+        target.span = getCellSpan(cell.closest('table'), cell);
 
         if (target.editor) {
             // The cell being typed in is written back first; it then shows
@@ -1065,6 +1197,79 @@
     /**
      * Runs a menu action, asking for confirmation first when the whole table goes
      */
+    // ─── Ctrl+Z / Ctrl+Y after a change made from the preview ───────────────
+    // A table of the preview (classic or split view) is changed through the
+    // note's editor, hidden or not, whose history keeps the change; but the
+    // focus is nowhere in the editor, so the keys never reached it. They are
+    // handed to it while the editor still reads as the last such change left
+    // it (anything typed in the editor since owns the keys again).
+    let previewTableHistory = null; // { noteEntry, editor, noteId, undo, redo, expected }
+
+    function rememberPreviewTableChange(noteEntry, editor, noteId) {
+        const api = getMdCodeMirrorApi();
+        if (!editor || !api || typeof api.undo !== 'function' || typeof api.getValue !== 'function') return;
+        const history = previewTableHistory && previewTableHistory.editor === editor
+            ? previewTableHistory
+            : { noteEntry: noteEntry, editor: editor, noteId: noteId, undo: 0, redo: 0, expected: '' };
+        history.undo++;
+        history.redo = 0;
+        history.expected = api.getValue(editor);
+        previewTableHistory = history;
+    }
+
+    function handlePreviewTableUndoKeydown(e) {
+        const history = previewTableHistory;
+        if (!history || e.defaultPrevented || !(e.ctrlKey || e.metaKey) || e.altKey) return;
+        const key = typeof window.poznoteShortcutKey === 'function' ? window.poznoteShortcutKey(e) : String(e.key || '').toLowerCase();
+        if (key !== 'z' && key !== 'y') return;
+        const isRedo = key === 'y' || e.shiftKey;
+        // A field or an editor that has the focus keeps its own keys
+        const t = e.target;
+        if (t && t.closest && t.closest('input, textarea, select, [contenteditable="true"], .cm-editor')) return;
+        const api = getMdCodeMirrorApi();
+        if (!history.noteEntry.isConnected || !history.editor.isConnected || !api) {
+            previewTableHistory = null;
+            return;
+        }
+        if ((isRedo ? history.redo : history.undo) < 1) return;
+        if (api.getValue(history.editor) !== history.expected) {
+            previewTableHistory = null;
+            return;
+        }
+        if (isMdNoteReadOnly(history.noteEntry)) return;
+        // The editor of the classic preview is set read-only, which the
+        // history commands refuse: it is opened the time of the step
+        const wasReadOnly = history.editor.classList.contains('markdown-editor-readonly') && typeof api.setReadOnly === 'function';
+        if (wasReadOnly) api.setReadOnly(history.editor, false);
+        let done = false;
+        try {
+            done = isRedo ? api.redo(history.editor) : api.undo(history.editor);
+        } finally {
+            if (wasReadOnly) api.setReadOnly(history.editor, true);
+        }
+        if (!done) return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (isRedo) {
+            history.redo--;
+            history.undo++;
+        } else {
+            history.undo--;
+            history.redo++;
+        }
+        const content = api.getValue(history.editor);
+        history.expected = content;
+        history.noteEntry.setAttribute('data-markdown-content', content);
+        const previewDiv = history.noteEntry.querySelector('.markdown-preview');
+        if (previewDiv && typeof window.renderMarkdownPreview === 'function') {
+            window.renderMarkdownPreview(previewDiv, content, history.noteId, { postProcess: false });
+            if (typeof window.setupPreviewInteractivity === 'function') window.setupPreviewInteractivity(history.noteId);
+        }
+        markMdTableActionAsModified(history.noteId);
+    }
+
+    document.addEventListener('keydown', handlePreviewTableUndoKeydown);
+
     function runMdTableAction(action, value) {
         const target = mdActiveTarget;
         const copyText = mdCopyText;
@@ -1212,26 +1417,33 @@
                 break;
             }
             case 'deleteRow': {
-                if (allDataRows <= 1 && rowIndex !== 0) {
+                if (rowIndex === 0) return null; // don't delete header
+                // The rows of a selection (getCellSpan), the header left out
+                const span = target.span;
+                const first = span ? Math.max(1, span.rowStart) : rowIndex;
+                const count = span ? Math.max(1, span.rowEnd - first + 1) : 1;
+                if (count >= allDataRows) {
                     alert(tr('table.context_menu.errors.cannot_delete_last_row', 'Cannot delete the last row of the table.'));
                     return null;
                 }
-                if (rowIndex === 0) return null; // don't delete header
-                lines.splice(tableStart + tableLineIndex, 1);
-                focus.rowIndex = Math.min(rowIndex, allDataRows - 1);
+                lines.splice(tableStart + separatorIdx + first, count);
+                focus.rowIndex = Math.min(first, allDataRows - count);
                 break;
             }
             case 'deleteCol': {
-                if (numCols <= 1) {
+                const span = target.span;
+                const first = span ? span.colStart : cellIndex;
+                const count = span ? span.colEnd - span.colStart + 1 : 1;
+                if (count >= numCols) {
                     alert(tr('table.context_menu.errors.cannot_delete_last_column', 'Cannot delete the last column of the table.'));
                     return null;
                 }
                 for (let li = tableStart; li <= tableEnd; li++) {
                     const cells = getMarkdownTableCells(lines[li]);
-                    cells.splice(cellIndex, 1);
+                    cells.splice(first, count);
                     lines[li] = '| ' + cells.join(' | ') + ' |';
                 }
-                focus.cellIndex = Math.min(cellIndex, numCols - 2);
+                focus.cellIndex = Math.min(first, numCols - count - 1);
                 break;
             }
             case 'align': {
@@ -1324,6 +1536,8 @@
 
         markMdTableActionAsModified(noteId);
         restoreMdTableScrollStateAfterLayout(scrollState);
+        // A table of the preview: Ctrl+Z / Ctrl+Y can take the change back
+        if (!target.editor) rememberPreviewTableChange(noteEntry, editorDiv, noteId);
         return { startLine: tableStart, focus: focus };
     }
 
