@@ -2732,7 +2732,13 @@
       "missing": "A nota #{{id}} não existe ou foi excluída.",
       "missing_trashed": "A nota #{{id}} está na lixeira. Restaure-a para abri-la novamente.",
       "copy_id": "Copiar o identificador da nota",
-      "id_copied": "Identificador da nota {{id}} copiado"
+      "id_copied": "Identificador da nota {{id}} copiado",
+      "copy_created": "Copiar a data de criação",
+      "copy_updated": "Copiar a data de modificação",
+      "copy_characters": "Copiar o número de caracteres",
+      "copy_words": "Copiar o número de palavras",
+      "copy_lines": "Copiar o número de linhas",
+      "value_copied": "{{value}} copiado"
     },
     "editor": {
       "placeholder_desktop": "Insira texto, use / ou o clique com o botão direito para abrir o menu de comandos, cole imagens ou arraste e solte uma imagem no cursor.",

@@ -2734,7 +2734,13 @@
       "missing": "La note #{{id}} n'existe pas, ou elle a été supprimée.",
       "missing_trashed": "La note #{{id}} est dans la corbeille. Restaurez-la pour l'ouvrir à nouveau.",
       "copy_id": "Copier l'identifiant de la note",
-      "id_copied": "Identifiant de note {{id}} copié"
+      "id_copied": "Identifiant de note {{id}} copié",
+      "copy_created": "Copier la date de création",
+      "copy_updated": "Copier la date de modification",
+      "copy_characters": "Copier le nombre de caractères",
+      "copy_words": "Copier le nombre de mots",
+      "copy_lines": "Copier le nombre de lignes",
+      "value_copied": "{{value}} copié"
     },
     "editor": {
       "placeholder_desktop": "Saisissez du texte, utilisez / ou le clic droit pour ouvrir le menu des commandes, collez des images ou glissez-déposez une image à l’emplacement du curseur.",

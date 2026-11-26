@@ -2186,7 +2186,13 @@
       "missing": "ノート #{{id}} は存在しません。削除された可能性があります。",
       "missing_trashed": "ノート #{{id}} はごみ箱にあります。開くには復元してください。",
       "copy_id": "ノート ID をコピー",
-      "id_copied": "ノート ID {{id}} をコピーしました"
+      "id_copied": "ノート ID {{id}} をコピーしました",
+      "copy_created": "作成日をコピー",
+      "copy_updated": "更新日をコピー",
+      "copy_characters": "文字数をコピー",
+      "copy_words": "単語数をコピー",
+      "copy_lines": "行数をコピー",
+      "value_copied": "{{value}} をコピーしました"
     },
     "editor": {
       "placeholder_desktop": "テキストを入力してください。「/」か右クリックでコマンドメニューを開けます。画像は貼り付けるか、カーソル位置にドロップして追加できます。",

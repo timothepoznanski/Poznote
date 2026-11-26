@@ -2186,7 +2186,13 @@
       "missing": "Notitie #{{id}} bestaat niet, of is verwijderd.",
       "missing_trashed": "Notitie #{{id}} staat in de prullenbak. Herstel ze om haar weer te openen.",
       "copy_id": "Notitie-ID kopiëren",
-      "id_copied": "Notitie-ID {{id}} gekopieerd"
+      "id_copied": "Notitie-ID {{id}} gekopieerd",
+      "copy_created": "Aanmaakdatum kopiëren",
+      "copy_updated": "Wijzigingsdatum kopiëren",
+      "copy_characters": "Aantal tekens kopiëren",
+      "copy_words": "Aantal woorden kopiëren",
+      "copy_lines": "Aantal regels kopiëren",
+      "value_copied": "{{value}} gekopieerd"
     },
     "editor": {
       "placeholder_desktop": "Typ tekst, gebruik / of klik met de rechtermuisknop voor het opdrachtmenu, plak afbeeldingen of sleep een afbeelding naar de cursor.",

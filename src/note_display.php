@@ -761,15 +761,25 @@
                         // (js/index-events.js).
                         $copy_id_label = t_h('index.note.copy_id', [], 'Copy the note id');
                         echo '<span class="note-sub-id"><button type="button" class="note-sub-id-btn" data-action="copy-note-id" data-note-id="' . $row['id'] . '" title="' . $copy_id_label . '" aria-label="' . $copy_id_label . '">#' . (int)$row['id'] . '</button></span>';
+                        // The dates and the figures copy their value the same
+                        // way (the date alone, the bare number): a button inside
+                        // each entry, the dot it opens with left outside it
+                        $copy_created_label = t_h('index.note.copy_created', [], 'Copy the creation date');
+                        $copy_updated_label = t_h('index.note.copy_updated', [], 'Copy the modification date');
                         echo '<span class="note-sub-dates">';
                         if ($created_display !== '') {
-                            echo '<span class="note-sub-created">' . t_h('index.note.created_on', ['date' => $created_display], 'Created {{date}}') . '</span>';
+                            echo '<span class="note-sub-created"><button type="button" class="note-sub-copy-btn" data-action="copy-note-meta" data-copy-value="' . htmlspecialchars($created_display, ENT_QUOTES) . '" title="' . $copy_created_label . '" aria-label="' . $copy_created_label . '">' . t_h('index.note.created_on', ['date' => $created_display], 'Created {{date}}') . '</button></span>';
                         }
                         if ($updated_display !== '') {
-                            echo '<span class="note-sub-updated" id="noteUpdated' . $row['id'] . '" data-label="' . htmlspecialchars($updated_label, ENT_QUOTES) . '">' . htmlspecialchars(str_replace('{{date}}', $updated_display, $updated_label), ENT_QUOTES) . '</span>';
+                            echo '<span class="note-sub-updated" id="noteUpdated' . $row['id'] . '" data-label="' . htmlspecialchars($updated_label, ENT_QUOTES) . '"><button type="button" class="note-sub-copy-btn" data-action="copy-note-meta" data-copy-value="' . htmlspecialchars($updated_display, ENT_QUOTES) . '" title="' . $copy_updated_label . '" aria-label="' . $copy_updated_label . '">' . htmlspecialchars(str_replace('{{date}}', $updated_display, $updated_label), ENT_QUOTES) . '</button></span>';
                         }
                         echo '</span>';
-                        echo '<span class="note-sub-stats" id="noteStats' . $row['id'] . '" data-note-id="' . $row['id'] . '" data-labels="' . htmlspecialchars($note_stats_labels_json, ENT_QUOTES) . '">';
+                        $copy_stats_labels_json = json_encode([
+                            'characters' => t('index.note.copy_characters', [], 'Copy the number of characters'),
+                            'words' => t('index.note.copy_words', [], 'Copy the number of words'),
+                            'lines' => t('index.note.copy_lines', [], 'Copy the number of lines'),
+                        ], JSON_UNESCAPED_UNICODE);
+                        echo '<span class="note-sub-stats" id="noteStats' . $row['id'] . '" data-note-id="' . $row['id'] . '" data-labels="' . htmlspecialchars($note_stats_labels_json, ENT_QUOTES) . '" data-copy-labels="' . htmlspecialchars((string)$copy_stats_labels_json, ENT_QUOTES) . '">';
                         // One empty entry per figure, there from the start so
                         // that each can be hidden on its own; the spaces keep
                         // a copy of the line readable

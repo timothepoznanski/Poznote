@@ -2732,7 +2732,13 @@
       "missing": "Die Notiz #{{id}} existiert nicht oder wurde gelöscht.",
       "missing_trashed": "Die Notiz #{{id}} liegt im Papierkorb. Stelle sie wieder her, um sie erneut zu öffnen.",
       "copy_id": "Notiz-ID kopieren",
-      "id_copied": "Notiz-ID {{id}} kopiert"
+      "id_copied": "Notiz-ID {{id}} kopiert",
+      "copy_created": "Erstellungsdatum kopieren",
+      "copy_updated": "Änderungsdatum kopieren",
+      "copy_characters": "Anzahl der Zeichen kopieren",
+      "copy_words": "Anzahl der Wörter kopieren",
+      "copy_lines": "Anzahl der Zeilen kopieren",
+      "value_copied": "{{value}} kopiert"
     },
     "editor": {
       "placeholder_desktop": "Text eingeben, / oder Rechtsklick verwenden, um das Befehlsmenü zu öffnen, Bilder einfügen oder ein Bild am Cursor ablegen.",

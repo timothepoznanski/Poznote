@@ -2727,7 +2727,13 @@
       "missing": "笔记 #{{id}} 不存在，或者已被删除。",
       "missing_trashed": "笔记 #{{id}} 在回收站中。请先恢复它才能打开。",
       "copy_id": "复制笔记 ID",
-      "id_copied": "已复制笔记 ID {{id}}"
+      "id_copied": "已复制笔记 ID {{id}}",
+      "copy_created": "复制创建日期",
+      "copy_updated": "复制修改日期",
+      "copy_characters": "复制字符数",
+      "copy_words": "复制字数",
+      "copy_lines": "复制行数",
+      "value_copied": "已复制 {{value}}"
     },
     "editor": {
       "placeholder_desktop": "输入文本，使用 / 或右键打开命令菜单，粘贴图片或在光标处拖放图片。",

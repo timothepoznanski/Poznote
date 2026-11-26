@@ -2186,7 +2186,13 @@
       "missing": "Note #{{id}} does not exist, or it was deleted.",
       "missing_trashed": "Note #{{id}} is in the trash. Restore it to open it again.",
       "copy_id": "Copy the note id",
-      "id_copied": "Note id {{id}} copied"
+      "id_copied": "Note id {{id}} copied",
+      "copy_created": "Copy the creation date",
+      "copy_updated": "Copy the modification date",
+      "copy_characters": "Copy the number of characters",
+      "copy_words": "Copy the number of words",
+      "copy_lines": "Copy the number of lines",
+      "value_copied": "{{value}} copied"
     },
     "editor": {
       "placeholder_desktop": "Enter text, use / or right-click for command menu, paste images or drop an image at cursor.",

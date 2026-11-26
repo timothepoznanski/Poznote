@@ -540,6 +540,37 @@
     }
 
     /**
+     * Copy a value of the line under the note title, then say so. Without the
+     * Clipboard API (plain HTTP), through a temporary textarea.
+     */
+    function copySublineValue(value, toastText) {
+        const told = function () {
+            if (typeof window.poznoteShowToast === 'function') {
+                window.poznoteShowToast(toastText);
+            }
+        };
+        const fallback = function () {
+            const area = document.createElement('textarea');
+            area.value = value;
+            area.setAttribute('readonly', '');
+            area.style.position = 'fixed';
+            area.style.top = '-1000px';
+            area.style.opacity = '0';
+            document.body.appendChild(area);
+            area.select();
+            let ok = false;
+            try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+            area.remove();
+            if (ok) told();
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+            navigator.clipboard.writeText(value).then(told, fallback);
+        } else {
+            fallback();
+        }
+    }
+
+    /**
      * Handle click events using event delegation
      * @param {Event} e - Click event
      */
@@ -1050,18 +1081,23 @@
                 // number an API call, an MCP call or a ?note= link needs
                 if (noteId) {
                     const copiedId = String(noteId);
-                    const toldCopied = function () {
-                        if (typeof window.poznoteShowToast === 'function') {
-                            window.poznoteShowToast((window.t
-                                ? window.t('index.note.id_copied', { id: copiedId }, 'Note id {{id}} copied')
-                                : 'Note id ' + copiedId + ' copied'));
-                        }
-                    };
-                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                        navigator.clipboard.writeText(copiedId).then(toldCopied, function () {});
-                    }
+                    copySublineValue(copiedId, window.t
+                        ? window.t('index.note.id_copied', { id: copiedId }, 'Note id {{id}} copied')
+                        : 'Note id ' + copiedId + ' copied');
                 }
                 break;
+            case 'copy-note-meta': {
+                // The other entries of that line: the creation and
+                // modification dates (the date alone) and the characters,
+                // words and lines (the bare number)
+                const copiedValue = target.getAttribute('data-copy-value') || '';
+                if (copiedValue !== '') {
+                    copySublineValue(copiedValue, window.t
+                        ? window.t('index.note.value_copied', { value: copiedValue }, '{{value}} copied')
+                        : copiedValue + ' copied');
+                }
+                break;
+            }
             case 'navigate-tags':
                 window.location = 'list_tags.php?workspace=' + encodeURIComponent(window.selectedWorkspace || '');
                 break;
