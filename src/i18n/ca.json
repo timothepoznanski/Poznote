@@ -5881,6 +5881,7 @@
   },
   "mermaid_zoom": {
     "open": "Amplia el diagrama",
+    "edit": "Edita el diagrama",
     "dialog": "Diagrama",
     "zoom_in": "Apropa",
     "zoom_out": "Allunya",

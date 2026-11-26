@@ -5881,6 +5881,7 @@
   },
   "mermaid_zoom": {
     "open": "다이어그램 확대",
+    "edit": "다이어그램 편집",
     "dialog": "다이어그램",
     "zoom_in": "확대",
     "zoom_out": "축소",

@@ -6046,6 +6046,7 @@
   },
   "mermaid_zoom": {
     "open": "Ampliar diagrama",
+    "edit": "Editar diagrama",
     "dialog": "Diagrama",
     "zoom_in": "Aumentar zoom",
     "zoom_out": "Diminuir zoom",

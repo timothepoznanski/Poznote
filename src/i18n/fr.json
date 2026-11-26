@@ -6150,6 +6150,7 @@
   },
   "mermaid_zoom": {
     "open": "Agrandir le diagramme",
+    "edit": "Modifier le diagramme",
     "dialog": "Diagramme",
     "zoom_in": "Zoom avant",
     "zoom_out": "Zoom arrière",

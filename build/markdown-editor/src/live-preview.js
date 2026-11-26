@@ -2132,7 +2132,15 @@ class RenderedBlockWidget extends WidgetType {
 
   // Rich text: a table is edited in its drawn form (setupTableEditing), the
   // editor leaves what happens inside it alone
-  ignoreEvent() {
+  // A diagram is selected by a click, in Live preview as in rich text
+  // (js/mermaid-zoom.js): the editor must not put the caret there, which
+  // would show the source. Its Edit button is the editor's (see the
+  // mousedown handler).
+  ignoreEvent(event) {
+    if (this.kind === 'mermaid') {
+      const target = event && event.target && event.target.nodeType === 1 ? event.target : null
+      return !(target && target.closest('.mermaid-edit-btn'))
+    }
     return this.kind === 'table' && !isSyntaxRevealed()
   }
 }
@@ -3281,6 +3289,29 @@ export function moveTableCell(view, backward) {
   return focusTableCell(view, at.startLine, rowIndex, cellIndex, true)
 }
 
+// Whether the person has placed the caret in this editor yet. A note opens
+// with the caret at its very start, put there by no one: a table or diagram
+// opening the note would show its source as if the caret had been taken into
+// it. Until a selection, a key or an edit comes from the person, the rendered
+// blocks ignore the caret (discussion #1830). A caret restored by the app
+// (tab return, reload) is not the person's either.
+const caretPlacedField = StateField.define({
+  create() {
+    return false
+  },
+  update(placed, transaction) {
+    if (placed) return true
+    return transaction.docChanged || ['select', 'input', 'delete', 'move', 'undo', 'redo']
+      .some(event => transaction.isUserEvent(event))
+  }
+})
+
+// The selection ranges the rendered blocks answer to: none until the person
+// has placed the caret (caretPlacedField)
+function placedSelectionRanges(state) {
+  return state.field(caretPlacedField, false) === false ? [] : state.selection.ranges
+}
+
 // Whether the fenced block starting at pos is a Mermaid block shown as its
 // diagram right now: the rule of buildRenderedBlockDecorations() below, which
 // draws a block while no selection range touches it
@@ -3290,14 +3321,47 @@ function isMermaidBlockDrawn(state, pos) {
   const lineFrom = doc.lineAt(pos).from
   const block = getRenderedBlocks(doc).find(candidate => candidate.from === lineFrom)
   if (!block || block.kind !== 'mermaid') return false
-  return !state.selection.ranges.some(range => range.from <= block.to && range.to >= block.from)
+  return !placedSelectionRanges(state).some(range => range.from <= block.to && range.to >= block.from)
+}
+
+// A press on a drawn diagram, or beside it, is left to js/mermaid-zoom.js
+// (it selects the diagram), but the caret leaves wherever it was: a block
+// whose source it was showing, after Edit diagram, is drawn again. It goes on
+// the line after the diagram, or the end of the line before it, never on the
+// edge of a block (which would show that block's source). The editor keeps
+// or does not get the focus, as it was (discussion #1830).
+window.poznoteMoveCaretPastDiagram = function (blockElement) {
+  const editorDom = blockElement && blockElement.closest ? blockElement.closest('.cm-editor') : null
+  const view = editorDom ? EditorView.findFromDOM(editorDom) : null
+  if (!view) return false
+  const doc = view.state.doc
+  let at
+  try {
+    at = view.posAtDOM(blockElement)
+  } catch (error) {
+    return false
+  }
+  const blocks = getRenderedBlocks(doc)
+  const block = blocks.find(candidate => candidate.kind === 'mermaid' && at >= candidate.from && at <= candidate.to)
+  if (!block) return false
+  const onABlock = pos => blocks.some(candidate => pos >= candidate.from && pos <= candidate.to)
+  const first = doc.lineAt(block.from)
+  const last = doc.lineAt(block.to)
+  let anchor = null
+  if (last.number < doc.lines && !onABlock(doc.line(last.number + 1).from)) anchor = doc.line(last.number + 1).from
+  else if (first.number > 1 && !onABlock(doc.line(first.number - 1).to)) anchor = doc.line(first.number - 1).to
+  if (anchor === null) return false
+  const main = view.state.selection.main
+  if (view.state.selection.ranges.length === 1 && main.empty && main.head === anchor) return true
+  view.dispatch({ selection: { anchor }, userEvent: 'select' })
+  return true
 }
 
 function buildRenderedBlockDecorations(state) {
   if (typeof window.parseMarkdown !== 'function') return Decoration.none
 
   const doc = state.doc
-  const selection = state.selection.ranges
+  const selection = placedSelectionRanges(state)
   const toggles = getToggles(doc)
   const decorations = []
 
@@ -3331,6 +3395,7 @@ const renderedBlocksField = StateField.define({
   },
   update(value, transaction) {
     if (transaction.docChanged || transaction.selection ||
+        transaction.startState.field(caretPlacedField, false) !== transaction.state.field(caretPlacedField, false) ||
         transaction.effects.some(effect => effect.is(setToggleOpenEffect) || effect.is(refreshLivePreviewEffect))) {
       return buildRenderedBlockDecorations(transaction.state)
     }
@@ -6000,6 +6065,25 @@ const livePreviewPlugin = ViewPlugin.fromClass(class {
         return true
       }
 
+      // The Edit button of a diagram (discussion #1830) puts the caret on the
+      // first line of its source, which brings the source back in place of
+      // the drawing; a click on the diagram selects it
+      const editDiagram = target.closest('.mermaid-edit-btn')
+      if (editDiagram) {
+        event.preventDefault()
+        if (view.state.readOnly) return true
+        const doc = view.state.doc
+        const at = view.posAtDOM(editDiagram)
+        const block = getRenderedBlocks(doc).find(candidate => candidate.kind === 'mermaid' && at >= candidate.from && at <= candidate.to)
+        if (block) {
+          const fence = doc.lineAt(block.from)
+          const anchor = fence.number < doc.lines ? doc.line(fence.number + 1).from : fence.to
+          view.dispatch({ selection: { anchor }, scrollIntoView: true, userEvent: 'select' })
+          view.focus()
+        }
+        return true
+      }
+
       // A click on a task box ticks it, like in the preview
       const task = target.closest('.cm-live-task')
       if (task && !view.state.readOnly) {
@@ -6201,6 +6285,7 @@ export const livePreview = [
   codeCollapsedField,
   codeWrapField,
   toggleOpenField,
+  caretPlacedField,
   renderedBlocksField,
   literalTypingInput,
   richTextKeymap,

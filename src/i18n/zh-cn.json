@@ -6142,6 +6142,7 @@
   },
   "mermaid_zoom": {
     "open": "放大图表",
+    "edit": "编辑图表",
     "dialog": "图表",
     "zoom_in": "放大",
     "zoom_out": "缩小",

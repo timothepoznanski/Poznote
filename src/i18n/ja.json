@@ -5881,6 +5881,7 @@
   },
   "mermaid_zoom": {
     "open": "図を拡大",
+    "edit": "図を編集",
     "dialog": "図",
     "zoom_in": "拡大",
     "zoom_out": "縮小",

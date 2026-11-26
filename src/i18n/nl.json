@@ -5881,6 +5881,7 @@
   },
   "mermaid_zoom": {
     "open": "Diagram vergroten",
+    "edit": "Diagram bewerken",
     "dialog": "Diagram",
     "zoom_in": "Inzoomen",
     "zoom_out": "Uitzoomen",
