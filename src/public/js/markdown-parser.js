@@ -847,9 +847,36 @@ function _mdParseCalloutHeader(firstLine) {
 var _MD_TASK_LIST_LINE_REGEX = /^(\s*)[\*\-\+]\s+\[([ xX])\](?:\s+(.*))?$/;
 
 /*
+ * First number of an ordered list, read on its first marker ("12." -> 12, a
+ * dotted "2.3." -> 3): like CommonMark and GitHub, only the first item's number
+ * counts, the next ones follow it (#1831). Null when it is 1, or out of the
+ * range the sanitizers accept for the start attribute.
+ */
+function _mdOrderedListStart(marker) {
+    var parts = String(marker || '').replace(/\.$/, '').split('.');
+    var last = parts[parts.length - 1];
+    if (!/^\d{1,6}$/.test(last)) return null;
+    var start = parseInt(last, 10);
+    return start === 1 ? null : start;
+}
+
+/*
+ * Opening tag of an ordered list. The note draws the numbers with the CSS
+ * counter "item" (css/checklists.css, css/markdown.css), which cannot read the
+ * start attribute, so a list that does not start at 1 also carries the
+ * matching counter-reset: the markup rich-text notes store since #1534
+ * (poznoteListStartStyle() of lib/html-sanitize.php).
+ */
+function _mdOrderedListOpenTag(start) {
+    if (start === null || start === undefined) return '<ol>';
+    return '<ol start="' + start + '" style="counter-reset: item ' + (start - 1) + ';">';
+}
+
+/*
  * Renders one (possibly nested) markdown list starting at `startIndex`, and
- * returns { items, endIndex }: the <li> markup and the index of the last source
- * line it consumed. It recurses for nested levels.
+ * returns { items, endIndex, start }: the <li> markup and the index of the last source
+ * line it consumed (start: the first number of an ordered list, see
+ * _mdOrderedListStart()). It recurses for nested levels.
  *
  * `ctx` is what the list needs from parseMarkdown:
  *   lines                the HTML-escaped source lines being walked
@@ -863,6 +890,7 @@ function _mdParseNestedList(startIndex, isTaskList, ctx) {
     let currentIndex = startIndex;
     let baseIndent = null;
     let baseMarkerType = null; // 'bullet' or 'number'
+    let startNumber = null;
 
     while (currentIndex < ctx.lines.length) {
         let currentLine = ctx.lines[currentIndex];
@@ -975,6 +1003,9 @@ function _mdParseNestedList(startIndex, isTaskList, ctx) {
         if (baseIndent === null) {
             baseIndent = indent;
             baseMarkerType = markerType;
+            if (!isTaskList && markerType === 'number') {
+                startNumber = _mdOrderedListStart(marker);
+            }
         }
 
         // If marker type changed at SAME indentation level at root (indent=0),
@@ -984,6 +1015,7 @@ function _mdParseNestedList(startIndex, isTaskList, ctx) {
             // Collect all consecutive items with this different marker type
             let nestedItems = [];
             let nestedListTag = (markerType === 'number') ? 'ol' : 'ul';
+            let nestedOpenTag = (markerType === 'number') ? _mdOrderedListOpenTag(_mdOrderedListStart(marker)) : '<ul>';
             let tempIndex = currentIndex;
 
             while (tempIndex < ctx.lines.length) {
@@ -1008,7 +1040,7 @@ function _mdParseNestedList(startIndex, isTaskList, ctx) {
             if (nestedItems.length > 0) {
                 let lastIdx = listItems.length - 1;
                 listItems[lastIdx] = listItems[lastIdx].replace(/<\/li>$/, '');
-                listItems[lastIdx] += '<' + nestedListTag + '>' + nestedItems.join('') + '</' + nestedListTag + '></li>';
+                listItems[lastIdx] += nestedOpenTag + nestedItems.join('') + '</' + nestedListTag + '></li>';
                 currentIndex = tempIndex;
                 continue;
             }
@@ -1053,7 +1085,8 @@ function _mdParseNestedList(startIndex, isTaskList, ctx) {
                     let isOrderedNested = !isTaskList && !nextIsTaskList && nextMatch[2].match(/\d+(?:\.\d+)*\./);
                     let listTag = isOrderedNested ? 'ol' : 'ul';
                     let listClass = (isTaskList || nextIsTaskList) ? ' class="task-list"' : '';
-                    itemHtml += '<' + listTag + listClass + '>' + nestedResult.items.join('') + '</' + listTag + '>';
+                    let openTag = isOrderedNested ? _mdOrderedListOpenTag(nestedResult.start) : '<' + listTag + listClass + '>';
+                    itemHtml += openTag + nestedResult.items.join('') + '</' + listTag + '>';
                     currentIndex = nestedResult.endIndex;
                 }
             }
@@ -1075,9 +1108,10 @@ function _mdParseNestedList(startIndex, isTaskList, ctx) {
             let isOrderedNested = !isTaskList && !nestedIsTask && markerType === 'number';
             let listTag = isOrderedNested ? 'ol' : 'ul';
             let listClass = (isTaskList || nestedIsTask) ? ' class="task-list"' : '';
+            let openTag = isOrderedNested ? _mdOrderedListOpenTag(nestedResult.start) : '<' + listTag + listClass + '>';
             let lastIdx = listItems.length - 1;
             listItems[lastIdx] = listItems[lastIdx].replace(/<\/li>$/, '') +
-                '<' + listTag + listClass + '>' + nestedResult.items.join('') + '</' + listTag + '></li>';
+                openTag + nestedResult.items.join('') + '</' + listTag + '></li>';
             currentIndex = nestedResult.endIndex + 1;
             continue;
         }
@@ -1087,7 +1121,8 @@ function _mdParseNestedList(startIndex, isTaskList, ctx) {
 
     return {
         items: listItems,
-        endIndex: currentIndex - 1
+        endIndex: currentIndex - 1,
+        start: startNumber
     };
 }
 
@@ -2051,7 +2086,7 @@ function parseMarkdown(text) {
         if (line.match(/^\s*\d+(?:\.\d+)*\.\s+(.+)$/)) {
             flushParagraph();
             let listResult = _mdParseNestedList(i, false, listContext);
-            result.push('<ol>' + listResult.items.join('') + '</ol>');
+            result.push(_mdOrderedListOpenTag(listResult.start) + listResult.items.join('') + '</ol>');
             i = listResult.endIndex;
             continue;
         }

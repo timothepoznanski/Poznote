@@ -166,6 +166,40 @@ function restoreMarkdownBackslashEscapes($html, $protectedEscapes) {
     }, $html);
 }
 
+/**
+ * First number of an ordered list, read on its first marker ("12." -> 12, a
+ * dotted "2.3." -> 3): like CommonMark and GitHub, only the first item's
+ * number counts, the next ones follow it (#1831). Same rule as
+ * _mdOrderedListStart() in js/markdown-parser.js.
+ *
+ * @return int|null Null when it is 1, or out of the range the sanitizers
+ *                  accept for the start attribute
+ */
+function markdownOrderedListStart($marker) {
+    $parts = explode('.', rtrim((string)$marker, '.'));
+    $last = end($parts);
+    if (!is_string($last) || !preg_match('/^\d{1,6}$/', $last)) {
+        return null;
+    }
+    $start = (int)$last;
+    return $start === 1 ? null : $start;
+}
+
+/**
+ * Opening tag of an ordered list. The note draws the numbers with the CSS
+ * counter "item", which cannot read the start attribute, so a list that does
+ * not start at 1 also carries the matching counter-reset: the markup
+ * rich-text notes store since #1534 (poznoteListStartStyle() of
+ * lib/html-sanitize.php). Same as _mdOrderedListOpenTag() in
+ * js/markdown-parser.js.
+ */
+function markdownOrderedListOpenTag($start) {
+    if ($start === null) {
+        return '<ol>';
+    }
+    return '<ol start="' . (int)$start . '" style="counter-reset: item ' . ((int)$start - 1) . ';">';
+}
+
 function trimMarkdownTableWhitespace($text) {
     return trim((string)$text, " \t\n\r\v");
 }
@@ -1687,6 +1721,7 @@ function parseMarkdown($text, array $options = []) {
             $currentIndex = $startIndex;
             $baseIndent = null;
             $baseMarkerType = null; // 'bullet' (-, *, +) or 'number' (1.)
+            $startNumber = null; // first number of an ordered list (#1831)
             
             while ($currentIndex < count($lines)) {
                 $currentLine = $lines[$currentIndex];
@@ -1789,6 +1824,9 @@ function parseMarkdown($text, array $options = []) {
                 if ($baseIndent === null) {
                     $baseIndent = $indent;
                     $baseMarkerType = $markerType;
+                    if (!$isTaskList && $markerType === 'number') {
+                        $startNumber = markdownOrderedListStart($marker);
+                    }
                 }
                 
                 // Special behavior: Marker type change at root level (indent=0) creates nested list
@@ -1797,6 +1835,7 @@ function parseMarkdown($text, array $options = []) {
                     $markerType !== $baseMarkerType && count($listItems) > 0) {
                     $nestedItems = [];
                     $nestedListTag = ($markerType === 'number') ? 'ol' : 'ul';
+                    $nestedOpenTag = ($markerType === 'number') ? markdownOrderedListOpenTag(markdownOrderedListStart($marker)) : '<ul>';
                     $tempIndex = $currentIndex;
                     
                     while ($tempIndex < count($lines)) {
@@ -1821,7 +1860,7 @@ function parseMarkdown($text, array $options = []) {
                     if (count($nestedItems) > 0) {
                         $lastIdx = count($listItems) - 1;
                         $listItems[$lastIdx] = preg_replace('/<\/li>$/', '', $listItems[$lastIdx]);
-                        $listItems[$lastIdx] .= '<' . $nestedListTag . '>' . implode('', $nestedItems) . '</' . $nestedListTag . '></li>';
+                        $listItems[$lastIdx] .= $nestedOpenTag . implode('', $nestedItems) . '</' . $nestedListTag . '></li>';
                         $currentIndex = $tempIndex;
                         continue;
                     }
@@ -1864,7 +1903,8 @@ function parseMarkdown($text, array $options = []) {
                             $isOrderedNested = !$isTaskList && !$nextIsTaskList && preg_match('/\d+(?:\.\d+)*\./', $nextMatches[2]);
                             $listTag = $isOrderedNested ? 'ol' : 'ul';
                             $listClass = ($isTaskList || $nextIsTaskList) ? ' class="task-list"' : '';
-                            $itemHtml .= '<' . $listTag . $listClass . '>' . implode('', $nestedResult['items']) . '</' . $listTag . '>';
+                            $openTag = $isOrderedNested ? markdownOrderedListOpenTag($nestedResult['start']) : '<' . $listTag . $listClass . '>';
+                            $itemHtml .= $openTag . implode('', $nestedResult['items']) . '</' . $listTag . '>';
                             $currentIndex = $nestedResult['endIndex'];
                         }
                     }
@@ -1886,9 +1926,10 @@ function parseMarkdown($text, array $options = []) {
                     $isOrderedNested = !$isTaskList && !$nestedIsTask && $markerType === 'number';
                     $listTag = $isOrderedNested ? 'ol' : 'ul';
                     $listClass = ($isTaskList || $nestedIsTask) ? ' class="task-list"' : '';
+                    $openTag = $isOrderedNested ? markdownOrderedListOpenTag($nestedResult['start']) : '<' . $listTag . $listClass . '>';
                     $lastIdx = count($listItems) - 1;
                     $listItems[$lastIdx] = preg_replace('/<\/li>$/', '', $listItems[$lastIdx])
-                        . '<' . $listTag . $listClass . '>' . implode('', $nestedResult['items']) . '</' . $listTag . '></li>';
+                        . $openTag . implode('', $nestedResult['items']) . '</' . $listTag . '></li>';
                     $currentIndex = $nestedResult['endIndex'] + 1;
                     continue;
                 }
@@ -1898,7 +1939,8 @@ function parseMarkdown($text, array $options = []) {
             
             return [
                 'items' => $listItems,
-                'endIndex' => $currentIndex - 1
+                'endIndex' => $currentIndex - 1,
+                'start' => $startNumber
             ];
         };
         
@@ -1924,7 +1966,7 @@ function parseMarkdown($text, array $options = []) {
         if (preg_match('/^\s*\d+(?:\.\d+)*\.\s+(.+)$/', $line)) {
             $flushParagraph();
             $listResult = $parseNestedList($i, false);
-            $result[] = '<ol>' . implode('', $listResult['items']) . '</ol>';
+            $result[] = markdownOrderedListOpenTag($listResult['start']) . implode('', $listResult['items']) . '</ol>';
             $i = $listResult['endIndex'];
             continue;
         }

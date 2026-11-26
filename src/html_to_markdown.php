@@ -173,10 +173,11 @@ function poznoteHtmlToMarkdown(string $html): string {
     }, $md);
 
     // ---- Ordered lists ----
-    $md = preg_replace_callback('/<ol[^>]*>(.*?)<\/ol>/is', function($matches) {
+    $md = preg_replace_callback('/<ol([^>]*)>(.*?)<\/ol>/is', function($matches) {
         $items = [];
-        preg_match_all('/<li[^>]*>(.*?)<\/li>/is', $matches[1], $liMatches);
-        $i = 1;
+        preg_match_all('/<li[^>]*>(.*?)<\/li>/is', $matches[2], $liMatches);
+        // A list that does not start at 1 keeps its first number (#1831)
+        $i = preg_match('/\bstart\s*=\s*["\']?(\d{1,6})\b/i', $matches[1], $startMatch) ? (int)$startMatch[1] : 1;
         foreach ($liMatches[1] as $liContent) {
             $items[] = $i . ". " . strip_tags(trim($liContent), POZNOTE_HTML_TO_MD_LIST_ITEM_INLINE_TAGS);
             $i++;
