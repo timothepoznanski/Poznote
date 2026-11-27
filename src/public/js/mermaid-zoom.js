@@ -16,6 +16,7 @@
     var MIN_SCALE = 0.05;
     var MAX_SCALE = 10;
     var STEP = 1.25;
+    var DOUBLE_CLICK_STEP = 1.5; // #1830: x2 jumped past the detail people aimed at
     var FIT_PADDING = 24;
     var KEY_PAN = 60;
 
@@ -325,7 +326,7 @@
     function onDoubleClick(event) {
         if (event.target.closest('.mermaid-viewer-toolbar')) return;
         var point = stagePoint(event);
-        zoomTo(viewer.scale * (event.shiftKey ? 1 / 2 : 2), point.x, point.y);
+        zoomTo(viewer.scale * (event.shiftKey ? 1 / DOUBLE_CLICK_STEP : DOUBLE_CLICK_STEP), point.x, point.y);
     }
 
     function onKeyDown(event) {
