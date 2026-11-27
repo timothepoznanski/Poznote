@@ -668,12 +668,32 @@
     // EVENTS
     // ========================================================================
 
+    // The browser's own tooltip (a note link carries "Go to: Title") would
+    // show beside the preview: the title is parked in an attribute for as
+    // long as the pointer is on the link. The copy saved with the note puts
+    // it back (stripSearchHighlights() of js/notes.js).
+    var TITLE_PARK = 'data-pz-preview-title';
+
+    function parkTitle(link) {
+        if (!link || !link.hasAttribute('title')) return;
+        link.setAttribute(TITLE_PARK, link.getAttribute('title'));
+        link.removeAttribute('title');
+    }
+
+    function restoreTitle(link) {
+        if (!link || !link.hasAttribute(TITLE_PARK)) return;
+        link.setAttribute('title', link.getAttribute(TITLE_PARK));
+        link.removeAttribute(TITLE_PARK);
+    }
+
     function onPointerOver(e) {
         if (e.pointerType && e.pointerType !== 'mouse') return;
         if (popup && popup.contains(e.target)) return;
         var link = linkUnder(e.target);
         if (link === hoverLink) return;
+        restoreTitle(hoverLink);
         hoverLink = link;
+        if (link && canHover() && !isSwitchedOff()) parkTitle(link);
         cancelOpen();
 
         if (!link) {
@@ -704,6 +724,7 @@
         if (!hoverLink) return;
         var to = e.relatedTarget;
         if (to && to.nodeType === 1 && hoverLink.contains(to)) return;
+        restoreTitle(hoverLink);
         hoverLink = null;
         cancelOpen();
         if (shownLink && !pinned) scheduleClose();

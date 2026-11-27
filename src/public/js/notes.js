@@ -1058,6 +1058,15 @@ function stripSearchHighlights(element) {
         holder.removeChild(wrapper);
     }
 
+    // A link's title parked while the pointer is on it, so that the
+    // browser's tooltip does not show beside the note preview
+    // (js/note-link-preview.js)
+    var parkedTitles = clonedElement.querySelectorAll('[data-pz-preview-title]');
+    for (var pt = 0; pt < parkedTitles.length; pt++) {
+        parkedTitles[pt].setAttribute('title', parkedTitles[pt].getAttribute('data-pz-preview-title'));
+        parkedTitles[pt].removeAttribute('data-pz-preview-title');
+    }
+
     var resizeGrips = clonedElement.querySelectorAll('[data-embed-resize-grip]');
     for (var g = 0; g < resizeGrips.length; g++) {
         resizeGrips[g].remove();
