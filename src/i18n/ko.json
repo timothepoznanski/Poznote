@@ -1652,6 +1652,7 @@
       "trash": "휴지통",
       "tags": "태그",
       "favorites": "즐겨찾기",
+      "recent": "최근 노트",
       "public": "공유됨",
       "attachments": "첨부 파일",
       "no_folder": "폴더 없음"
@@ -1731,6 +1732,11 @@
       "clear_confirm_message": "이 작업 공간의 모든 노트 및 폴더는 즐겨찾기를 떠납니다. 노트 및 폴더 자체는 유지됩니다.",
       "clear_button": "모두 제거",
       "error": "즐겨찾기를 업데이트할 수 없습니다."
+    },
+    "recent_menu": {
+      "title": "최근 노트 작업",
+      "count": "표시할 노트 수",
+      "count_hint": "이 섹션에 최근에 연 노트를 몇 개 표시할지 정합니다."
     }
   },
   "tree_history": {

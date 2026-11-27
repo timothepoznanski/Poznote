@@ -361,8 +361,10 @@ function setupNoteDragDropEvents() {
         return;
     }
 
-    // Add drop events to folder headers (using enhanced handlers for folder+note support)
-    var folderHeaders = document.querySelectorAll('.folder-header');
+    // Add drop events to folder headers (using enhanced handlers for folder+note support).
+    // Not the Recent notes section: no folder behind it, nothing to drop into
+    // (the root handler below leaves a drop over any header alone).
+    var folderHeaders = document.querySelectorAll('.folder-header:not(.recent-notes-section)');
     folderHeaders.forEach(function (header) {
         header.addEventListener('dragenter', handleFolderDragEnterEnhanced);
         header.addEventListener('dragover', handleFolderDragOverEnhanced);

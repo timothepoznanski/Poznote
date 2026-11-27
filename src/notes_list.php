@@ -783,11 +783,78 @@ foreach($hierarchicalFolders as $folderId => $folderData) {
     }
 }
 
+// Favorites, Recent notes and the rule under them (with "Expand all folders",
+// the padlock and the view options) form the top of the tree. A note opened
+// from Favorites or Recent notes is shown in the tree below the rule:
+// js/recent-notes.js pins this block (.is-pinned, a sticky block) while the
+// tree scrolls to the note's row, until the reader scrolls the column
+// themselves, which scrolls it whole as always.
+echo '<div class="tree-pinned-top">';
+
 // Display Favorites folder after Dashboard
 if ($favoritesFolder && ($favorites_count > 0 || (!empty($favorite_folders) && !$is_search_mode))) {
     foreach($favoritesFolder as $folderId => $folderData) {
         displayFolderRecursive($folderId, $folderData, 0, $con, $is_search_mode, $folders_with_results, $note, $current_note_folder, $default_note_folder, $workspace_filter, $total_notes, $folder_filter, $search, $tags_search, $preserve_notes, $preserve_tags, $search_combined, $displayUncategorizedFirst, $created_from, $created_to);
     }
+}
+
+// Recent notes section, under Favorites: the notes last opened in this
+// workspace (recently_opened_notes, note_loader.php), most recent first, as
+// many as recent_notes_count (lib/recent-notes.php, the slider of its menu).
+// Rendered with the most rows the slider allows, those past the count hidden,
+// so the slider changes the count on the spot. Like
+// Favorites it folds on its header (state kept by the browser, the section is
+// no folder) and hides from Element visibility (panel:recent-notes). Its rows
+// repeat notes shown further down, with their real folder, so a drag from
+// here behaves like one from the tree. js/recent-notes.js moves a note to the
+// top as it is opened, since notes open without a page load: the section is
+// rendered empty and hidden when nothing was opened yet, for it to fill.
+// Not in a search, nor under a folder filter, nor for someone who does not
+// own the list (poznoteUsesRecentlyOpenedNotes()).
+if (!$is_search_mode && empty($folder_filter) && function_exists('poznoteUsesRecentlyOpenedNotes') && poznoteUsesRecentlyOpenedNotes()) {
+    $recentNoteRows = [];
+    foreach ($folders as $recentFolderId => $recentFolderData) {
+        if (($recentFolderData['name'] ?? '') === FAVORITES_FOLDER_NAME) continue;
+        foreach (($recentFolderData['notes'] ?? []) as $recentRow) {
+            $recentNoteRows[(int)$recentRow['id']] = [$recentRow, $recentFolderId, (string)$recentFolderData['name']];
+        }
+    }
+    foreach (($uncategorized_notes ?? []) as $recentRow) {
+        $recentNoteRows[(int)$recentRow['id']] = [$recentRow, '', ''];
+    }
+    $recentCount = poznoteRecentNotesCount(getSetting('recent_notes_count', ''));
+    $recentShown = [];
+    foreach (poznoteRecentlyOpenedNotes($con) as $recentItem) {
+        if (count($recentShown) >= POZNOTE_RECENT_NOTES_MAX) break;
+        if (isset($recentNoteRows[$recentItem['id']]) && !isset($recentShown[$recentItem['id']])) {
+            $recentShown[$recentItem['id']] = $recentNoteRows[$recentItem['id']];
+        }
+    }
+
+    $recentLabel = t('notes_list.system_folders.recent', [], 'Recent notes');
+    echo "<div class='folder-header system-folder recent-notes-section' data-folder-id='recent' data-folder='Recent' data-recent-limit='" . $recentCount . "' data-recent-max='" . POZNOTE_RECENT_NOTES_MAX . "'" . (empty($recentShown) ? ' hidden' : '') . ">";
+    echo "<div class='folder-toggle' data-action='toggle-folder' data-folder-dom-id='folder-recent' data-folder-id='recent' data-folder='Recent'>";
+    // data-custom-icon: the clock stays a clock when the section folds
+    echo "<i class='lucide lucide-history folder-icon' data-custom-icon='true'></i>";
+    echo "<span class='folder-name' data-action='toggle-folder' data-folder-dom-id='folder-recent' data-folder-id='folder-recent'>" . htmlspecialchars($recentLabel, ENT_QUOTES) . "</span>";
+    echo "<span class='folder-actions'><div class='folder-actions-toggle' data-action='toggle-recent-menu' title='" . t_h('notes_list.recent_menu.title', [], 'Recent notes actions') . "'><i class='lucide lucide-more-vertical'></i></div></span>";
+    echo "</div>";
+    echo "<div class='folder-content' id='folder-recent' style='display: block;'>";
+    $recentIndex = 0;
+    foreach ($recentShown as [$recentRow, $recentFolderId, $recentFolderName]) {
+        $isSelected = (($note == $recentRow["id"]) || ($selected_linked_note_id > 0 && $selected_linked_note_id == $recentRow["id"])) ? 'selected-note' : '';
+        $link = generateNoteLink($search, $tags_search, $folder_filter, $workspace_filter, $preserve_notes, $preserve_tags, $recentRow["id"], $search_combined, $created_from, $created_to);
+        // Past the count: rendered hidden (row and the gap after it)
+        if ($recentIndex++ >= $recentCount) {
+            ob_start();
+            renderNoteListItem($recentRow, 'links_arbo_left note-in-folder', $isSelected, $link, $recentFolderId, $recentFolderName);
+            echo preg_replace("/<div class='(note-list-item|pxbetweennotes)'/", "<div class='$1' hidden", ob_get_clean());
+        } else {
+            renderNoteListItem($recentRow, 'links_arbo_left note-in-folder', $isSelected, $link, $recentFolderId, $recentFolderName);
+        }
+    }
+    echo "</div>";
+    echo "</div>";
 }
 
 // "Expand all folders", the padlock that locks every note, and the view
@@ -801,6 +868,7 @@ $notesListActions = (empty($showAccountRows) ? $expandFoldersButton : '') . ($lo
 if ($notesListActions !== '') {
     echo '<div class="notes-list-actions">' . $notesListActions . '</div>';
 }
+echo '</div>'; // .tree-pinned-top
 
 // Add drop zone for moving notes to root (no folder)
 if (empty($folder_filter)) {
@@ -895,7 +963,7 @@ $renderOtherAccounts($otherAccountProfiles);
         var anyClosed = false;
         for (var j = 0; j < contents.length; j++) {
             var parent = contents[j].parentElement;
-            if (parent && parent.classList.contains('folder-header') && parent.getAttribute('data-folder') === 'Favorites') continue;
+            if (parent && parent.classList.contains('folder-header') && (parent.getAttribute('data-folder') === 'Favorites' || parent.classList.contains('recent-notes-section'))) continue;
             hasFolders = true;
             if ((contents[j].style.display || getComputedStyle(contents[j]).display) === 'none') anyClosed = true;
         }
@@ -957,6 +1025,34 @@ echo "<div class='folder-actions-menu-item speed-dial-state-on active-state' rol
 echo "<div class='folder-actions-menu-item speed-dial-state-choose' role='menuitem' data-favorites-action='speed-dial'><i class='lucide lucide-zap'></i><span>" . t_h('speed_dial.choose_item', [], 'Add to a speed dial') . "</span><i class='lucide lucide-chevron-right speed-dial-submenu-arrow'></i></div>";
 echo "<div class='folder-actions-menu-separator'></div>";
 echo "<div class='folder-actions-menu-item danger' role='menuitem' data-favorites-action='clear'><i class='lucide lucide-eraser'></i><span>" . t_h('notes_list.favorites_menu.clear', [], 'Remove all from favorites') . "</span></div>";
+// Opens the Element visibility list on the row that hides the section
+echo "<div class='folder-actions-menu-separator'></div>";
+echo "<div class='folder-actions-menu-item' role='menuitem' data-favorites-action='visibility'><i class='lucide lucide-eye-off'></i><span>" . t_h('modals.ui_customization.panel_title', [], 'Element visibility') . "</span></div>";
+echo "</div>";
+// Menu of the Recent notes section (js/recent-notes.js): how many notes it
+// lists, a slider row (not an entry, a click on it keeps the menu open) like
+// the tree indentation of the view options menu, then Element visibility.
+// The slider carries the card:recentNotesCountSlider id of Element visibility.
+echo "<div class='folder-actions-menu' id='recent-actions-menu' role='menu'>";
+if (function_exists('poznoteUsesRecentlyOpenedNotes') && poznoteUsesRecentlyOpenedNotes()) {
+    $recentMenuCount = poznoteRecentNotesCount(getSetting('recent_notes_count', ''));
+    $recentCountLabel = t_h('notes_list.recent_menu.count', [], 'Notes shown');
+    $recentCountReset = t_h('page_menu.width_reset', [], 'Reset to default');
+    echo '<div id="recentNotesCountSlider" class="folder-actions-menu-slider" role="group" aria-labelledby="recentNotesCountLabel"'
+        . ' data-default="' . POZNOTE_RECENT_NOTES_DEFAULT . '" data-min="' . POZNOTE_RECENT_NOTES_MIN . '" data-max="' . POZNOTE_RECENT_NOTES_MAX . '">'
+        . '<div class="folder-actions-menu-slider-head">'
+        . '<i class="lucide lucide-history"></i>'
+        . '<span id="recentNotesCountLabel" title="' . t_h('notes_list.recent_menu.count_hint', [], 'How many of the notes opened last the section lists.') . '">' . $recentCountLabel . '</span>'
+        . '<output class="folder-actions-menu-slider-value" for="recentNotesCountInput">' . $recentMenuCount . '</output>'
+        . '<button type="button" class="folder-actions-menu-slider-reset"' . ($recentMenuCount === POZNOTE_RECENT_NOTES_DEFAULT ? ' hidden' : '') . ' title="' . $recentCountReset . '" aria-label="' . $recentCountReset . '">'
+        . '<i class="lucide lucide-rotate-ccw"></i>'
+        . '</button>'
+        . '</div>'
+        . '<input type="range" id="recentNotesCountInput" class="folder-actions-menu-slider-input" min="' . POZNOTE_RECENT_NOTES_MIN . '" max="' . POZNOTE_RECENT_NOTES_MAX . '" step="1" value="' . $recentMenuCount . '" aria-labelledby="recentNotesCountLabel">'
+        . '</div>';
+    echo "<div class='folder-actions-menu-separator'></div>";
+}
+echo "<div class='folder-actions-menu-item' role='menuitem' data-recent-action='visibility'><i class='lucide lucide-eye-off'></i><span>" . t_h('modals.ui_customization.panel_title', [], 'Element visibility') . "</span></div>";
 echo "</div>";
 // View options menu of the tree (index.php, js/tree-options-menu.js)
 echo $treeOptionsMenu ?? '';

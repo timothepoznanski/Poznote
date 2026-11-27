@@ -1450,7 +1450,10 @@ function moveTreeRowToTopOfItsNotes(link) {
 function placeSavedNoteInTreeOrder(noteId, titleChanged) {
     if (noteId === 'search' || noteId === -1 || noteId === null || noteId === undefined) return;
 
-    var rows = treeRowsOfNote(noteId);
+    // Recent notes keeps the order of opening, which a save does not change
+    var rows = treeRowsOfNote(noteId).filter(function (link) {
+        return !link.closest('.recent-notes-section');
+    });
     if (rows.length === 0) return;
 
     var mainMode = typeof window.poznoteNoteSortMode === 'function' ? window.poznoteNoteSortMode() : null;

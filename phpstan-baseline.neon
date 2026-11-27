@@ -87,13 +87,13 @@ parameters:
 		-
 			message: '#^Variable \$created_from might not be defined\.$#'
 			identifier: variable.undefined
-			count: 4
+			count: 5
 			path: src/notes_list.php
 
 		-
 			message: '#^Variable \$created_to might not be defined\.$#'
 			identifier: variable.undefined
-			count: 4
+			count: 5
 			path: src/notes_list.php
 
 		-
@@ -135,13 +135,13 @@ parameters:
 		-
 			message: '#^Variable \$preserve_notes might not be defined\.$#'
 			identifier: variable.undefined
-			count: 5
+			count: 6
 			path: src/notes_list.php
 
 		-
 			message: '#^Variable \$preserve_tags might not be defined\.$#'
 			identifier: variable.undefined
-			count: 5
+			count: 6
 			path: src/notes_list.php
 
 		-
@@ -153,7 +153,7 @@ parameters:
 		-
 			message: '#^Variable \$tags_search might not be defined\.$#'
 			identifier: variable.undefined
-			count: 5
+			count: 6
 			path: src/notes_list.php
 
 		-

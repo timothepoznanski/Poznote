@@ -84,7 +84,7 @@ class SettingsController {
      * private AI text, recent notes, Git and assistant configuration).
      */
     private const OWNER_PRIVATE_SETTINGS = [
-        'ai_custom_instructions', 'ai_saved_prompts', 'recently_opened_notes', 'dashboard_scope',
+        'ai_custom_instructions', 'ai_saved_prompts', 'recently_opened_notes', 'recently_opened_landing', 'dashboard_scope',
         'login_email', 'mcp_default_workspace',
     ];
     private const OWNER_PRIVATE_SETTING_PREFIXES = ['ai_user_', 'stt_user_', 'git_'];
@@ -600,6 +600,15 @@ class SettingsController {
             $intVal = (int) $value;
             if (!is_numeric($value) || $intVal < POZNOTE_TREE_INDENT_MIN || $intVal > POZNOTE_TREE_INDENT_MAX) {
                 throw new InvalidArgumentException('value must be between ' . POZNOTE_TREE_INDENT_MIN . ' and ' . POZNOTE_TREE_INDENT_MAX, 400);
+            }
+            return (string) $intVal;
+        }
+
+        // Rows of the Recent notes section of the tree (lib/recent-notes.php)
+        if ($key === 'recent_notes_count') {
+            $intVal = (int) $value;
+            if (!is_numeric($value) || $intVal < POZNOTE_RECENT_NOTES_MIN || $intVal > POZNOTE_RECENT_NOTES_MAX) {
+                throw new InvalidArgumentException('value must be between ' . POZNOTE_RECENT_NOTES_MIN . ' and ' . POZNOTE_RECENT_NOTES_MAX, 400);
             }
             return (string) $intVal;
         }

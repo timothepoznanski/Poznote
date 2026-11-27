@@ -45,9 +45,10 @@
         markPages();
     }
 
-    // The Favorites section of the tree (notes_list.php): its rows repeat
-    // notes and folders shown further down, which carry the dot there
-    var FAVORITES_SECTION = '.folder-header.system-folder[data-folder="Favorites"]';
+    // The Favorites and Recent notes sections of the tree (notes_list.php):
+    // their rows repeat notes and folders shown further down, which carry the
+    // dot there
+    var FAVORITES_SECTION = '.folder-header.system-folder[data-folder="Favorites"], .recent-notes-section';
 
     function markTree() {
         // Notes tree of index.php, Favorites left out: after the title,

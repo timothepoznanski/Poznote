@@ -37,7 +37,7 @@
 }
 
 /* Dossiers système: affichage en icônes uniquement */
-.system-folder:not([data-folder="Favorites"]) .folder-toggle {
+.system-folder:not([data-folder="Favorites"]):not(.recent-notes-section) .folder-toggle {
     padding: 3px;
     justify-content: center;
     width: auto;
@@ -48,19 +48,26 @@
 }
 
 /* Cacher le nom des dossiers système */
-.system-folder:not([data-folder="Favorites"]) .folder-name {
+.system-folder:not([data-folder="Favorites"]):not(.recent-notes-section) .folder-name {
     display: none !important;
 }
 
 /* System folder icons */
-.system-folder:not([data-folder="Favorites"]) [class*="lucide-"].folder-icon {
+.system-folder:not([data-folder="Favorites"]):not(.recent-notes-section) [class*="lucide-"].folder-icon {
     font-size: 1em !important;
     margin-right: 0 !important;
     color: var(--pz-accent-text);
 }
 
-.system-folder[data-folder="Favorites"] [class*="lucide-"].folder-icon {
+.system-folder[data-folder="Favorites"] [class*="lucide-"].folder-icon,
+.recent-notes-section [class*="lucide-"].folder-icon {
     font-size: 1em !important;
+}
+
+/* Recent notes (notes_list.php): rendered hidden while nothing was opened in
+   the workspace yet, js/recent-notes.js shows it with its first row */
+.recent-notes-section[hidden] {
+    display: none !important;
 }
 
 /* Favorites shows ten rows, the rest scroll inside the section without a
@@ -76,7 +83,7 @@
 }
 
 /* Afficher le compteur à droite de l'icône - toujours visible */
-.system-folder:not([data-folder="Favorites"]) .folder-note-count {
+.system-folder:not([data-folder="Favorites"]):not(.recent-notes-section) .folder-note-count {
     display: inline-block !important;
     opacity: 1;
     position: absolute;
@@ -96,11 +103,41 @@
 }
 
 /* Effet hover sur les icônes système */
-.system-folder:not([data-folder="Favorites"]) .folder-toggle:hover {
+.system-folder:not([data-folder="Favorites"]):not(.recent-notes-section) .folder-toggle:hover {
     background-color: transparent;
 }
 
-.system-folder:not([data-folder="Favorites"]) .folder-toggle:hover .folder-icon {
+.system-folder:not([data-folder="Favorites"]):not(.recent-notes-section) .folder-toggle:hover .folder-icon {
     color: var(--pz-accent-text-hover);
     transform: scale(1.15);
+}
+
+/* Recent notes rows past the count of its slider (notes_list.php,
+   js/recent-notes.js), and the gap after each */
+.recent-notes-section .note-list-item[hidden],
+.recent-notes-section .pxbetweennotes[hidden] {
+    display: none !important;
+}
+
+/* Top of the tree (notes_list.php): Favorites, Recent notes and the rule
+   under them, pinned by js/recent-notes.js while a note opened from one of
+   the two sections is shown in the tree below the rule, until the reader
+   scrolls the column. Opaque, in the column's colour, for the rows scrolling
+   under it. */
+.tree-pinned-top.is-pinned {
+    --pz-pinned-bg: var(--pz-surface);
+    /* Overridden inline by js/recent-notes.js */
+    --pz-pinned-gap: 0px;
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background-color: var(--pz-pinned-bg);
+    /* Pinned where it stood (js/recent-notes.js sets top): the gap between it
+       and the edge of the column, the column's top padding, painted over so
+       the rows scrolling under it do not show through */
+    box-shadow: 0 calc(-1 * var(--pz-pinned-gap)) 0 0 var(--pz-pinned-bg);
+}
+
+html[data-theme='dark'] .tree-pinned-top.is-pinned {
+    --pz-pinned-bg: var(--pz-chrome-bg);
 }

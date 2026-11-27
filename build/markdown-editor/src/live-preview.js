@@ -2403,8 +2403,8 @@ function leaveTable(view, blockFrom, after) {
   view.focus()
   if (after && tableBlock.to >= doc.length) {
     view.dispatch({
-      changes: { from: doc.length, insert: '\n' },
-      selection: { anchor: doc.length + 1 },
+      changes: { from: doc.length, insert: '\n\n' },
+      selection: { anchor: doc.length + 2 },
       userEvent: 'input',
       scrollIntoView: true
     })
@@ -4895,6 +4895,53 @@ const typeOutsideLinkFilter = EditorState.transactionFilter.of(transaction => {
   }
 })
 
+// Live preview and Rich text: text typed on an empty line right under a
+// drawn table, or right above it, starts behind an empty line instead. Glued
+// to the table, a line of text is one more row of it for Markdown (GFM), or
+// the paragraph its header row would end: the table drew it as a stray grey
+// line under its last row, under the row button. The line the caret was on
+// becomes the separator and the text goes on its own line, with an empty
+// line on its other side too when text is there (the empty line kept a
+// paragraph apart from the table, the typed text must not join it). A row
+// typed by hand ("|…") stays where it is typed.
+function tableNeighbourInsert(state, pos, text) {
+  if (!text || /^[\s|]/.test(text) || text.indexOf('\n') !== -1) return null
+  const doc = state.doc
+  const line = doc.lineAt(pos)
+  if (line.length) return null
+  const blocks = getRenderedBlocks(doc)
+  const above = line.number > 1 ? doc.line(line.number - 1) : null
+  const below = line.number < doc.lines ? doc.line(line.number + 1) : null
+  if (above && blocks.some(block => block.kind === 'table' && block.to === above.to)) {
+    const after = below && below.text.trim() ? '\n' : ''
+    return { insert: '\n' + text + after, caret: pos + 1 + text.length }
+  }
+  if (below && blocks.some(block => block.kind === 'table' && block.from === below.from)) {
+    const before = above && above.text.trim() ? '\n' : ''
+    return { insert: before + text + '\n', caret: pos + before.length + text.length }
+  }
+  return null
+}
+
+const tableNeighbourTypingFilter = EditorState.transactionFilter.of(transaction => {
+  if (!transaction.docChanged || !transaction.isUserEvent('input.type')) return transaction
+  let change = null
+  let count = 0
+  transaction.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
+    count++
+    change = { from: fromA, to: toA, text: inserted.toString() }
+  })
+  if (count !== 1 || !change || change.from !== change.to) return transaction
+  const placed = tableNeighbourInsert(transaction.startState, change.from, change.text)
+  if (!placed) return transaction
+  return {
+    changes: { from: change.from, insert: placed.insert },
+    selection: { anchor: placed.caret },
+    userEvent: 'input.type',
+    scrollIntoView: true
+  }
+})
+
 // Rich text: a heading whose whole text has just been deleted goes back to a
 // plain line, as in an HTML note (#1785). Its "## " is out of sight, so the
 // line looked empty and still drew the "Heading N" placeholder, and what was
@@ -5282,10 +5329,11 @@ function leaveTableOnEnter(view) {
   const table = main.empty ? findTableEdge(view.state, main.head) : null
   if (!table) return false
   const at = table.to === main.head ? table.to : table.from
-  // After the table: a line under it. In front of it: a line above it.
+  // After the table: a line under it. In front of it: a line above it. An
+  // empty line keeps it apart from the table (see tableNeighbourTypingFilter).
   view.dispatch(table.to === main.head
-    ? { changes: { from: at, insert: '\n' }, selection: { anchor: at + 1 }, userEvent: 'input', scrollIntoView: true }
-    : { changes: { from: at, insert: '\n' }, selection: { anchor: at }, userEvent: 'input', scrollIntoView: true })
+    ? { changes: { from: at, insert: '\n\n' }, selection: { anchor: at + 2 }, userEvent: 'input', scrollIntoView: true }
+    : { changes: { from: at, insert: '\n\n' }, selection: { anchor: at }, userEvent: 'input', scrollIntoView: true })
   return true
 }
 
@@ -6279,6 +6327,7 @@ export const livePreview = [
   alignedCaretFilter,
   protectMarkersFilter,
   typeOutsideLinkFilter,
+  tableNeighbourTypingFilter,
   emptiedHeadingFilter,
   lineClickFilter,
   livePreviewPlugin,

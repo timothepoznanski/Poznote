@@ -1652,6 +1652,7 @@
       "trash": "Prullenbak",
       "tags": "Tags",
       "favorites": "Favorieten",
+      "recent": "Recente notities",
       "public": "Gedeeld",
       "attachments": "Bijlagen",
       "no_folder": "Geen map"
@@ -1731,6 +1732,11 @@
       "clear_confirm_message": "Elke notitie en map van deze werkruimte verdwijnt uit Favorieten. De notities en mappen zelf blijven bewaard.",
       "clear_button": "Alles verwijderen",
       "error": "Favorieten konden niet worden bijgewerkt"
+    },
+    "recent_menu": {
+      "title": "Acties voor recente notities",
+      "count": "Getoonde notities",
+      "count_hint": "Hoeveel van de laatst geopende notities de sectie toont."
     }
   },
   "tree_history": {

@@ -2201,6 +2201,7 @@
       "trash": "Corbeille",
       "tags": "Tags",
       "favorites": "Favoris",
+      "recent": "Notes récentes",
       "public": "Partagées",
       "attachments": "Pièces jointes",
       "no_folder": "Aucun dossier"
@@ -2280,6 +2281,11 @@
       "clear_confirm_message": "Toutes les notes et tous les dossiers de cet espace de travail sortent des favoris. Les notes et les dossiers eux-mêmes sont conservés.",
       "clear_button": "Tout retirer",
       "error": "Impossible de modifier les favoris"
+    },
+    "recent_menu": {
+      "title": "Actions des notes récentes",
+      "count": "Notes affichées",
+      "count_hint": "Combien des dernières notes ouvertes la section affiche."
     }
   },
   "tree_history": {

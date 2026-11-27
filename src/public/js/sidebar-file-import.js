@@ -79,8 +79,10 @@
         };
     }
 
+    // The Recent notes section is no folder either (notes_list.php)
     function isImportableFolder(folder) {
-        return !folder || SYSTEM_FOLDERS.indexOf(folder.name) === -1;
+        return !folder || (SYSTEM_FOLDERS.indexOf(folder.name) === -1 &&
+            !(folder.element && folder.element.classList.contains('recent-notes-section')));
     }
 
     function clearHighlights() {

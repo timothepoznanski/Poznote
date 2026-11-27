@@ -1652,6 +1652,7 @@
       "trash": "Trash",
       "tags": "Tags",
       "favorites": "Favorites",
+      "recent": "Recent notes",
       "public": "Shared",
       "attachments": "Attachments",
       "no_folder": "No folder"
@@ -1731,6 +1732,11 @@
       "clear_confirm_message": "Every note and folder of this workspace leaves Favorites. The notes and folders themselves are kept.",
       "clear_button": "Remove all",
       "error": "Could not update Favorites"
+    },
+    "recent_menu": {
+      "title": "Recent notes actions",
+      "count": "Notes shown",
+      "count_hint": "How many of the notes opened last the section lists."
     }
   },
   "tree_history": {

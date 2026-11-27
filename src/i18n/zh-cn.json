@@ -2193,6 +2193,7 @@
       "trash": "回收站",
       "tags": "标签",
       "favorites": "收藏",
+      "recent": "最近的笔记",
       "public": "共享",
       "attachments": "附件",
       "no_folder": "无文件夹"
@@ -2272,6 +2273,11 @@
       "clear_confirm_message": "此工作区的所有笔记和文件夹都将移出收藏。笔记和文件夹本身会保留。",
       "clear_button": "全部移出",
       "error": "无法更新收藏"
+    },
+    "recent_menu": {
+      "title": "最近笔记操作",
+      "count": "显示的笔记数",
+      "count_hint": "此区域列出多少条最近打开的笔记。"
     }
   },
   "tree_history": {

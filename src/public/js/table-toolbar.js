@@ -285,19 +285,28 @@
         let clip = { top: 0, left: 0, right: window.innerWidth, bottom: window.innerHeight };
         const cuts = (overflow, scrollSize, clientSize) =>
             overflow === 'hidden' || overflow === 'clip' || (overflow !== 'visible' && scrollSize > clientSize + 1);
+        const scrolls = overflow => overflow === 'auto' || overflow === 'scroll';
         for (let parent = element.parentElement; parent && parent !== document.body; parent = parent.parentElement) {
             const style = window.getComputedStyle(parent);
-            const vertical = cuts(style.overflowY, parent.scrollHeight, parent.clientHeight);
+            // (a box that scrolls sideways and hides what overflows it
+            // vertically only to keep its own height, like an editor's table
+            // or code block, cuts nothing as long as its content fits in it)
+            const sidewaysOnly = scrolls(style.overflowX) && !scrolls(style.overflowY) &&
+                parent.scrollHeight <= parent.clientHeight + 1;
+            const vertical = !sidewaysOnly && cuts(style.overflowY, parent.scrollHeight, parent.clientHeight);
             const horizontal = cuts(style.overflowX, parent.scrollWidth, parent.clientWidth);
             if (!vertical && !horizontal) continue;
+            // (inside its border and scrollbars: what is drawn there is not seen)
             const rect = parent.getBoundingClientRect();
+            const innerTop = rect.top + parent.clientTop;
+            const innerLeft = rect.left + parent.clientLeft;
             if (vertical) {
-                clip.top = Math.max(clip.top, rect.top);
-                clip.bottom = Math.min(clip.bottom, rect.bottom);
+                clip.top = Math.max(clip.top, innerTop);
+                clip.bottom = Math.min(clip.bottom, innerTop + parent.clientHeight);
             }
             if (horizontal) {
-                clip.left = Math.max(clip.left, rect.left);
-                clip.right = Math.min(clip.right, rect.right);
+                clip.left = Math.max(clip.left, innerLeft);
+                clip.right = Math.min(clip.right, innerLeft + parent.clientWidth);
             }
         }
         return clip;
@@ -629,23 +638,40 @@
         const edges = box ? box.getBoundingClientRect() : rect;
         const clip = getClipRect(box || table);
         const size = 16;
-        // (clear of the column resize grip along an HTML table's edge)
-        const gap = 6;
+        // The buttons sit in the space the table leaves around it, without
+        // running into what follows: under an HTML table, the room its bottom
+        // margin keeps for the row button (css/markdown.css), beside a wide
+        // table's box, the room up to the edge of what shows it (the padding
+        // of a split view pane), where the column button may have to be
+        // thinner. The resize grip of a column only takes inner borders,
+        // never the table's edges.
+        const gap = 3;
+        const margin = 2;
+        const rowGap = gap;
+        const columnLeft = (box ? edges.right : rect.right) + gap;
+        const columnFit = box ? Math.min(size, clip.right - margin - columnLeft) : size;
+        // Both buttons have the same thickness (a column button too thin to
+        // show does not thin the row button). Where the column button has to
+        // be thinner (a split view pane), the row button, which has the room,
+        // keeps 2px more, to stay easy to hit.
+        const thickness = columnFit >= 10 ? columnFit : size;
+        const rowSize = Math.min(size, thickness + 2);
+        const columnSize = columnFit;
 
-        const rowTop = edges.bottom + gap;
+        const rowTop = edges.bottom + rowGap;
         const rowLeft = Math.max(edges.left, clip.left);
         const rowWidth = Math.min(edges.right, clip.right) - rowLeft;
-        const columnLeft = box ? Math.min(edges.right + gap, clip.right - size) : rect.right + gap;
+
         const columnTop = Math.max(rect.top, clip.top);
         const columnHeight = Math.min(rect.bottom, clip.bottom) - columnTop;
         return {
             row: {
-                top: rowTop, left: rowLeft, width: rowWidth, height: size,
-                hidden: rowTop + size > clip.bottom || rowTop < clip.top || rowWidth < size
+                top: rowTop, left: rowLeft, width: rowWidth, height: rowSize,
+                hidden: rowTop + rowSize > clip.bottom || rowTop < clip.top || rowWidth < size
             },
             column: {
-                top: columnTop, left: columnLeft, width: size, height: columnHeight,
-                hidden: columnLeft + size > clip.right || columnHeight < size
+                top: columnTop, left: columnLeft, width: columnSize, height: columnHeight,
+                hidden: columnSize < 10 || columnLeft + columnSize > clip.right || columnHeight < size
             }
         };
     }
@@ -661,11 +687,13 @@
         rowHandle.style.top = Math.round(rects.row.top) + 'px';
         rowHandle.style.left = Math.round(rects.row.left) + 'px';
         rowHandle.style.width = Math.round(rects.row.width) + 'px';
+        rowHandle.style.height = Math.round(rects.row.height) + 'px';
 
         columnHandle.hidden = rects.column.hidden;
         columnHandle.style.left = Math.round(rects.column.left) + 'px';
         columnHandle.style.top = Math.round(rects.column.top) + 'px';
         columnHandle.style.height = Math.round(rects.column.height) + 'px';
+        columnHandle.style.width = Math.round(rects.column.width) + 'px';
     }
 
     function showHandlesFor(table) {
@@ -698,9 +726,9 @@
         zoneProbePoint = null;
         if (!point || hoverTable) return;
         const { x, y } = point;
-        // The row button sits 6 to 22px under the table, the column button
-        // 6 to 22px right of it: look back that far for the table
-        const offsets = [7, 15, 23, 31];
+        // The row button sits 3 to 19px under the table, the column button
+        // 3 to 19px right of it: look back that far for the table
+        const offsets = [4, 10, 16, 23];
         const seen = new Set();
         for (const offset of offsets) {
             for (const [px, py] of [[x, y - offset], [x - offset, y]]) {

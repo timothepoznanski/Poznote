@@ -2195,6 +2195,7 @@
       "trash": "Lixeira",
       "tags": "Etiquetas",
       "favorites": "Favoritos",
+      "recent": "Notas recentes",
       "public": "Compartilhadas",
       "attachments": "Anexos",
       "no_folder": "Sem pasta"
@@ -2274,6 +2275,11 @@
       "clear_confirm_message": "Todas as notas e pastas deste espaço de trabalho saem dos favoritos. As notas e pastas são mantidas.",
       "clear_button": "Remover tudo",
       "error": "Não foi possível alterar os favoritos"
+    },
+    "recent_menu": {
+      "title": "Ações das notas recentes",
+      "count": "Notas mostradas",
+      "count_hint": "Quantas das últimas notas abertas a secção mostra."
     }
   },
   "tree_history": {

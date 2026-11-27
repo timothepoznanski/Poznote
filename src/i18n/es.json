@@ -2195,6 +2195,7 @@
       "trash": "Papelera",
       "tags": "Etiquetas",
       "favorites": "Favoritos",
+      "recent": "Notas recientes",
       "public": "Compartidas",
       "attachments": "Archivos adjuntos",
       "no_folder": "Sin carpeta"
@@ -2274,6 +2275,11 @@
       "clear_confirm_message": "Todas las notas y carpetas de este espacio de trabajo salen de favoritos. Las notas y carpetas se conservan.",
       "clear_button": "Quitar todo",
       "error": "No se pudieron modificar los favoritos"
+    },
+    "recent_menu": {
+      "title": "Acciones de notas recientes",
+      "count": "Notas mostradas",
+      "count_hint": "Cuántas de las últimas notas abiertas muestra la sección."
     }
   },
   "tree_history": {

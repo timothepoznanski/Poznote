@@ -182,6 +182,7 @@ function poznoteGetIndexJsGroups(): array {
         'js/notes-list-events.js',
         'js/favorites-menu.js',
         'js/favorites-scroll.js',
+        'js/recent-notes.js',
         'js/tree-options-menu.js',
         'js/tree-indent-slider.js',
         'js/other-accounts.js',

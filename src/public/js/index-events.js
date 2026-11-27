@@ -1334,9 +1334,10 @@
             // Rich text, a note that ends with a table: the end of the note is
             // inside the drawn table, where no caret can stand, and CodeMirror
             // put it back above the table. A line is opened after the table,
-            // as Arrow down from its last row does.
+            // as Arrow down from its last row does, behind an empty line (glued
+            // to the table, the text would be one more row of it).
             if (endsWithRichTextTable(el, codeMirror) && typeof codeMirror.replaceRange === 'function') {
-                codeMirror.replaceRange(el, end, end, '\n');
+                codeMirror.replaceRange(el, end, end, '\n\n');
                 return;
             }
             if (typeof codeMirror.setSelection === 'function') {

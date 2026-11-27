@@ -38,8 +38,10 @@
 
     // The Favorites section repeats folders and notes that live elsewhere, so
     // its rows never identify the hierarchy the user is working in.
+    // Favorites, and the Recent notes section beside it: no folder behind them
     function isFavoritesRow(element) {
-        return !!element && element.getAttribute('data-folder') === FAVORITES_FOLDER;
+        return !!element && (element.getAttribute('data-folder') === FAVORITES_FOLDER ||
+            (element.classList && element.classList.contains('recent-notes-section')));
     }
 
     function findFolderHeader(folderId) {
