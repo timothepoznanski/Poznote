@@ -1652,6 +1652,7 @@
       "trash": "Paperera",
       "tags": "Etiquetes",
       "favorites": "Preferits",
+      "recent": "Notes recents",
       "public": "Compartits",
       "attachments": "Fitxers adjunts",
       "no_folder": "Sense carpeta"
@@ -1731,6 +1732,11 @@
       "clear_confirm_message": "Totes les notes i les carpetes d'aquest espai de treball deixaran de ser a Preferits. Les notes i les carpetes es conserven.",
       "clear_button": "Elimina-ho tot",
       "error": "No s'han pogut actualitzar els preferits"
+    },
+    "recent_menu": {
+      "title": "Accions de les notes recents",
+      "count": "Notes mostrades",
+      "count_hint": "Quantes de les últimes notes obertes mostra la secció."
     }
   },
   "tree_history": {

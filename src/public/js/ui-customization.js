@@ -456,6 +456,7 @@
         // header: renderEditableNoteIcon() always emits .note-icon.
         'note-icons': '.note-icon',
         'favorites-folder': '.favorites-section',
+        'recent-notes': '.recent-notes-section',
         'folder-note-count': '.folder-note-count',
         'tasklist-progress': '.tasklist-progress',
         // The controls in a code block's corner (js/copy-code-on-focus.js in a

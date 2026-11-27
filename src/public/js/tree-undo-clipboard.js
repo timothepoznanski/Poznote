@@ -148,10 +148,11 @@
     // ============================================
 
     function noteLink(noteId) {
-        // A favorited note has two rows; prefer the one inside its folder
+        // A favorited or recently opened note has two rows; prefer the one
+        // inside its folder
         var links = document.querySelectorAll('.links_arbo_left[data-note-db-id="' + noteId + '"]');
         for (var i = 0; i < links.length; i++) {
-            if (!links[i].closest('.folder-header[data-folder="Favorites"]')) return links[i];
+            if (!links[i].closest('.folder-header[data-folder="Favorites"], .recent-notes-section')) return links[i];
         }
         return links[0] || null;
     }

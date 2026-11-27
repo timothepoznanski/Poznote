@@ -2783,7 +2783,9 @@ class NotesController {
                 return;
             }
 
-            poznoteRememberOpenedNote($this->con, $noteId, (string)$workspace);
+            // ?keep_order=1: opened from the Recent notes section of the
+            // tree, the note keeps its place in the list
+            poznoteRememberOpenedNote($this->con, $noteId, (string)$workspace, ($_GET['keep_order'] ?? '') === '1');
             $this->sendSuccess(['note_id' => $noteId]);
         } catch (Exception $e) {
             $this->sendError(500, 'Error recording the opened note: ' . $e->getMessage());

@@ -253,8 +253,10 @@ if (($kanban_restore_id > 0 || $blank_note_pane) && empty($note)) {
     // and note-pane fragments alike: the next load that names none lands on
     // it (issue #1630). Notes restored from the DOM cache report themselves
     // through POST /notes/{id}/opened (js/note-loader.js).
+    // Opened from the Recent notes section of the tree (js/note-loader.js
+    // sends the header): the note keeps its place in the list.
     if ($note !== '' && !empty($note_load_result['res_right'])) {
-        poznoteRememberOpenedNote($con, $note, $workspace_filter);
+        poznoteRememberOpenedNote($con, $note, $workspace_filter, ($_SERVER['HTTP_X_POZNOTE_KEEP_RECENT_ORDER'] ?? '') === '1');
     }
 }
 $default_note_folder = $note_load_result['default_note_folder'] ?? null;

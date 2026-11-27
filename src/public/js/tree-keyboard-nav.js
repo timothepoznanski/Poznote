@@ -149,7 +149,7 @@
             // The row in the tree proper is the one meant: the second row a
             // favorited note and a favorite folder have in the Favorites
             // section only stands in for it
-            if (!list[i].element.closest('.folder-header[data-folder="Favorites"]')) return i;
+            if (!list[i].element.closest('.folder-header[data-folder="Favorites"], .recent-notes-section')) return i;
             if (shortcut === -1) shortcut = i;
         }
         return shortcut;

@@ -2195,6 +2195,7 @@
       "trash": "Papierkorb",
       "tags": "Tags",
       "favorites": "Favoriten",
+      "recent": "Letzte Notizen",
       "public": "Geteilte",
       "attachments": "Anhänge",
       "no_folder": "Kein Ordner"
@@ -2274,6 +2275,11 @@
       "clear_confirm_message": "Alle Notizen und Ordner dieses Arbeitsbereichs werden aus den Favoriten entfernt. Die Notizen und Ordner selbst bleiben erhalten.",
       "clear_button": "Alle entfernen",
       "error": "Favoriten konnten nicht geändert werden"
+    },
+    "recent_menu": {
+      "title": "Aktionen für letzte Notizen",
+      "count": "Angezeigte Notizen",
+      "count_hint": "Wie viele der zuletzt geöffneten Notizen der Abschnitt anzeigt."
     }
   },
   "tree_history": {

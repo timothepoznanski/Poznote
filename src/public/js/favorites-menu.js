@@ -34,6 +34,7 @@
     function closeOtherMenus() {
         if (typeof closeFolderActionsMenu === 'function') closeFolderActionsMenu();
         if (typeof closeNoteActionsMenu === 'function') closeNoteActionsMenu();
+        if (typeof window.closeRecentNotesMenu === 'function') window.closeRecentNotesMenu();
         if (typeof window.closeCreateMenu === 'function') window.closeCreateMenu();
     }
 
@@ -186,6 +187,18 @@
         );
     }
 
+    // "Element visibility": the list opened on the row hiding the section
+    // (js/icon-sidebar-colors.js, which falls back to the settings page)
+    function revealVisibilityKey(key) {
+        var menu = window.PoznoteIconContextMenu;
+        if (menu && typeof menu.revealKey === 'function') {
+            menu.revealKey(key);
+        } else {
+            window.location.href = 'settings.php?open=ui-customization';
+        }
+    }
+    window.poznoteRevealVisibilityKey = revealVisibilityKey;
+
     document.addEventListener('click', function (event) {
         var target = event.target;
         if (!target || typeof target.closest !== 'function') return;
@@ -210,6 +223,8 @@
                 changeColor(menu);
             } else if (action === 'clear') {
                 clearAll(menu);
+            } else if (action === 'visibility') {
+                revealVisibilityKey('panel:favorites-folder');
             } else if (action === 'speed-dial') {
                 // With several speed dials, js/utils-menus.js opens their list first
                 window.setFavoritesSpeedDial('speed-dial', item.classList.contains('speed-dial-state-off'));

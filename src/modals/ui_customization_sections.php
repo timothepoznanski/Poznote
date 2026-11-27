@@ -204,6 +204,8 @@ if (!function_exists('poznoteUiCustomizationSectionHeader')) {
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:sidebarTreeIndentSlider" checked><span><?php echo t_h('sidebar.tree_indent', [], 'Tree indentation'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:sidebarExpandFoldersBtn" checked><span><?php echo t_h('sidebar.expand_all_folders', [], 'Expand all folders'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="panel:favorites-folder" checked><span><?php echo t_h('notes_list.system_folders.favorites', [], 'Favorites'); ?></span></label>
+    <label class="ui-custom-item"><input type="checkbox" data-ui-key="panel:recent-notes" checked><span><?php echo t_h('notes_list.system_folders.recent', [], 'Recent notes'); ?></span></label>
+    <label class="ui-custom-item"><input type="checkbox" data-ui-key="card:recentNotesCountSlider" checked><span><?php echo t_h('notes_list.recent_menu.count', [], 'Notes shown'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="panel:folder-note-count" checked><span><?php echo t_h('display.cards.show_folder_counts', [], 'Show folder counts'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="panel:other-accounts" checked><span><?php echo t_h('sidebar.other_accounts.title', [], 'Other accounts'); ?></span></label>
     <label class="ui-custom-item"><input type="checkbox" data-ui-key="panel:mini-calendar" checked><span><?php echo t_h('common.calendar', [], 'Calendar'); ?></span></label>

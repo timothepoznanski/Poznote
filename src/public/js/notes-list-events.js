@@ -704,6 +704,7 @@
         if (!target || !target.closest) return;
 
         if (typeof window.closeFavoritesMenu === 'function') window.closeFavoritesMenu();
+        if (typeof window.closeRecentNotesMenu === 'function') window.closeRecentNotesMenu();
 
         // Folder shortcuts in the Favorites section share the note row markup
         // but carry no toggle of their own (renderFavoriteFolderItems in
@@ -739,6 +740,15 @@
         if (folderRow.getAttribute('data-folder-id') === 'favorites') {
             if (typeof window.openFavoritesMenuAtPoint === 'function' &&
                 window.openFavoritesMenuAtPoint(event.clientX, event.clientY)) {
+                event.preventDefault();
+            }
+            return;
+        }
+
+        // Recent notes neither: its menu leads to Element visibility (js/recent-notes.js)
+        if (folderRow.getAttribute('data-folder-id') === 'recent') {
+            if (typeof window.openRecentNotesMenuAtPoint === 'function' &&
+                window.openRecentNotesMenuAtPoint(event.clientX, event.clientY)) {
                 event.preventDefault();
             }
             return;

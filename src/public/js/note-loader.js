@@ -105,7 +105,8 @@ function restoreNoteDomFromCache(url, noteId, options) {
     }
 
     finishNoteLoadVisualState(options);
-    rememberOpenedNote(noteId);
+    rememberOpenedNote(noteId, !!options.keepRecentOrder);
+    if (!options.keepRecentOrder) touchRecentNote(noteId);
     return true;
 }
 
@@ -114,14 +115,31 @@ function restoreNoteDomFromCache(url, noteId, options) {
  * loaded over AJAX needs no call: index.php records the notes it serves, and
  * the next page load naming no note lands on the last one (issue #1630).
  * @param {string|number} noteId
+ * @param {boolean} [keepOrder] - opened from the Recent notes section of the
+ *   tree: the note keeps its place there
  */
-function rememberOpenedNote(noteId) {
+function rememberOpenedNote(noteId, keepOrder) {
     if (!/^\d+$/.test(String(noteId))) return;
     try {
-        fetch('api/v1/notes/' + noteId + '/opened', { method: 'POST', keepalive: true })
+        fetch('api/v1/notes/' + noteId + '/opened' + (keepOrder ? '?keep_order=1' : ''), { method: 'POST', keepalive: true })
             .catch(function () { /* best effort: offline or signed out */ });
     } catch (e) {
         console.debug('note-loader: rememberOpenedNote() failed:', e);
+    }
+}
+
+/**
+ * Move the note just shown to the top of the Recent notes section of the tree
+ * (js/recent-notes.js): notes open without a page load, which is when the
+ * server would rebuild the section.
+ * @param {string|number} noteId
+ */
+function touchRecentNote(noteId) {
+    if (typeof window.poznoteTouchRecentNote !== 'function') return;
+    try {
+        window.poznoteTouchRecentNote(noteId);
+    } catch (e) {
+        console.debug('note-loader: touchRecentNote() failed:', e);
     }
 }
 
@@ -535,6 +553,9 @@ function loadNoteCommon(url, noteId, options) {
     // click. A server without the fragment path ignores the header and the
     // full page still parses the same way below.
     xhr.setRequestHeader('X-Poznote-Fragment', 'right_col');
+    // Opened from the Recent notes section of the tree: the server leaves the
+    // note where it is in the list (index.php)
+    if (options.keepRecentOrder) xhr.setRequestHeader('X-Poznote-Keep-Recent-Order', '1');
     activeNoteLoadXhr = xhr;
 
     xhr.onreadystatechange = function () {
@@ -636,6 +657,9 @@ function loadNoteCommon(url, noteId, options) {
                             }
 
                             finishNoteLoadVisualState(options);
+                            // A note opened from the Recent notes section
+                            // keeps its place there
+                            if (!options.keepRecentOrder) touchRecentNote(noteId);
 
                             // Reinitialize note click handlers if requested
                             if (options.reinitClickHandlers && typeof window.initializeNoteClickHandlers === 'function') {
@@ -796,6 +820,9 @@ window.loadNoteDirectly = function (url, noteId, event, clickedElement, extraOpt
 
         loadNoteCommon(url, noteId, Object.assign({
             clickedLink: clickedLink,
+            // Clicked in the Recent notes section of the tree: the click does
+            // not reorder it (js/recent-notes.js, index.php)
+            keepRecentOrder: !!(clickedElement && clickedElement.closest && clickedElement.closest('.recent-notes-section')),
             fromHistory: false,
             needsRefresh: needsRefresh,
             clearKanbanFlags: true,

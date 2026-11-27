@@ -504,6 +504,7 @@ function poznotePanelUiSelectors(): array {
         // The Favorites section at the top of the notes tree
         // (notes_list.php), header and rows together.
         'favorites-folder' => '.favorites-section',
+        'recent-notes' => '.recent-notes-section',
         // The (n) after a folder name, always shown unless hidden here (the
         // legacy hide_folder_counts hover-reveal is gone).
         'folder-note-count' => '.folder-note-count',

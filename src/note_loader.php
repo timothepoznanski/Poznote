@@ -178,21 +178,96 @@ function poznoteRecentlyOpenedNotes($con) {
 }
 
 /**
+ * A note opened from the "Recent notes" section of the tree keeps its place
+ * in the list (the section would otherwise reorder under the click), but a
+ * page load naming no note must still land on it: per workspace, the note so
+ * opened, until a note is opened the usual way there. JSON object
+ * {workspace: note id}.
+ */
+const POZNOTE_RECENT_LANDING_SETTING = 'recently_opened_landing';
+
+/**
+ * @return array<string, int>
+ */
+function poznoteRecentLandingNotes($con) {
+    try {
+        $stmt = $con->prepare('SELECT value FROM settings WHERE key = ?');
+        $stmt->execute([POZNOTE_RECENT_LANDING_SETTING]);
+        $map = json_decode((string)$stmt->fetchColumn(), true);
+    } catch (Exception $e) {
+        return [];
+    }
+    if (!is_array($map)) {
+        return [];
+    }
+    $out = [];
+    foreach ($map as $workspace => $id) {
+        if ((int)$id > 0) {
+            $out[(string)$workspace] = (int)$id;
+        }
+    }
+    return $out;
+}
+
+function poznoteSaveRecentLandingNotes($con, array $map) {
+    try {
+        if (empty($map)) {
+            $stmt = $con->prepare('DELETE FROM settings WHERE key = ?');
+            $stmt->execute([POZNOTE_RECENT_LANDING_SETTING]);
+        } else {
+            $stmt = $con->prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)');
+            $stmt->execute([POZNOTE_RECENT_LANDING_SETTING, json_encode($map, JSON_UNESCAPED_UNICODE | JSON_FORCE_OBJECT)]);
+        }
+        if (function_exists('poznoteResetSettingsCache')) {
+            poznoteResetSettingsCache();
+        }
+    } catch (Exception $e) {
+        error_log('note_loader: saving the landing note failed: ' . $e->getMessage());
+    }
+}
+
+/**
  * Put a note at the head of the list. Opening the note already there writes
  * nothing, which is the common case of a note reloaded or reopened.
+ *
+ * $keepOrder: opened from the "Recent notes" section of the tree. A note
+ * already in the list stays where it is, so a click there never reorders the
+ * section, and the page load that names no note lands on it all the same
+ * (recently_opened_landing).
  */
-function poznoteRememberOpenedNote($con, $noteId, $workspace) {
+function poznoteRememberOpenedNote($con, $noteId, $workspace, $keepOrder = false) {
     $noteId = (int)$noteId;
     if ($noteId <= 0 || !poznoteUsesRecentlyOpenedNotes()) {
         return;
     }
+    $workspace = (string)$workspace;
 
     $notes = poznoteRecentlyOpenedNotes($con);
-    if (($notes[0]['id'] ?? 0) === $noteId && $notes[0]['workspace'] === (string)$workspace) {
+    $landing = poznoteRecentLandingNotes($con);
+
+    if ($keepOrder) {
+        foreach ($notes as $note) {
+            if ($note['id'] === $noteId && $note['workspace'] === $workspace) {
+                if (($landing[$workspace] ?? 0) !== $noteId) {
+                    $landing[$workspace] = $noteId;
+                    poznoteSaveRecentLandingNotes($con, $landing);
+                }
+                return;
+            }
+        }
+    }
+
+    // Opened the usual way: the head of the list says where to land again
+    if (isset($landing[$workspace])) {
+        unset($landing[$workspace]);
+        poznoteSaveRecentLandingNotes($con, $landing);
+    }
+
+    if (($notes[0]['id'] ?? 0) === $noteId && $notes[0]['workspace'] === $workspace) {
         return;
     }
 
-    $items = [[$noteId, (string)$workspace]];
+    $items = [[$noteId, $workspace]];
     foreach ($notes as $note) {
         if ($note['id'] !== $noteId && count($items) < POZNOTE_RECENTLY_OPENED_NOTES_LIMIT) {
             $items[] = [$note['id'], $note['workspace']];
@@ -222,11 +297,17 @@ function getLastOpenedNoteId($con, $workspace_filter) {
     }
 
     $notes = poznoteRecentlyOpenedNotes($con);
+    // Opened last from the Recent notes section, which left it in its place
+    // in the list: looked at first
+    $landing = poznoteRecentLandingNotes($con)[(string)$workspace_filter] ?? 0;
+    if ($landing > 0) {
+        array_unshift($notes, ['id' => $landing, 'workspace' => (string)$workspace_filter]);
+    }
     if (empty($notes)) {
         return null;
     }
 
-    $ids = array_column($notes, 'id');
+    $ids = array_values(array_unique(array_column($notes, 'id')));
     try {
         $stmt = $con->prepare('SELECT id, workspace, trash, updated FROM entries WHERE id IN (' . implode(',', array_fill(0, count($ids), '?')) . ')');
         $stmt->execute($ids);

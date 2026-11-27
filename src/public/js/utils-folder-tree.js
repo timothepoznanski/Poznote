@@ -78,13 +78,15 @@ function saveFolderName() {
         });
 }
 
-// Every folder of the tree except the Favorites section: "Expand/Collapse all
-// folders" sits on the rule under it (notes_list.php) and acts on the tree
-// below only. Favorites still folds on its own when its header is clicked.
+// Every folder of the tree except the Favorites and Recent notes sections:
+// "Expand/Collapse all folders" sits on the rule under them (notes_list.php)
+// and acts on the tree below only. Each section still folds on its own when
+// its header is clicked.
 function getFolderContentElements() {
     return Array.prototype.slice.call(document.querySelectorAll('#left_col .folder-content[id]')).filter(function (content) {
         var header = content.parentElement;
-        return !(header && header.classList.contains('folder-header') && header.getAttribute('data-folder') === 'Favorites');
+        return !(header && header.classList.contains('folder-header') &&
+            (header.getAttribute('data-folder') === 'Favorites' || header.classList.contains('recent-notes-section')));
     });
 }
 
@@ -689,8 +691,9 @@ var TREE_REVEAL_WAIT_MS = 8000;
 var TREE_REVEAL_INTERVAL_MS = 100;
 var treeRevealTimer = 0;
 
+// Favorites and Recent notes only repeat rows of the tree proper
 function isFavoritesTreeElement(element) {
-    return !!(element && element.closest && element.closest('.folder-header[data-folder="Favorites"]'));
+    return !!(element && element.closest && element.closest('.folder-header[data-folder="Favorites"], .recent-notes-section'));
 }
 
 function findTreeFolderHeader(folderId) {
@@ -740,7 +743,10 @@ function openTreePathTo(element, display) {
 // left where it is otherwise (a tree that jumps for a row already on screen
 // loses the reader). The scroller is looked up rather than named, and only
 // it moves: never the sideways scroller <body> is on mobile, where the list
-// sits off screen next to the note or the board.
+// sits off screen next to the note or the board. With the top of the tree
+// pinned (Favorites, Recent notes and the rule under them, js/recent-notes.js),
+// the view is the part below the rule: a row under the pinned block is not in
+// view, and the row is centred in what is left.
 function scrollTreeRowIntoView(row, instant) {
     var scroller = row.parentElement;
     while (scroller && scroller !== document.body) {
@@ -752,9 +758,15 @@ function scrollTreeRowIntoView(row, instant) {
 
     var rowRect = row.getBoundingClientRect();
     var boxRect = scroller.getBoundingClientRect();
-    if (rowRect.top >= boxRect.top && rowRect.bottom <= boxRect.bottom) return;
+    var inset = 0;
+    var pinned = scroller.querySelector('.tree-pinned-top.is-pinned');
+    if (pinned && !pinned.contains(row)) {
+        inset = Math.max(0, Math.min(scroller.clientHeight, pinned.getBoundingClientRect().bottom - boxRect.top));
+    }
+    var viewTop = boxRect.top + inset;
+    if (rowRect.top >= viewTop && rowRect.bottom <= boxRect.bottom) return;
 
-    var offset = (rowRect.top - boxRect.top) - (scroller.clientHeight - rowRect.height) / 2;
+    var offset = (rowRect.top - viewTop) - (scroller.clientHeight - inset - rowRect.height) / 2;
     var target = Math.max(0, Math.min(scroller.scrollTop + offset, scroller.scrollHeight - scroller.clientHeight));
     if (typeof scroller.scrollTo === 'function') {
         scroller.scrollTo({ top: target, behavior: instant ? 'instant' : 'smooth' });
