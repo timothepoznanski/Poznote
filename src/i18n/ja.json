@@ -2307,7 +2307,6 @@
       "add_title": "リンクを追加",
       "title": "リンクの管理",
       "url_label": "URL：",
-      "url_placeholder": "https://example.com",
       "text_label": "リンクのテキスト（任意）：",
       "text_placeholder": "表示するテキスト",
       "remove": "リンクを解除",

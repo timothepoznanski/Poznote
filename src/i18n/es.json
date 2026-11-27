@@ -1385,7 +1385,6 @@
       "add_title": "Agregar enlace",
       "title": "Administrar enlace",
       "url_label": "URL:",
-      "url_placeholder": "https://ejemplo.com",
       "text_label": "Texto del enlace (opcional):",
       "text_placeholder": "Texto mostrado",
       "remove": "Eliminar enlace",

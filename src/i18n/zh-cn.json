@@ -1383,7 +1383,6 @@
       "add_title": "添加链接",
       "title": "管理链接",
       "url_label": "URL:",
-      "url_placeholder": "https://example.com",
       "text_label": "链接文本 (可选):",
       "text_placeholder": "显示的文本",
       "remove": "移除链接",

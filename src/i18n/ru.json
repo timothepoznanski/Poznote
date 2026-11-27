@@ -2309,7 +2309,6 @@
       "add_title": "Добавить ссылку",
       "title": "Управление ссылкой",
       "url_label": "URL:",
-      "url_placeholder": "https://example.com",
       "text_label": "Текст ссылки (необязательно):",
       "text_placeholder": "Отображаемый текст",
       "remove": "Удалить ссылку",

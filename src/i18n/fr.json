@@ -1372,7 +1372,6 @@
       "add_title": "Ajouter un lien",
       "title": "Gérer le lien",
       "url_label": "URL :",
-      "url_placeholder": "https://example.com",
       "text_label": "Texte du lien (optionnel) :",
       "text_placeholder": "Texte affiché",
       "remove": "Supprimer le lien",

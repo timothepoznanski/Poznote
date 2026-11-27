@@ -484,7 +484,9 @@ function showLinkModal(defaultUrl, defaultText, callback) {
     var removeLinkBtn = document.getElementById('linkModalRemove');
     var modalTitle = modal.querySelector('.modal-header h3');
 
-    urlInput.value = defaultUrl || 'https://';
+    // A new link starts empty: "https://" is the placeholder, not a value to
+    // delete first (a URL pasted after it would have doubled the scheme)
+    urlInput.value = (defaultUrl && defaultUrl !== 'https://') ? defaultUrl : '';
     textInput.value = defaultText || '';
     linkModalCallback = callback;
 
@@ -550,7 +552,7 @@ function createLinkModal() {
         '<div class="modal-body">' +
         '<div style="margin-bottom: 10px;">' +
         '<label for="linkModalUrl" style="display: block; font-weight: bold; margin-bottom: 5px;">' + (window.t ? window.t('editor.link.url_label', null, 'URL:') : 'URL:') + '</label>' +
-        '<input type="url" id="linkModalUrl" placeholder="' + (window.t ? window.t('editor.link.url_placeholder', null, 'https://example.com') : 'https://example.com') + '" />' +
+        '<input type="url" id="linkModalUrl" placeholder="https://" />' +
         '</div>' +
         '<div>' +
         '<label for="linkModalText" style="display: block; font-weight: bold; margin-bottom: 5px;">' + (window.t ? window.t('editor.link.text_label', null, 'Link text (optional):') : 'Link text (optional):') + '</label>' +
@@ -608,8 +610,18 @@ function closeLinkModal() {
     linkModalCallback = null;
 }
 
+// "example.com" or "www.example.com/page" typed without a scheme: the
+// placeholder showed "https://", so that is what the address gets. A relative
+// address (index.php?note=12, /path, #anchor) or one with a scheme is kept.
+function withDefaultLinkScheme(url) {
+    if (!url || /^[a-z][a-z0-9+.-]*:/i.test(url) || /^[\/.#?]/.test(url)) return url;
+    var host = url.split(/[\/?#]/)[0];
+    if (!/^[^\s@:]+\.[a-z]{2,}(?::\d+)?$/i.test(host) || /\.(php|html?|md|txt)$/i.test(host)) return url;
+    return 'https://' + url;
+}
+
 function executeLinkModalAction() {
-    var url = document.getElementById('linkModalUrl').value.trim();
+    var url = withDefaultLinkScheme(document.getElementById('linkModalUrl').value.trim());
     var text = document.getElementById('linkModalText').value.trim();
     var callback = linkModalCallback;
 

@@ -2307,7 +2307,6 @@
       "add_title": "Add link",
       "title": "Manage link",
       "url_label": "URL:",
-      "url_placeholder": "https://example.com",
       "text_label": "Link text (optional):",
       "text_placeholder": "Displayed text",
       "remove": "Remove link",

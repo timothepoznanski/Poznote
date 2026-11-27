@@ -6010,7 +6010,12 @@
                 // them — their handlers refocus after the pick)
                 var taskListPickerModal = document.getElementById('taskListPickerModal');
                 var taskListPickerOpen = !!(taskListPickerModal && taskListPickerModal.style.display && taskListPickerModal.style.display !== 'none');
-                var skipRefocus = !!(foundCmd && foundCmd.noRefocus);
+                // ...nor when the action opened a dialog that took the focus
+                // (Link: a URL pasted would land in the note behind it, #1839)
+                var focused = document.activeElement;
+                var dialogHasFocus = !!(focused && focused.closest && focused.closest('.modal') &&
+                    !(savedEditableElement && (focused === savedEditableElement || savedEditableElement.contains(focused))));
+                var skipRefocus = !!(foundCmd && foundCmd.noRefocus) || dialogHasFocus;
                 if (!shouldKeepSlash && !skipRefocus && !taskListPickerOpen && !(typeof window.isSlashDatePickerOpen === 'function' && window.isSlashDatePickerOpen())) {
                     if (savedEditableElement) {
                         focusEditableElement(savedEditableElement);

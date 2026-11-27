@@ -2307,7 +2307,6 @@
       "add_title": "Link toevoegen",
       "title": "Link beheren",
       "url_label": "URL:",
-      "url_placeholder": "https://example.com",
       "text_label": "Linktekst (optioneel):",
       "text_placeholder": "Weergegeven tekst",
       "remove": "Link verwijderen",

@@ -2307,7 +2307,6 @@
       "add_title": "링크 추가",
       "title": "링크 관리",
       "url_label": "URL:",
-      "url_placeholder": "https://example.com",
       "text_label": "링크 텍스트(선택사항):",
       "text_placeholder": "표시된 텍스트",
       "remove": "링크 삭제",

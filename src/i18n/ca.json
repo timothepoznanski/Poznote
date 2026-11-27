@@ -2307,7 +2307,6 @@
       "add_title": "Afegeix un enllaç",
       "title": "Gestió de l'enllaç",
       "url_label": "URL:",
-      "url_placeholder": "https://exemple.cat",
       "text_label": "Text de l'enllaç (opcional):",
       "text_placeholder": "Text que es mostra",
       "remove": "Elimina l'enllaç",
