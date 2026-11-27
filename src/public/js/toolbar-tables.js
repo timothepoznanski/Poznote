@@ -99,7 +99,7 @@ function buildMarkdownTable(rows, cols) {
 // Where a Markdown table goes for a caret or a selection: on a line of text,
 // under it; a blank line between the table and the text around it, which
 // would otherwise run into the table (a line right under it is read as one
-// more row). Returns { from, to, text, startLine }.
+// more row). Returns { from, to, text, startLine, caret }.
 function placeMarkdownTable(value, start, end, table) {
   let from = start;
   let to = end;
@@ -122,8 +122,13 @@ function placeMarkdownTable(value, start, end, table) {
   }
 
   const rest = value.slice(to);
-  if (rest === '') {
-    after = '\n';
+  let restNewlines = 0;
+  if (rest.trim() === '') {
+    // At the end of the note: an empty line, then the line the caret goes to
+    // (a line right under the table would be one more row of it, and the
+    // editor moves text typed there one line down)
+    restNewlines = (rest.match(/\n/g) || []).length;
+    after = '\n'.repeat(Math.max(0, 2 - restNewlines));
   } else if (rest.charAt(0) !== '\n') {
     after = '\n\n';
   } else {
@@ -132,7 +137,9 @@ function placeMarkdownTable(value, start, end, table) {
   }
 
   const startLine = value.slice(0, from).split('\n').length - 1 + before.length;
-  return { from, to, text: before + table + after, startLine };
+  const text = before + table + after;
+  // (at the end of the note, past the line breaks already there)
+  return { from, to, text, startLine, caret: from + text.length + Math.min(restNewlines, 2) };
 }
 
 function toggleTablePicker(triggerElement) {
@@ -463,7 +470,7 @@ function insertTable(rows, cols) {
     // The first header is selected, to be typed over (rich text opens it)
     if (!(typeof cmApi.focusTableCell === 'function' && cmApi.focusTableCell(cmContext.editor, placed.startLine, 0, 0, true)) &&
         typeof cmApi.setSelection === 'function') {
-      const caretPos = placed.from + placed.text.length;
+      const caretPos = placed.caret;
       cmApi.setSelection(cmContext.editor, caretPos, caretPos);
     }
     window.savedCodeMirrorTable = null;

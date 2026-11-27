@@ -708,6 +708,13 @@ body[data-markdown-live-syntax='0'] .markdown-codemirror-host .cm-live-preview :
     content: '\200b';
 }
 
+/* While a cell is open for typing, what is typed goes into the cell: the
+   editor's own caret, left where the editor's selection is (often the line
+   under the table), would show a second caret where nothing is written */
+.markdown-codemirror-host .cm-editor:has(.cm-live-cell-editing) .cm-cursorLayer {
+    visibility: hidden;
+}
+
 .markdown-codemirror-host .cm-live-preview .cm-live-block-table .cm-live-cell-editing {
     outline: 2px solid var(--pz-accent);
     outline-offset: -2px;
@@ -1578,6 +1585,17 @@ html[data-theme='dark'] .markdown-preview pre.indented-pre {
     border-collapse: collapse;
     width: 100%;
     margin: 1em 0;
+}
+
+/* An HTML note's table keeps room under it for the button that adds a row
+   (js/table-toolbar.js: 3px under the table, 16px thick), so that the button
+   never covers the line below, whatever the note's font size. !important:
+   a table inserted from the toolbar carries an inline margin of 12px
+   (js/toolbar-tables.js), stored in the note. */
+@media screen {
+    .noteentry[data-note-type="note"] table {
+        margin-bottom: max(1em, 22px) !important;
+    }
 }
 
 .noteentry table th,
