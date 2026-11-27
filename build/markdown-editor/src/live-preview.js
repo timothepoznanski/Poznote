@@ -4895,6 +4895,42 @@ const typeOutsideLinkFilter = EditorState.transactionFilter.of(transaction => {
   }
 })
 
+// Rich text: a heading whose whole text has just been deleted goes back to a
+// plain line, as in an HTML note (#1785). Its "## " is out of sight, so the
+// line looked empty and still drew the "Heading N" placeholder, and what was
+// typed next became a heading again. Only after a deletion that leaves the
+// line with markers alone: a heading inserted empty from a menu keeps its
+// level and its placeholder, waiting for its text. One transaction, so a
+// single Ctrl+Z gives back the heading with its text. With the syntax
+// revealed (Live preview) the writer sees the "## " and removes it if they
+// want to.
+const EMPTY_ATX_LINE = /^ {0,3}#{1,6}(?:[ \t]+#*)?[ \t]*$/
+
+function isAtxHeadingLine(state, line) {
+  const indent = /^ {0,3}/.exec(line.text)[0].length
+  for (let node = syntaxTree(state).resolveInner(line.from + indent, 1); node; node = node.parent) {
+    if (node.name.startsWith('ATXHeading')) return node.from >= line.from
+  }
+  return false
+}
+
+const emptiedHeadingFilter = EditorState.transactionFilter.of(transaction => {
+  if (!transaction.docChanged || isSyntaxRevealed() || !transaction.isUserEvent('delete')) return transaction
+  const start = transaction.startState
+  const cleared = []
+  const seen = new Set()
+  transaction.changes.iterChangedRanges((fromA, toA, fromB) => {
+    const line = transaction.newDoc.lineAt(fromB)
+    if (seen.has(line.number) || !EMPTY_ATX_LINE.test(line.text)) return
+    seen.add(line.number)
+    const before = start.doc.lineAt(fromA)
+    if (EMPTY_ATX_LINE.test(before.text) || !isAtxHeadingLine(start, before)) return
+    cleared.push({ from: line.from, to: line.to })
+  })
+  if (!cleared.length) return transaction
+  return [transaction, { changes: cleared, sequential: true }]
+})
+
 // A triple click selects a whole line, and CodeMirror takes its line break
 // along (a code editor's habit: cutting the selection removes the line). In
 // the live views that drew the highlight across the editor and the caret at
@@ -6243,6 +6279,7 @@ export const livePreview = [
   alignedCaretFilter,
   protectMarkersFilter,
   typeOutsideLinkFilter,
+  emptiedHeadingFilter,
   lineClickFilter,
   livePreviewPlugin,
   EditorView.atomicRanges.of(view => {
