@@ -91,12 +91,23 @@
 }
 
 /* A table row stays on one line, whatever "Editor word wrap" says: wrapped, its
-   pipes no longer line up and the table cannot be read. The editor scrolls
-   sideways and follows the caret (#1701). */
+   pipes no longer line up and the table cannot be read (#1701). The rows of a
+   table sit in one element (.cm-md-table-block, the editor bundle's
+   sideways-scroll.js), which scrolls sideways on its own, its bar right under
+   the table and taking its own height, while the rest of the note stays in
+   place (discussion #1835). It never scrolls down: a height that rounds a
+   pixel over would bring a vertical bar on systems with classic scrollbars. */
 .markdown-editor .cm-line.cm-md-table-line {
     width: max-content;
     min-width: 100%;
     white-space: pre;
+}
+
+.markdown-editor .cm-md-table-block {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--pz-scrollbar) transparent;
 }
 
 /* (js/markdown-lists-tables.js pads these characters as two columns) */

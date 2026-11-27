@@ -25,6 +25,7 @@ import { ruby } from '@codemirror/legacy-modes/mode/ruby'
 import { shell } from '@codemirror/legacy-modes/mode/shell'
 import { hclMode, tomlMode } from './config-languages.js'
 import { listMoveKeymap } from './list-move.js'
+import { isMarkdownTableSourceLine, sidewaysScroll } from './sideways-scroll.js'
 import { highlightSelectionMatches, searchKeymap } from '@codemirror/search'
 // searchKeymap includes Mod-f (Ctrl+F) which would intercept the browser's native find.
 // We filter it out so Ctrl+F opens the browser find dialog instead of CodeMirror's panel.
@@ -100,10 +101,6 @@ const markdownTableLineDecoration = Decoration.line({ class: 'cm-md-table-line' 
 // characters as getMarkdownTableTextWidth in markdown-lists-tables.js)
 const markdownTableWideCharDecoration = Decoration.mark({ class: 'cm-md-table-wide' })
 const MARKDOWN_TABLE_WIDE_CHARS = /[\u1100-\u115F\u2E80-\u303E\u3041-\u33FF\u3400-\u4DBF\u4E00-\u9FFF\uA960-\uA97F\uAC00-\uD7FF\uF900-\uFAFF\uFE30-\uFE6F\uFF00-\uFF60\uFFE0-\uFFE6]/g
-
-function isMarkdownTableSourceLine(text) {
-  return /^[ \t]*\|/.test(text)
-}
 
 // A wrapping editor's Home and End stop at the edges of what is in sight, and a
 // table row does not wrap (markdown.css): they go to the ends of the row (#1701)
@@ -2142,6 +2139,8 @@ function createEditor(host, options = {}) {
       placeholder(placeholderText),
       lineWrappingCompartment.of(createLineWrappingExtensions(wrapsLines(lineWrapping, !!options.livePreview))),
       markdownTableLinePlugin,
+      // A table's rows scroll sideways in their own block (#1835)
+      sidewaysScroll,
       markdownCodeLinePlugin,
       markdownInlineCodePlugin,
       hangingIndentPlugin,

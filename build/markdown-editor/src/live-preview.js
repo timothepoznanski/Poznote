@@ -708,16 +708,8 @@ const codeBlockWrapper = BlockWrapper.create({ tagName: 'div', attributes: { cla
 const codeBlockWrapperWrap = BlockWrapper.create({ tagName: 'div', attributes: { class: 'cm-live-code-block cm-live-code-block-wrap' } })
 const codeBlockWrapperNoWrap = BlockWrapper.create({ tagName: 'div', attributes: { class: 'cm-live-code-block cm-live-code-block-nowrap' } })
 
-// The block's own sideways scroll is not one CodeMirror knows about.
-// - Bringing the caret into view: CodeMirror only scrolls the editor and the
-//   page, so a caret moved past the visible part of a long line of code (End,
-//   the arrow keys) stayed out of sight. The block scrolls to it first, then
-//   CodeMirror goes on with the vertical scroll. Layout is read from the DOM:
-//   the view is mid-update here (see scrollPastHiddenSyntax in main.js).
-// - Drawing the caret and the selection: they sit in a layer measured against
-//   the editor, which a scroll inside the block does not refresh, so they
-//   stayed where the text had been. The scroll redraws them.
-const CODE_BLOCK_CARET_MARGIN = 30
+// Bringing the caret into view in the block and redrawing the selection when
+// it scrolls are in sideways-scroll.js, shared with the rows of a table.
 
 // The line element at pos, or null
 function codeLineElementAt(view, pos) {
@@ -822,60 +814,7 @@ const codeBlockScroll = [
     { key: 'End', mac: 'Cmd-ArrowRight', run: moveToCodeLineBoundary(true, false), shift: moveToCodeLineBoundary(true, true) },
     { key: 'ArrowUp', run: moveCodeLineVertically(false, false), shift: moveCodeLineVertically(false, true) },
     { key: 'ArrowDown', run: moveCodeLineVertically(true, false), shift: moveCodeLineVertically(true, true) }
-  ])),
-  EditorView.scrollHandler.of((view, range) => {
-    let at
-    try {
-      at = view.domAtPos(range.head)
-    } catch (_error) {
-      return false
-    }
-    const element = at.node.nodeType === 1 ? at.node : at.node.parentElement
-    const block = element && element.closest ? element.closest('.cm-live-code-block') : null
-    if (!block || block.scrollWidth <= block.clientWidth) return false
-
-    const caret = document.createRange()
-    try {
-      caret.setStart(at.node, at.offset)
-      caret.setEnd(at.node, at.offset)
-    } catch (_error) {
-      return false
-    }
-    const rect = caret.getClientRects()[0]
-    if (!rect) return false
-
-    const box = block.getBoundingClientRect()
-    if (rect.left < box.left + CODE_BLOCK_CARET_MARGIN) {
-      block.scrollLeft -= box.left + CODE_BLOCK_CARET_MARGIN - rect.left
-    } else if (rect.right > box.right - CODE_BLOCK_CARET_MARGIN) {
-      block.scrollLeft += rect.right - (box.right - CODE_BLOCK_CARET_MARGIN)
-    }
-    return false
-  }),
-  ViewPlugin.fromClass(class {
-    constructor(view) {
-      this.view = view
-      this.frame = 0
-      this.onScroll = event => {
-        const target = event.target
-        if (!target || !target.classList || !target.classList.contains('cm-live-code-block')) return
-        if (this.frame) return
-        this.frame = requestAnimationFrame(() => {
-          this.frame = 0
-          // (the same selection again: the layers are redrawn on any
-          // selection change, and nothing else is)
-          if (!this.view.destroyed) this.view.dispatch({ selection: this.view.state.selection })
-        })
-      }
-      // (scroll does not bubble: listened to on the way down)
-      view.contentDOM.addEventListener('scroll', this.onScroll, true)
-    }
-
-    destroy() {
-      cancelAnimationFrame(this.frame)
-      this.view.contentDOM.removeEventListener('scroll', this.onScroll, true)
-    }
-  })
+  ]))
 ]
 
 // A fenced code block keeps its source and takes the frame of the preview's:
