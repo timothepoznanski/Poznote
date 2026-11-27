@@ -648,6 +648,7 @@
       "spanish": "Espagnol",
       "portuguese": "Portugais",
       "german": "Allemand",
+      "german_swiss": "Allemand (Suisse)",
       "russian": "Russe",
       "chinese_simplified": "Chinois simplifié",
       "korean": "Coréen",
@@ -2619,7 +2620,9 @@
       "formula_remove": "Supprimer la formule",
       "formula_incompatible": "Formule non compatible",
       "delete_row": "Supprimer la ligne",
+      "delete_rows": "Supprimer les lignes",
       "delete_column": "Supprimer la colonne",
+      "delete_columns": "Supprimer les colonnes",
       "delete_table": "Supprimer le tableau",
       "errors": {
         "cannot_delete_last_row": "Impossible de supprimer la dernière ligne du tableau.",
@@ -2734,7 +2737,13 @@
       "missing": "La note #{{id}} n'existe pas, ou elle a été supprimée.",
       "missing_trashed": "La note #{{id}} est dans la corbeille. Restaurez-la pour l'ouvrir à nouveau.",
       "copy_id": "Copier l'identifiant de la note",
-      "id_copied": "Identifiant de note {{id}} copié"
+      "id_copied": "Identifiant de note {{id}} copié",
+      "copy_created": "Copier la date de création",
+      "copy_updated": "Copier la date de modification",
+      "copy_characters": "Copier le nombre de caractères",
+      "copy_words": "Copier le nombre de mots",
+      "copy_lines": "Copier le nombre de lignes",
+      "value_copied": "{{value}} copié"
     },
     "editor": {
       "placeholder_desktop": "Saisissez du texte, utilisez / ou le clic droit pour ouvrir le menu des commandes, collez des images ou glissez-déposez une image à l’emplacement du curseur.",
@@ -6144,6 +6153,7 @@
   },
   "mermaid_zoom": {
     "open": "Agrandir le diagramme",
+    "edit": "Modifier le diagramme",
     "dialog": "Diagramme",
     "zoom_in": "Zoom avant",
     "zoom_out": "Zoom arrière",

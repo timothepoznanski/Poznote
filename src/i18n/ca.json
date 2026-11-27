@@ -369,6 +369,7 @@
       "spanish": "Castellà",
       "portuguese": "Portuguès",
       "german": "Alemany",
+      "german_swiss": "Alemany (Suïssa)",
       "russian": "Rus",
       "chinese_simplified": "Xinès simplificat",
       "korean": "Coreà",
@@ -2071,7 +2072,9 @@
       "formula_remove": "Elimina la fórmula",
       "formula_incompatible": "Fórmula incompatible",
       "delete_row": "Suprimeix la fila",
+      "delete_rows": "Suprimeix les files",
       "delete_column": "Suprimeix la columna",
+      "delete_columns": "Suprimeix les columnes",
       "delete_table": "Suprimeix la taula",
       "errors": {
         "cannot_delete_last_row": "No es pot suprimir l'última fila de la taula.",
@@ -2186,7 +2189,13 @@
       "missing": "La nota #{{id}} no existeix o s'ha eliminat.",
       "missing_trashed": "La nota #{{id}} és a la paperera. Restaura-la per tornar-la a obrir.",
       "copy_id": "Copia l'identificador de la nota",
-      "id_copied": "Identificador de nota {{id}} copiat"
+      "id_copied": "Identificador de nota {{id}} copiat",
+      "copy_created": "Copia la data de creació",
+      "copy_updated": "Copia la data de modificació",
+      "copy_characters": "Copia el nombre de caràcters",
+      "copy_words": "Copia el nombre de paraules",
+      "copy_lines": "Copia el nombre de línies",
+      "value_copied": "{{value}} copiat"
     },
     "editor": {
       "placeholder_desktop": "Escriviu text, feu servir / o el botó dret per obrir el menú d'ordres, enganxeu imatges o deixeu anar una imatge al cursor.",
@@ -5875,6 +5884,7 @@
   },
   "mermaid_zoom": {
     "open": "Amplia el diagrama",
+    "edit": "Edita el diagrama",
     "dialog": "Diagrama",
     "zoom_in": "Apropa",
     "zoom_out": "Allunya",

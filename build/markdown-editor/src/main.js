@@ -25,6 +25,7 @@ import { ruby } from '@codemirror/legacy-modes/mode/ruby'
 import { shell } from '@codemirror/legacy-modes/mode/shell'
 import { hclMode, tomlMode } from './config-languages.js'
 import { listMoveKeymap } from './list-move.js'
+import { isMarkdownTableSourceLine, sidewaysScroll } from './sideways-scroll.js'
 import { highlightSelectionMatches, searchKeymap } from '@codemirror/search'
 // searchKeymap includes Mod-f (Ctrl+F) which would intercept the browser's native find.
 // We filter it out so Ctrl+F opens the browser find dialog instead of CodeMirror's panel.
@@ -90,6 +91,36 @@ const hiddenRangeField = StateField.define({
   provide: field => EditorView.decorations.from(field)
 })
 
+// The words of the sidebar search, marked where they are in the note
+// (js/search-highlight.js). They are not the find and replace bar's matches
+// (searchHighlightField above, cleared on the first edit): these stay on the
+// words through edits, as the highlights of the preview do, until the search
+// is cleared or set again. A range inside a hidden Excalidraw block is dropped.
+const setTermHighlightsEffect = StateEffect.define()
+
+function buildTermHighlights(ranges, activeIndex) {
+  return Decoration.set(ranges.map((range, index) => Decoration.mark({
+    class: 'cm-search-term' + (index === activeIndex ? ' cm-search-term-active' : '')
+  }).range(range.from, range.to)), true)
+}
+
+const termHighlightField = StateField.define({
+  create() {
+    return Decoration.none
+  },
+  update(value, transaction) {
+    value = value.map(transaction.changes)
+    for (const effect of transaction.effects) {
+      if (effect.is(setTermHighlightsEffect)) {
+        const payload = effect.value || {}
+        value = buildTermHighlights(payload.ranges || [], payload.activeIndex)
+      }
+    }
+    return value
+  },
+  provide: field => EditorView.decorations.from(field)
+})
+
 // Table rows are padded with spaces so their pipes line up in the raw source (see
 // formatMarkdownTableBlockLines in markdown-lists-tables.js). That alignment is only
 // visible in a fixed-width font, so lines that look like table rows are tagged with
@@ -100,10 +131,6 @@ const markdownTableLineDecoration = Decoration.line({ class: 'cm-md-table-line' 
 // characters as getMarkdownTableTextWidth in markdown-lists-tables.js)
 const markdownTableWideCharDecoration = Decoration.mark({ class: 'cm-md-table-wide' })
 const MARKDOWN_TABLE_WIDE_CHARS = /[\u1100-\u115F\u2E80-\u303E\u3041-\u33FF\u3400-\u4DBF\u4E00-\u9FFF\uA960-\uA97F\uAC00-\uD7FF\uF900-\uFAFF\uFE30-\uFE6F\uFF00-\uFF60\uFFE0-\uFFE6]/g
-
-function isMarkdownTableSourceLine(text) {
-  return /^[ \t]*\|/.test(text)
-}
 
 // A wrapping editor's Home and End stop at the edges of what is in sight, and a
 // table row does not wrap (markdown.css): they go to the ends of the row (#1701)
@@ -1945,6 +1972,87 @@ function setSearchMatches(host, matches, activeIndex) {
   return true
 }
 
+// ranges: [{from, to}] of the sidebar search words; returns those kept, in
+// document order (a range in a hidden Excalidraw block, or out of the document,
+// is dropped). activeIndex marks the current one, -1 none.
+function setTermHighlights(host, ranges, activeIndex = -1) {
+  const instance = getInstance(host)
+  if (!instance) return []
+  const state = instance.view.state
+  const length = state.doc.length
+  const hiddenBlocks = getExcalidrawBlocks(state.doc.toString())
+  const kept = (ranges || [])
+    .filter(range => range && Number.isFinite(range.from) && Number.isFinite(range.to) &&
+      range.from >= 0 && range.to <= length && range.to > range.from)
+    .filter(range => !hiddenBlocks.some(block => block.from < range.to && block.to > range.from))
+    .sort((a, b) => a.from - b.from || a.to - b.to)
+    .filter((range, index, list) => index === 0 || range.from >= list[index - 1].to)
+    .map(range => ({ from: range.from, to: range.to }))
+  instance.view.dispatch({ effects: setTermHighlightsEffect.of({ ranges: kept, activeIndex }) })
+  return kept
+}
+
+// Whether the view draws nothing of from..to: syntax a live view hides
+// (replaced, or in rich text squeezed to a width of nothing, see hide() in
+// live-preview.js), or source a widget stands in for (a table, a diagram).
+// Asked of every decoration source the editor has, view plugins included.
+const SQUEEZED_CLASS_REGEX = /(^|\s)cm-live-squeezed(-tail)?(\s|$)/
+
+function isRangeReplaced(view, from, to) {
+  let replaced = false
+  for (const source of view.state.facet(EditorView.decorations)) {
+    const set = typeof source === 'function' ? source(view) : source
+    if (!set || typeof set.between !== 'function') continue
+    set.between(from, to, (start, end, value) => {
+      const squeezed = !value.point && SQUEEZED_CLASS_REGEX.test((value.spec && value.spec.class) || '')
+      if ((value.point || squeezed) && start <= from && end >= to) {
+        replaced = true
+        return false
+      }
+    })
+    if (replaced) return true
+  }
+  return false
+}
+
+// The ranges as they are now (edits move them), in document order, each with
+// its index among them (the one setActiveTermHighlight takes).
+// options.visibleOnly leaves out those the view does not draw at the moment.
+function getTermHighlights(host, options = {}) {
+  const instance = getInstance(host)
+  if (!instance) return []
+  const view = instance.view
+  const ranges = []
+  view.state.field(termHighlightField).between(0, view.state.doc.length, (from, to) => {
+    ranges.push({ from, to, index: ranges.length })
+  })
+  return options.visibleOnly ? ranges.filter(range => !isRangeReplaced(view, range.from, range.to)) : ranges
+}
+
+// Whether the range at index is drawn now (meaningful once its line is on
+// screen: a live view only works out what it hides there)
+function isTermHighlightShown(host, index) {
+  const instance = getInstance(host)
+  if (!instance) return false
+  const range = getTermHighlights(host)[index]
+  return !!range && !isRangeReplaced(instance.view, range.from, range.to)
+}
+
+function setActiveTermHighlight(host, activeIndex) {
+  const ranges = getTermHighlights(host).map(range => ({ from: range.from, to: range.to }))
+  const instance = getInstance(host)
+  if (!instance) return false
+  instance.view.dispatch({ effects: setTermHighlightsEffect.of({ ranges, activeIndex }) })
+  return true
+}
+
+function clearTermHighlights(host) {
+  const instance = getInstance(host)
+  if (!instance) return false
+  instance.view.dispatch({ effects: setTermHighlightsEffect.of({ ranges: [], activeIndex: -1 }) })
+  return true
+}
+
 // from === to (or null) shows everything again
 function setHiddenRange(host, from, to) {
   const instance = getInstance(host)
@@ -2137,11 +2245,14 @@ function createEditor(host, options = {}) {
       }),
       highlightSelectionMatches(),
       searchHighlightField,
+      termHighlightField,
       hiddenRangeField,
       excalidrawPlaceholderField,
       placeholder(placeholderText),
       lineWrappingCompartment.of(createLineWrappingExtensions(wrapsLines(lineWrapping, !!options.livePreview))),
       markdownTableLinePlugin,
+      // A table's rows scroll sideways in their own block (#1835)
+      sidewaysScroll,
       markdownCodeLinePlugin,
       markdownInlineCodePlugin,
       hangingIndentPlugin,
@@ -2295,6 +2406,11 @@ window.PoznoteMarkdownCodeMirror = {
   findMatches,
   setSearchMatches,
   clearSearch,
+  setTermHighlights,
+  getTermHighlights,
+  setActiveTermHighlight,
+  isTermHighlightShown,
+  clearTermHighlights,
   setHiddenRange,
   isCodeMirrorEditor(host) {
     return !!getInstance(host)

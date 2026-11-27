@@ -56,9 +56,10 @@ function highlightSearchTerms(forceReapply) {
             var nav = window.searchNavigation;
             if (nav.pendingAutoScroll && nav.highlights.length > 0) {
                 nav.pendingAutoScroll = false;
+                navigationStep = 1;
                 navigateToHighlight(0, true);
             } else if (nav.currentHighlightIndex >= 0 && nav.highlights.length > 0 &&
-                       !document.querySelector('.search-highlight-active')) {
+                       !document.querySelector('.search-highlight-active, .cm-search-term-active')) {
                 navigateToHighlight(Math.min(nav.currentHighlightIndex, nav.highlights.length - 1), false);
             }
         }
@@ -75,7 +76,13 @@ function highlightSearchTerms(forceReapply) {
     // In tags-only mode we skip this to avoid briefly highlighting title text.
     if (isNotesSearchActive()) {
         document.querySelectorAll('.css-title, .noteentry:not([data-note-type="markdown"]), .markdown-editor, .markdown-preview').forEach(function(el) {
-            highlightInElement(el, searchWords);
+            // CodeMirror owns its DOM: the words are decorations there, and
+            // set even while the editor is hidden, so switching view keeps them
+            if (isCodeMirrorHost(el)) {
+                highlightInCodeMirror(el, searchWords);
+            } else {
+                highlightInElement(el, searchWords);
+            }
         });
     }
 
@@ -92,13 +99,29 @@ function highlightSearchTerms(forceReapply) {
         if (nav.highlights.length > 0) {
             if (nav.pendingAutoScroll) {
                 nav.pendingAutoScroll = false;
+                navigationStep = 1;
                 navigateToHighlight(0, true);
             } else if (nav.currentHighlightIndex >= 0) {
-                nav.highlights[Math.min(nav.currentHighlightIndex, nav.highlights.length - 1)]
-                    .classList.add('search-highlight-active');
+                markHighlightActive(nav.highlights[Math.min(nav.currentHighlightIndex, nav.highlights.length - 1)]);
             }
         }
     }
+}
+
+/**
+ * Highlight the search words in freshly drawn elements only (a Markdown
+ * preview rendered again), leaving the rest of the page as it is
+ */
+function highlightSearchTermsIn(roots) {
+    var searchInput = document.getElementById('unified-search') || document.getElementById('unified-search-mobile');
+    var searchTerm = searchInput ? searchInput.value.trim() : '';
+    if (!searchTerm || !roots || !roots.length || !isNotesSearchActive()) return;
+    var searchWords = parseSearchTerms(searchTerm);
+    if (!searchWords.length) return;
+    roots.forEach(function(root) {
+        if (root && root.nodeType === 1) highlightInElement(root, searchWords);
+    });
+    if (window.searchNavigation) updateHighlightsList();
 }
 
 function isNotesSearchActive() {
@@ -264,6 +287,113 @@ function highlightInElement(element, searchWords) {
     processTextNodes(element);
 }
 
+// ---------- Markdown editor (CodeMirror) ----------
+//
+// A Markdown note opens in the account's view during a search too (live
+// preview, rich text, edit, split), not only in the preview. The editor redraws
+// its own lines, so the words are CodeMirror decorations (.cm-search-term) and
+// not spans written into its DOM, which it would undo. Only the lines on screen
+// exist in its DOM, so a word of the editor is a navigation entry made of its
+// document position ({cmHost, from, to}) rather than an element.
+
+function getCodeMirrorApi() {
+    var api = window.PoznoteMarkdownCodeMirror;
+    return api && typeof api.setTermHighlights === 'function' ? api : null;
+}
+
+function isCodeMirrorHost(el) {
+    var api = getCodeMirrorApi();
+    return !!(api && el && el.classList && el.classList.contains('markdown-editor') &&
+        api.isCodeMirrorEditor(el));
+}
+
+function isCodeMirrorEntry(entry) {
+    return !!(entry && entry.cmHost);
+}
+
+function highlightInCodeMirror(host, searchWords) {
+    var api = getCodeMirrorApi();
+    if (!api) return;
+    var text = api.getValue(host) || '';
+    var ranges = [];
+    var lineStart = 0;
+    var lines = text.split('\n');
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        // The language of a code fence is its badge, not text (as in the
+        // preview, see isMarkdownFenceMatch below)
+        if (!/^\s*```[a-zA-Z0-9+#*-]+\s*$/.test(line)) {
+            findMatchPositions(removeAccents(line), searchWords).forEach(function(m) {
+                ranges.push({ from: lineStart + m.start, to: lineStart + Math.min(m.end, line.length) });
+            });
+        }
+        lineStart += line.length + 1;
+    }
+    api.setTermHighlights(host, ranges, -1);
+}
+
+function clearCodeMirrorHighlights() {
+    var api = getCodeMirrorApi();
+    if (!api) return;
+    document.querySelectorAll('.markdown-editor').forEach(function(host) {
+        if (api.isCodeMirrorEditor(host)) api.clearTermHighlights(host);
+    });
+}
+
+function isShown(el) {
+    try {
+        var current = el;
+        while (current && current !== document.body) {
+            if (window.getComputedStyle(current).display === 'none') return false;
+            current = current.parentElement;
+        }
+    } catch (e) {
+        console.debug('search-highlight: isShown() failed:', e);
+    }
+    return true;
+}
+
+// Navigation entries of the editors on screen. An editor shown next to its
+// preview (split view) gives none: the preview carries the same words, and
+// its highlights are the ones gone through.
+function getCodeMirrorEntries() {
+    var api = getCodeMirrorApi();
+    if (!api) return [];
+    var entries = [];
+    document.querySelectorAll('.markdown-editor').forEach(function(host) {
+        if (!api.isCodeMirrorEditor(host) || !isShown(host)) return;
+        var entry = host.closest('.noteentry');
+        var preview = entry ? entry.querySelector('.markdown-preview') : null;
+        if (preview && isShown(preview)) return;
+        // A word the view does not draw (a link address, hidden syntax, a
+        // table drawn in place of its source) is no stop: nothing would show
+        api.getTermHighlights(host, { visibleOnly: true }).forEach(function(range) {
+            entries.push({ cmHost: host, from: range.from, to: range.to, cmIndex: range.index });
+        });
+    });
+    return entries;
+}
+
+function clearActiveHighlight() {
+    document.querySelectorAll('.search-highlight-active, .input-highlight-overlay.search-highlight-active, .tag-highlight.search-highlight-active')
+        .forEach(function(h) { h.classList.remove('search-highlight-active'); });
+    var api = getCodeMirrorApi();
+    if (!api) return;
+    document.querySelectorAll('.markdown-editor').forEach(function(host) {
+        if (api.isCodeMirrorEditor(host)) api.setActiveTermHighlight(host, -1);
+    });
+}
+
+function markHighlightActive(entry) {
+    if (!entry) return;
+    if (isCodeMirrorEntry(entry)) {
+        var api = getCodeMirrorApi();
+        if (api) api.setActiveTermHighlight(entry.cmHost, entry.cmIndex);
+    } else {
+        entry.classList.add('search-highlight-active');
+    }
+}
+
 // ---------- Highlight clearing ----------
 
 function clearSearchHighlights(skipResetNavigation) {
@@ -287,6 +417,8 @@ function clearSearchHighlights(skipResetNavigation) {
     });
 
     document.querySelectorAll('.input-highlight-overlay').forEach(function(o) { o.remove(); });
+
+    clearCodeMirrorHighlights();
 
     if (window.inputOverlayListeners) {
         window.removeEventListener('scroll', updateAllOverlayPositions, true);
@@ -475,11 +607,24 @@ function updateHighlightsList() {
         return true;
     });
 
+    // Spans CodeMirror would have drawn are not elements of the list: the
+    // editor's words come in as positions, in document order, where the
+    // editor is on the page
+    highlights = highlights.filter(function(el) { return !el.closest('.cm-editor'); });
+
     highlights.sort(function(a, b) {
         var ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
         var ta = ra.top + window.scrollY, tb = rb.top + window.scrollY;
         return Math.abs(ta - tb) < 5 ? ra.left - rb.left : ta - tb;
     });
+
+    var cmEntries = getCodeMirrorEntries();
+    if (cmEntries.length) {
+        var editorTop = cmEntries[0].cmHost.getBoundingClientRect().top;
+        var at = 0;
+        while (at < highlights.length && highlights[at].getBoundingClientRect().top < editorTop) at++;
+        highlights = highlights.slice(0, at).concat(cmEntries, highlights.slice(at));
+    }
 
     window.searchNavigation.highlights = highlights;
 }
@@ -508,9 +653,18 @@ function navigateToHighlight(index, smooth) {
     var target = highlights[index];
     if (!target) return;
 
-    document.querySelectorAll('.search-highlight-active, .input-highlight-overlay.search-highlight-active, .tag-highlight.search-highlight-active')
-        .forEach(function(h) { h.classList.remove('search-highlight-active'); });
-    target.classList.add('search-highlight-active');
+    clearActiveHighlight();
+    markHighlightActive(target);
+
+    if (isCodeMirrorEntry(target)) {
+        // The editor scrolls the page to its own position (the line may not
+        // be drawn yet), without moving the caret or taking the focus
+        var cmApi = getCodeMirrorApi();
+        if (cmApi) cmApi.revealPos(target.cmHost, target.from, 'center');
+        window.searchNavigation.currentHighlightIndex = index;
+        skipIfNotDrawn(target, index);
+        return;
+    }
 
     var isMobile = window.innerWidth <= 800;
     var behavior = (smooth === false || isMobile) ? 'auto' : 'smooth';
@@ -577,7 +731,37 @@ function navigateToHighlight(index, smooth) {
     window.searchNavigation.currentHighlightIndex = index;
 }
 
+// A word of the editor the view turns out not to draw once on screen (a link
+// address, syntax a live view hides; a live view only works that out for the
+// lines it shows): the navigation goes on to the next one the same way.
+var navigationStep = 1;
+
+function skipIfNotDrawn(entry, index) {
+    var api = getCodeMirrorApi();
+    if (!api || typeof api.isTermHighlightShown !== 'function') return;
+    requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+            var nav = window.searchNavigation;
+            if (nav.currentHighlightIndex !== index || nav.highlights[index] !== entry) return;
+            if (!entry.cmHost.isConnected || api.isTermHighlightShown(entry.cmHost, entry.cmIndex)) return;
+            nav.highlights.splice(index, 1);
+            if (!nav.highlights.length) {
+                nav.currentHighlightIndex = -1;
+                clearActiveHighlight();
+                return;
+            }
+            if (navigationStep > 0) {
+                if (index < nav.highlights.length) navigateToHighlight(index, true);
+                else navigateToNextNote();
+            } else {
+                navigateToHighlight(index > 0 ? index - 1 : nav.highlights.length - 1, true);
+            }
+        });
+    });
+}
+
 function navigateToPreviousHighlight() {
+    navigationStep = -1;
     updateHighlightsList();
     var highlights = window.searchNavigation.highlights;
     if (!highlights.length) return;
@@ -586,6 +770,7 @@ function navigateToPreviousHighlight() {
 }
 
 function navigateToNextHighlight() {
+    navigationStep = 1;
     updateHighlightsList();
     var highlights = window.searchNavigation.highlights;
 
@@ -660,6 +845,7 @@ function scrollToFirstHighlight() {
         updateHighlightsList();
         if (window.searchNavigation && window.searchNavigation.highlights.length > 0) {
             window.searchNavigation.pendingAutoScroll = false;
+            navigationStep = 1;
             if (!isMobile) navigateToHighlight(0, true);
         }
     }, isMobile ? 800 : 400);

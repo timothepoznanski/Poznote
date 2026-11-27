@@ -649,6 +649,7 @@
       "spanish": "Español",
       "portuguese": "Portugués",
       "german": "Alemán",
+      "german_swiss": "Alemán (Suiza)",
       "russian": "Ruso",
       "chinese_simplified": "Chino simplificado",
       "korean": "Coreano",
@@ -2613,7 +2614,9 @@
       "formula_remove": "Quitar la fórmula",
       "formula_incompatible": "Fórmula no compatible",
       "delete_row": "Eliminar fila",
+      "delete_rows": "Eliminar filas",
       "delete_column": "Eliminar columna",
+      "delete_columns": "Eliminar columnas",
       "delete_table": "Eliminar tabla",
       "errors": {
         "cannot_delete_last_row": "No se puede eliminar la última fila de la tabla.",
@@ -2732,7 +2735,13 @@
       "missing": "La nota #{{id}} no existe o se ha eliminado.",
       "missing_trashed": "La nota #{{id}} está en la papelera. Restáurala para volver a abrirla.",
       "copy_id": "Copiar el identificador de la nota",
-      "id_copied": "Identificador de nota {{id}} copiado"
+      "id_copied": "Identificador de nota {{id}} copiado",
+      "copy_created": "Copiar la fecha de creación",
+      "copy_updated": "Copiar la fecha de modificación",
+      "copy_characters": "Copiar el número de caracteres",
+      "copy_words": "Copiar el número de palabras",
+      "copy_lines": "Copiar el número de líneas",
+      "value_copied": "{{value}} copiado"
     },
     "editor": {
       "placeholder_desktop": "Ingresa texto, usa / o el clic derecho para abrir el menú de comandos, pega imágenes o arrastra y suelta una imagen en el cursor.",
@@ -6040,6 +6049,7 @@
   },
   "mermaid_zoom": {
     "open": "Ampliar diagrama",
+    "edit": "Editar el diagrama",
     "dialog": "Diagrama",
     "zoom_in": "Acercar",
     "zoom_out": "Alejar",

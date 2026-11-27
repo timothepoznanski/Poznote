@@ -369,6 +369,7 @@
       "spanish": "Spaans",
       "portuguese": "Portugees",
       "german": "Duits",
+      "german_swiss": "Duits (Zwitserland)",
       "russian": "Russisch",
       "chinese_simplified": "Vereenvoudigd Chinees",
       "korean": "Koreaans",
@@ -2071,7 +2072,9 @@
       "formula_remove": "Formule verwijderen",
       "formula_incompatible": "Incompatibele formule",
       "delete_row": "Rij verwijderen",
+      "delete_rows": "Rijen verwijderen",
       "delete_column": "Kolom verwijderen",
+      "delete_columns": "Kolommen verwijderen",
       "delete_table": "Tabel verwijderen",
       "errors": {
         "cannot_delete_last_row": "Kan de laatste rij van de tabel niet verwijderen.",
@@ -2186,7 +2189,13 @@
       "missing": "Notitie #{{id}} bestaat niet, of is verwijderd.",
       "missing_trashed": "Notitie #{{id}} staat in de prullenbak. Herstel ze om haar weer te openen.",
       "copy_id": "Notitie-ID kopiëren",
-      "id_copied": "Notitie-ID {{id}} gekopieerd"
+      "id_copied": "Notitie-ID {{id}} gekopieerd",
+      "copy_created": "Aanmaakdatum kopiëren",
+      "copy_updated": "Wijzigingsdatum kopiëren",
+      "copy_characters": "Aantal tekens kopiëren",
+      "copy_words": "Aantal woorden kopiëren",
+      "copy_lines": "Aantal regels kopiëren",
+      "value_copied": "{{value}} gekopieerd"
     },
     "editor": {
       "placeholder_desktop": "Typ tekst, gebruik / of klik met de rechtermuisknop voor het opdrachtmenu, plak afbeeldingen of sleep een afbeelding naar de cursor.",
@@ -5875,6 +5884,7 @@
   },
   "mermaid_zoom": {
     "open": "Diagram vergroten",
+    "edit": "Diagram bewerken",
     "dialog": "Diagram",
     "zoom_in": "Inzoomen",
     "zoom_out": "Uitzoomen",

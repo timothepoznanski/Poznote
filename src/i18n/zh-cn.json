@@ -648,6 +648,7 @@
       "spanish": "西班牙语",
       "portuguese": "葡萄牙语",
       "german": "德语",
+      "german_swiss": "德语（瑞士）",
       "russian": "俄语",
       "chinese_simplified": "简体中文",
       "korean": "韩语",
@@ -2611,7 +2612,9 @@
       "formula_remove": "移除公式",
       "formula_incompatible": "公式不兼容",
       "delete_row": "删除行",
+      "delete_rows": "删除行",
       "delete_column": "删除列",
+      "delete_columns": "删除列",
       "delete_table": "删除表格",
       "errors": {
         "cannot_delete_last_row": "无法删除表格的最后一行。",
@@ -2727,7 +2730,13 @@
       "missing": "笔记 #{{id}} 不存在，或者已被删除。",
       "missing_trashed": "笔记 #{{id}} 在回收站中。请先恢复它才能打开。",
       "copy_id": "复制笔记 ID",
-      "id_copied": "已复制笔记 ID {{id}}"
+      "id_copied": "已复制笔记 ID {{id}}",
+      "copy_created": "复制创建日期",
+      "copy_updated": "复制修改日期",
+      "copy_characters": "复制字符数",
+      "copy_words": "复制字数",
+      "copy_lines": "复制行数",
+      "value_copied": "已复制 {{value}}"
     },
     "editor": {
       "placeholder_desktop": "输入文本，使用 / 或右键打开命令菜单，粘贴图片或在光标处拖放图片。",
@@ -6136,6 +6145,7 @@
   },
   "mermaid_zoom": {
     "open": "放大图表",
+    "edit": "编辑图表",
     "dialog": "图表",
     "zoom_in": "放大",
     "zoom_out": "缩小",

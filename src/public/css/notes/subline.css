@@ -99,8 +99,12 @@ body.show-note-created .note-subline {
 
 /* The note id opens the strip: the number the address bar and every API or
    MCP call names the note by. A button, because clicking it copies the
-   number, but it reads as one more entry of the line, not as a control. */
-.note-sub-id-btn {
+   number, but it reads as one more entry of the line, not as a control.
+   The dates and the figures hold the same button (.note-sub-copy-btn), which
+   copies the date alone or the bare number; the dot each entry opens with
+   stays outside it. */
+.note-sub-id-btn,
+.note-sub-copy-btn {
     margin: 0;
     padding: 0;
     border: 0;
@@ -113,7 +117,9 @@ body.show-note-created .note-subline {
 }
 
 .note-sub-id-btn:hover,
-.note-sub-id-btn:focus-visible {
+.note-sub-id-btn:focus-visible,
+.note-sub-copy-btn:hover,
+.note-sub-copy-btn:focus-visible {
     color: var(--pz-text);
 }
 

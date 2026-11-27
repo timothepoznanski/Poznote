@@ -571,6 +571,7 @@ function _updateUIAfterSave(timeText, titleChanged) {
     if (titleChanged) {
         updateNoteTitleInLeftColumn();
     }
+    placeSavedNoteInTreeOrder(noteid, titleChanged);
 
     // Update last saved content for change detection FIRST (before hiding indicator)
     // to prevent race conditions where an event might re-trigger the indicator
@@ -1058,6 +1059,15 @@ function stripSearchHighlights(element) {
         holder.removeChild(wrapper);
     }
 
+    // A link's title parked while the pointer is on it, so that the
+    // browser's tooltip does not show beside the note preview
+    // (js/note-link-preview.js)
+    var parkedTitles = clonedElement.querySelectorAll('[data-pz-preview-title]');
+    for (var pt = 0; pt < parkedTitles.length; pt++) {
+        parkedTitles[pt].setAttribute('title', parkedTitles[pt].getAttribute('data-pz-preview-title'));
+        parkedTitles[pt].removeAttribute('data-pz-preview-title');
+    }
+
     var resizeGrips = clonedElement.querySelectorAll('[data-embed-resize-grip]');
     for (var g = 0; g < resizeGrips.length; g++) {
         resizeGrips[g].remove();
@@ -1371,6 +1381,102 @@ function updateTitleInElement(linkElement, newTitle) {
         // server reads ?note= as an id, so a renamed note's link opened the
         // last opened note instead (issue #1634).
     }
+}
+
+// ============================================================
+// TREE ORDER AFTER A SAVE (discussion #1833)
+// ============================================================
+
+var treeOrderRefreshTimer = null;
+
+function isTitleSortMode(mode) {
+    return mode === 'heading_asc' || mode === 'type_asc';
+}
+
+function currentFavoritesSortMode() {
+    var active = document.querySelector('#favorites-actions-menu .favorites-sort-active[data-sort-mode]');
+    return active ? active.getAttribute('data-sort-mode') : null;
+}
+
+// Rows of the note itself in the tree: a shortcut has an id of its own and
+// sorts on its own row, a favourite folder link is not a note
+function treeRowsOfNote(noteId) {
+    var leftCol = document.getElementById('left_col');
+    if (!leftCol) return [];
+    return Array.prototype.filter.call(
+        leftCol.querySelectorAll('a.links_arbo_left[data-note-db-id="' + String(noteId) + '"]'),
+        function (link) { return !link.classList.contains('favorite-folder-link'); }
+    );
+}
+
+// The just-saved note is the most recently modified one, so under Date
+// modified it heads the notes of its folder. Moved in place: no request, and
+// no rebuild of the tree each time a note is edited for the first time.
+function moveTreeRowToTopOfItsNotes(link) {
+    var item = link.closest('.note-list-item');
+    if (!item || !item.parentNode) return;
+
+    var first = null;
+    var sibling = item.parentNode.firstElementChild;
+    while (sibling) {
+        if (sibling.classList.contains('note-list-item') && !sibling.classList.contains('favorite-folder-item')) {
+            first = sibling;
+            break;
+        }
+        sibling = sibling.nextElementSibling;
+    }
+    if (!first || first === item) return;
+
+    var spacer = item.nextElementSibling;
+    var parent = item.parentNode;
+    parent.insertBefore(item, first);
+    if (spacer && spacer.classList.contains('pxbetweennotes')) {
+        parent.insertBefore(spacer, first);
+    }
+}
+
+/**
+ * Put the saved note's rows where the sort mode wants them. The title is
+ * patched in place by updateNoteTitleInLeftColumn(), which left a renamed
+ * note where its old title sorted until something rebuilt the tree.
+ * - Name / Type: the tree is rebuilt from the server after a rename (rare),
+ *   so the order is exactly the server's (natural, case-insensitive titles,
+ *   notes before or after subfolders, Favorites with their own mode).
+ * - Date modified: the rows go to the top of their notes in place.
+ * - Date created / Custom: a save changes nothing.
+ * @param {string|number} noteId
+ * @param {boolean} titleChanged
+ */
+function placeSavedNoteInTreeOrder(noteId, titleChanged) {
+    if (noteId === 'search' || noteId === -1 || noteId === null || noteId === undefined) return;
+
+    var rows = treeRowsOfNote(noteId);
+    if (rows.length === 0) return;
+
+    var mainMode = typeof window.poznoteNoteSortMode === 'function' ? window.poznoteNoteSortMode() : null;
+    var favoritesMode = currentFavoritesSortMode();
+
+    if (titleChanged) {
+        var needsRebuild = rows.some(function (link) {
+            return isTitleSortMode(link.closest('.favorites-section') ? favoritesMode : mainMode);
+        });
+        if (needsRebuild && typeof window.refreshNotesListAfterFolderAction === 'function') {
+            // Coalesced: two saves in a row rebuild the tree once
+            clearTimeout(treeOrderRefreshTimer);
+            treeOrderRefreshTimer = setTimeout(function () {
+                treeOrderRefreshTimer = null;
+                window.refreshNotesListAfterFolderAction();
+            }, 300);
+            return;
+        }
+    }
+
+    rows.forEach(function (link) {
+        var mode = link.closest('.favorites-section') ? favoritesMode : mainMode;
+        if (mode === 'updated_desc') {
+            moveTreeRowToTopOfItsNotes(link);
+        }
+    });
 }
 
 // ============================================================

@@ -708,16 +708,8 @@ const codeBlockWrapper = BlockWrapper.create({ tagName: 'div', attributes: { cla
 const codeBlockWrapperWrap = BlockWrapper.create({ tagName: 'div', attributes: { class: 'cm-live-code-block cm-live-code-block-wrap' } })
 const codeBlockWrapperNoWrap = BlockWrapper.create({ tagName: 'div', attributes: { class: 'cm-live-code-block cm-live-code-block-nowrap' } })
 
-// The block's own sideways scroll is not one CodeMirror knows about.
-// - Bringing the caret into view: CodeMirror only scrolls the editor and the
-//   page, so a caret moved past the visible part of a long line of code (End,
-//   the arrow keys) stayed out of sight. The block scrolls to it first, then
-//   CodeMirror goes on with the vertical scroll. Layout is read from the DOM:
-//   the view is mid-update here (see scrollPastHiddenSyntax in main.js).
-// - Drawing the caret and the selection: they sit in a layer measured against
-//   the editor, which a scroll inside the block does not refresh, so they
-//   stayed where the text had been. The scroll redraws them.
-const CODE_BLOCK_CARET_MARGIN = 30
+// Bringing the caret into view in the block and redrawing the selection when
+// it scrolls are in sideways-scroll.js, shared with the rows of a table.
 
 // The line element at pos, or null
 function codeLineElementAt(view, pos) {
@@ -822,60 +814,7 @@ const codeBlockScroll = [
     { key: 'End', mac: 'Cmd-ArrowRight', run: moveToCodeLineBoundary(true, false), shift: moveToCodeLineBoundary(true, true) },
     { key: 'ArrowUp', run: moveCodeLineVertically(false, false), shift: moveCodeLineVertically(false, true) },
     { key: 'ArrowDown', run: moveCodeLineVertically(true, false), shift: moveCodeLineVertically(true, true) }
-  ])),
-  EditorView.scrollHandler.of((view, range) => {
-    let at
-    try {
-      at = view.domAtPos(range.head)
-    } catch (_error) {
-      return false
-    }
-    const element = at.node.nodeType === 1 ? at.node : at.node.parentElement
-    const block = element && element.closest ? element.closest('.cm-live-code-block') : null
-    if (!block || block.scrollWidth <= block.clientWidth) return false
-
-    const caret = document.createRange()
-    try {
-      caret.setStart(at.node, at.offset)
-      caret.setEnd(at.node, at.offset)
-    } catch (_error) {
-      return false
-    }
-    const rect = caret.getClientRects()[0]
-    if (!rect) return false
-
-    const box = block.getBoundingClientRect()
-    if (rect.left < box.left + CODE_BLOCK_CARET_MARGIN) {
-      block.scrollLeft -= box.left + CODE_BLOCK_CARET_MARGIN - rect.left
-    } else if (rect.right > box.right - CODE_BLOCK_CARET_MARGIN) {
-      block.scrollLeft += rect.right - (box.right - CODE_BLOCK_CARET_MARGIN)
-    }
-    return false
-  }),
-  ViewPlugin.fromClass(class {
-    constructor(view) {
-      this.view = view
-      this.frame = 0
-      this.onScroll = event => {
-        const target = event.target
-        if (!target || !target.classList || !target.classList.contains('cm-live-code-block')) return
-        if (this.frame) return
-        this.frame = requestAnimationFrame(() => {
-          this.frame = 0
-          // (the same selection again: the layers are redrawn on any
-          // selection change, and nothing else is)
-          if (!this.view.destroyed) this.view.dispatch({ selection: this.view.state.selection })
-        })
-      }
-      // (scroll does not bubble: listened to on the way down)
-      view.contentDOM.addEventListener('scroll', this.onScroll, true)
-    }
-
-    destroy() {
-      cancelAnimationFrame(this.frame)
-      this.view.contentDOM.removeEventListener('scroll', this.onScroll, true)
-    }
-  })
+  ]))
 ]
 
 // A fenced code block keeps its source and takes the frame of the preview's:
@@ -2132,7 +2071,15 @@ class RenderedBlockWidget extends WidgetType {
 
   // Rich text: a table is edited in its drawn form (setupTableEditing), the
   // editor leaves what happens inside it alone
-  ignoreEvent() {
+  // A diagram is selected by a click, in Live preview as in rich text
+  // (js/mermaid-zoom.js): the editor must not put the caret there, which
+  // would show the source. Its Edit button is the editor's (see the
+  // mousedown handler).
+  ignoreEvent(event) {
+    if (this.kind === 'mermaid') {
+      const target = event && event.target && event.target.nodeType === 1 ? event.target : null
+      return !(target && target.closest('.mermaid-edit-btn'))
+    }
     return this.kind === 'table' && !isSyntaxRevealed()
   }
 }
@@ -2673,6 +2620,18 @@ function startTableCellEdit(view, block, cell, select, point) {
       // edge: the browser took the caret out of the cell to the top of the note
       event.preventDefault()
       finish(true, 'arrow-' + event.key.slice(5).toLowerCase())
+    } else if ((event.ctrlKey || event.metaKey) && !event.altKey &&
+      (event.key.toLowerCase() === 'z' || event.key.toLowerCase() === 'y') && readCell() === raw) {
+      // Ctrl+Z / Ctrl+Y in a cell nothing was typed in yet (the cell a row
+      // or column deletion opens, a cell just clicked): the editor's history,
+      // the cell having nothing of its own to take back. Typed text is first
+      // undone by the cell itself, until it reads as it did when opened.
+      event.preventDefault()
+      const isRedo = event.key.toLowerCase() === 'y' || event.shiftKey
+      finish(false)
+      view.focus()
+      if (isRedo) redo(view)
+      else undo(view)
     } else if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'a') {
       // Select all: all of the cell (the browser would take the whole note,
       // and the next key would replace it)
@@ -3281,6 +3240,29 @@ export function moveTableCell(view, backward) {
   return focusTableCell(view, at.startLine, rowIndex, cellIndex, true)
 }
 
+// Whether the person has placed the caret in this editor yet. A note opens
+// with the caret at its very start, put there by no one: a table or diagram
+// opening the note would show its source as if the caret had been taken into
+// it. Until a selection, a key or an edit comes from the person, the rendered
+// blocks ignore the caret (discussion #1830). A caret restored by the app
+// (tab return, reload) is not the person's either.
+const caretPlacedField = StateField.define({
+  create() {
+    return false
+  },
+  update(placed, transaction) {
+    if (placed) return true
+    return transaction.docChanged || ['select', 'input', 'delete', 'move', 'undo', 'redo']
+      .some(event => transaction.isUserEvent(event))
+  }
+})
+
+// The selection ranges the rendered blocks answer to: none until the person
+// has placed the caret (caretPlacedField)
+function placedSelectionRanges(state) {
+  return state.field(caretPlacedField, false) === false ? [] : state.selection.ranges
+}
+
 // Whether the fenced block starting at pos is a Mermaid block shown as its
 // diagram right now: the rule of buildRenderedBlockDecorations() below, which
 // draws a block while no selection range touches it
@@ -3290,14 +3272,47 @@ function isMermaidBlockDrawn(state, pos) {
   const lineFrom = doc.lineAt(pos).from
   const block = getRenderedBlocks(doc).find(candidate => candidate.from === lineFrom)
   if (!block || block.kind !== 'mermaid') return false
-  return !state.selection.ranges.some(range => range.from <= block.to && range.to >= block.from)
+  return !placedSelectionRanges(state).some(range => range.from <= block.to && range.to >= block.from)
+}
+
+// A press on a drawn diagram, or beside it, is left to js/mermaid-zoom.js
+// (it selects the diagram), but the caret leaves wherever it was: a block
+// whose source it was showing, after Edit diagram, is drawn again. It goes on
+// the line after the diagram, or the end of the line before it, never on the
+// edge of a block (which would show that block's source). The editor keeps
+// or does not get the focus, as it was (discussion #1830).
+window.poznoteMoveCaretPastDiagram = function (blockElement) {
+  const editorDom = blockElement && blockElement.closest ? blockElement.closest('.cm-editor') : null
+  const view = editorDom ? EditorView.findFromDOM(editorDom) : null
+  if (!view) return false
+  const doc = view.state.doc
+  let at
+  try {
+    at = view.posAtDOM(blockElement)
+  } catch (error) {
+    return false
+  }
+  const blocks = getRenderedBlocks(doc)
+  const block = blocks.find(candidate => candidate.kind === 'mermaid' && at >= candidate.from && at <= candidate.to)
+  if (!block) return false
+  const onABlock = pos => blocks.some(candidate => pos >= candidate.from && pos <= candidate.to)
+  const first = doc.lineAt(block.from)
+  const last = doc.lineAt(block.to)
+  let anchor = null
+  if (last.number < doc.lines && !onABlock(doc.line(last.number + 1).from)) anchor = doc.line(last.number + 1).from
+  else if (first.number > 1 && !onABlock(doc.line(first.number - 1).to)) anchor = doc.line(first.number - 1).to
+  if (anchor === null) return false
+  const main = view.state.selection.main
+  if (view.state.selection.ranges.length === 1 && main.empty && main.head === anchor) return true
+  view.dispatch({ selection: { anchor }, userEvent: 'select' })
+  return true
 }
 
 function buildRenderedBlockDecorations(state) {
   if (typeof window.parseMarkdown !== 'function') return Decoration.none
 
   const doc = state.doc
-  const selection = state.selection.ranges
+  const selection = placedSelectionRanges(state)
   const toggles = getToggles(doc)
   const decorations = []
 
@@ -3331,6 +3346,7 @@ const renderedBlocksField = StateField.define({
   },
   update(value, transaction) {
     if (transaction.docChanged || transaction.selection ||
+        transaction.startState.field(caretPlacedField, false) !== transaction.state.field(caretPlacedField, false) ||
         transaction.effects.some(effect => effect.is(setToggleOpenEffect) || effect.is(refreshLivePreviewEffect))) {
       return buildRenderedBlockDecorations(transaction.state)
     }
@@ -4879,6 +4895,42 @@ const typeOutsideLinkFilter = EditorState.transactionFilter.of(transaction => {
   }
 })
 
+// Rich text: a heading whose whole text has just been deleted goes back to a
+// plain line, as in an HTML note (#1785). Its "## " is out of sight, so the
+// line looked empty and still drew the "Heading N" placeholder, and what was
+// typed next became a heading again. Only after a deletion that leaves the
+// line with markers alone: a heading inserted empty from a menu keeps its
+// level and its placeholder, waiting for its text. One transaction, so a
+// single Ctrl+Z gives back the heading with its text. With the syntax
+// revealed (Live preview) the writer sees the "## " and removes it if they
+// want to.
+const EMPTY_ATX_LINE = /^ {0,3}#{1,6}(?:[ \t]+#*)?[ \t]*$/
+
+function isAtxHeadingLine(state, line) {
+  const indent = /^ {0,3}/.exec(line.text)[0].length
+  for (let node = syntaxTree(state).resolveInner(line.from + indent, 1); node; node = node.parent) {
+    if (node.name.startsWith('ATXHeading')) return node.from >= line.from
+  }
+  return false
+}
+
+const emptiedHeadingFilter = EditorState.transactionFilter.of(transaction => {
+  if (!transaction.docChanged || isSyntaxRevealed() || !transaction.isUserEvent('delete')) return transaction
+  const start = transaction.startState
+  const cleared = []
+  const seen = new Set()
+  transaction.changes.iterChangedRanges((fromA, toA, fromB) => {
+    const line = transaction.newDoc.lineAt(fromB)
+    if (seen.has(line.number) || !EMPTY_ATX_LINE.test(line.text)) return
+    seen.add(line.number)
+    const before = start.doc.lineAt(fromA)
+    if (EMPTY_ATX_LINE.test(before.text) || !isAtxHeadingLine(start, before)) return
+    cleared.push({ from: line.from, to: line.to })
+  })
+  if (!cleared.length) return transaction
+  return [transaction, { changes: cleared, sequential: true }]
+})
+
 // A triple click selects a whole line, and CodeMirror takes its line break
 // along (a code editor's habit: cutting the selection removes the line). In
 // the live views that drew the highlight across the editor and the caret at
@@ -6000,6 +6052,25 @@ const livePreviewPlugin = ViewPlugin.fromClass(class {
         return true
       }
 
+      // The Edit button of a diagram (discussion #1830) puts the caret on the
+      // first line of its source, which brings the source back in place of
+      // the drawing; a click on the diagram selects it
+      const editDiagram = target.closest('.mermaid-edit-btn')
+      if (editDiagram) {
+        event.preventDefault()
+        if (view.state.readOnly) return true
+        const doc = view.state.doc
+        const at = view.posAtDOM(editDiagram)
+        const block = getRenderedBlocks(doc).find(candidate => candidate.kind === 'mermaid' && at >= candidate.from && at <= candidate.to)
+        if (block) {
+          const fence = doc.lineAt(block.from)
+          const anchor = fence.number < doc.lines ? doc.line(fence.number + 1).from : fence.to
+          view.dispatch({ selection: { anchor }, scrollIntoView: true, userEvent: 'select' })
+          view.focus()
+        }
+        return true
+      }
+
       // A click on a task box ticks it, like in the preview
       const task = target.closest('.cm-live-task')
       if (task && !view.state.readOnly) {
@@ -6201,12 +6272,14 @@ export const livePreview = [
   codeCollapsedField,
   codeWrapField,
   toggleOpenField,
+  caretPlacedField,
   renderedBlocksField,
   literalTypingInput,
   richTextKeymap,
   alignedCaretFilter,
   protectMarkersFilter,
   typeOutsideLinkFilter,
+  emptiedHeadingFilter,
   lineClickFilter,
   livePreviewPlugin,
   EditorView.atomicRanges.of(view => {

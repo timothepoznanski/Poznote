@@ -337,8 +337,11 @@ function runChangeCheck() {
         // A fired timer is no pending save: left set, it would keep
         // hasUnsavedChanges() true for every note opened after this one
         saveTimeout = null;
-        // Only save if we're still on the same note
-        if (noteid === currentNoteId && isOnline) {
+        // Only save if we're still on the same note (compared as text: the
+        // id is a number or a string depending on who set it last, the table
+        // menu writes the string, focusing the editor the number, and a
+        // strict comparison dropped the save, the note staying "unsaved")
+        if (String(noteid) === String(currentNoteId) && isOnline) {
             saveToServerDebounced();
         }
     }, 3000);

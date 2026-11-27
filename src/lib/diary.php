@@ -190,19 +190,11 @@ function getDiaryDateCustomTokens(): array {
  * translated. $group is 'date_time_format' or 'diary_date_format'.
  */
 function renderDateFormatTokenLegend(string $group): string {
-    $dict = loadI18nDictionary(getUserLanguage());
-    $en = loadI18nDictionary('en');
-    $path = ['modals', $group, 'tokens'];
-
-    $tokens = $dict;
-    foreach ($path as $part) {
+    // Merged along the language chain, so a regional dictionary that only
+    // overrides a few tokens (de-ch) still lists all of them.
+    $tokens = poznoteMergedI18nStrings(getUserLanguage());
+    foreach (['modals', $group, 'tokens'] as $part) {
         $tokens = is_array($tokens) && isset($tokens[$part]) ? $tokens[$part] : null;
-    }
-    if (!is_array($tokens) || empty($tokens)) {
-        $tokens = $en;
-        foreach ($path as $part) {
-            $tokens = is_array($tokens) && isset($tokens[$part]) ? $tokens[$part] : null;
-        }
     }
     if (!is_array($tokens) || empty($tokens)) {
         return '';

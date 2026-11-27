@@ -901,6 +901,13 @@
         },
         getTable: function () {
             return selectionActive && selectedCells.length > 0 ? selectionTable : null;
+        },
+        // Copies the highlighted cells, as Ctrl+C does (the table menu's Copy)
+        copy: function () {
+            if (selectionActive && selectedCells.length > 0) copySelectedCells(false);
+        },
+        clear: function () {
+            clearSelection();
         }
     };
 

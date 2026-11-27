@@ -4,11 +4,14 @@ lib('datetime', 'i18n');
 test('every shipped language has day and month names', function () {
     $locales = getDateNameLocales();
     foreach (poznoteSupportedLanguages() as $lang) {
-        assertTrue(isset($locales[$lang]), "no date names for '{$lang}'");
-        assertSame(7, count($locales[$lang]['days']), $lang);
-        assertSame(7, count($locales[$lang]['days_short']), $lang);
-        assertSame(12, count($locales[$lang]['months']), $lang);
-        assertSame(12, count($locales[$lang]['short']), $lang);
+        // A regional variant (de-ch) uses the names of its base language.
+        $names = $locales[$lang] ?? $locales[explode('-', $lang)[0]] ?? null;
+        assertTrue($names !== null, "no date names for '{$lang}'");
+        assertSame($names, getDateNameLocale($lang), $lang);
+        assertSame(7, count($names['days']), $lang);
+        assertSame(7, count($names['days_short']), $lang);
+        assertSame(12, count($names['months']), $lang);
+        assertSame(12, count($names['short']), $lang);
     }
 });
 

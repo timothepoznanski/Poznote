@@ -136,7 +136,8 @@ function ensureActiveHighlightVisible() {
         if (nav.currentHighlightIndex < 0 || !nav.highlights || nav.highlights.length === 0) return;
         var idx = Math.min(nav.currentHighlightIndex, nav.highlights.length - 1);
         var target = nav.highlights[idx];
-        if (!target || !document.body.contains(target)) return;
+        // An editor word is a position, CodeMirror keeps it in view itself
+        if (!target || !(target instanceof Element) || !document.body.contains(target)) return;
 
         var rect = target.getBoundingClientRect();
         var vpHeight = window.innerHeight || document.documentElement.clientHeight;

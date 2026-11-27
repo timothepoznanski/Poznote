@@ -247,9 +247,17 @@
 
         const noteElement = getVisibleNoteElement();
         if (!noteElement || !noteElement.contains(heading)) return null;
-        if (!(heading.textContent || '').trim()) return null;
+        if (!headingHasText(heading)) return null;
 
         return heading;
+    }
+
+    // A heading line of a Markdown editor still holds its # markers, hidden
+    // or not: "## " alone is a heading with nothing to link to.
+    function headingHasText(heading) {
+        let text = heading.textContent || '';
+        if (isCodeMirrorHeadingLine(heading)) text = text.replace(/^\s*#{1,6}(?=\s|$)/, '').replace(/\s#+\s*$/, '');
+        return !!text.trim();
     }
 
     function isCodeMirrorHeadingLine(element) {
@@ -309,7 +317,7 @@
 
     function positionButton() {
         // Gone, or its text deleted: there is no section left to link to
-        if (!hoveredHeading || !hoveredHeading.isConnected || !(hoveredHeading.textContent || '').trim()) {
+        if (!hoveredHeading || !hoveredHeading.isConnected || !headingHasText(hoveredHeading)) {
             hideButton();
             return;
         }
@@ -379,6 +387,8 @@
         document.addEventListener('scroll', queueReposition, { capture: true, passive: true });
         window.addEventListener('resize', queueReposition);
         document.addEventListener('input', queueReposition);
+        // CodeMirror deletes through its keymap, without an input event
+        document.addEventListener('keyup', queueReposition);
     }
 
     // ========================================================================

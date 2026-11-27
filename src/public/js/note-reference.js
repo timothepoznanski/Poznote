@@ -70,9 +70,11 @@
         }
     }
 
-    // Title and task fields, the textarea of the "Edit task" dialog included
+    // Title and task fields, the textarea of the "Edit task" dialog and the
+    // textarea of the empty "add a task" row of a task list included
     function isTextField(el) {
-        return !!(el && (el.tagName === 'INPUT' || (el.tagName === 'TEXTAREA' && el.id === 'taskEditTextarea')));
+        return !!(el && (el.tagName === 'INPUT' || (el.tagName === 'TEXTAREA'
+            && (el.id === 'taskEditTextarea' || (el.classList && el.classList.contains('task-input'))))));
     }
 
     /**

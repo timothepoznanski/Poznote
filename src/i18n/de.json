@@ -649,6 +649,7 @@
       "spanish": "Spanisch",
       "portuguese": "Portugiesisch",
       "german": "Deutsch",
+      "german_swiss": "Deutsch (Schweiz)",
       "russian": "Russisch",
       "chinese_simplified": "Vereinfachtes Chinesisch",
       "korean": "Koreanisch",
@@ -2613,7 +2614,9 @@
       "formula_remove": "Formel entfernen",
       "formula_incompatible": "Formel nicht kompatibel",
       "delete_row": "Zeile löschen",
+      "delete_rows": "Zeilen löschen",
       "delete_column": "Spalte löschen",
+      "delete_columns": "Spalten löschen",
       "delete_table": "Tabelle löschen",
       "errors": {
         "cannot_delete_last_row": "Die letzte Zeile der Tabelle kann nicht gelöscht werden.",
@@ -2732,7 +2735,13 @@
       "missing": "Die Notiz #{{id}} existiert nicht oder wurde gelöscht.",
       "missing_trashed": "Die Notiz #{{id}} liegt im Papierkorb. Stelle sie wieder her, um sie erneut zu öffnen.",
       "copy_id": "Notiz-ID kopieren",
-      "id_copied": "Notiz-ID {{id}} kopiert"
+      "id_copied": "Notiz-ID {{id}} kopiert",
+      "copy_created": "Erstellungsdatum kopieren",
+      "copy_updated": "Änderungsdatum kopieren",
+      "copy_characters": "Anzahl der Zeichen kopieren",
+      "copy_words": "Anzahl der Wörter kopieren",
+      "copy_lines": "Anzahl der Zeilen kopieren",
+      "value_copied": "{{value}} kopiert"
     },
     "editor": {
       "placeholder_desktop": "Text eingeben, / oder Rechtsklick verwenden, um das Befehlsmenü zu öffnen, Bilder einfügen oder ein Bild am Cursor ablegen.",
@@ -4094,7 +4103,7 @@
     },
     "actions": {
       "title": "Synchronisierungsaktionen",
-      "workspace": "Arbeitsbereich",
+      "workspace": "Arbeitsbereich: {{workspace}}",
       "target_workspace": "Zielarbeitsbereich",
       "all_workspaces": "Alle Arbeitsbereiche",
       "home_hint": "Senden und Abrufen können über die Seitenleiste der Startseite ausgeführt werden",
@@ -6039,6 +6048,7 @@
   },
   "mermaid_zoom": {
     "open": "Diagramm vergrößern",
+    "edit": "Diagramm bearbeiten",
     "dialog": "Diagramm",
     "zoom_in": "Vergrößern",
     "zoom_out": "Verkleinern",

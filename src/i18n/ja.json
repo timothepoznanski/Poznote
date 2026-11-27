@@ -369,6 +369,7 @@
       "spanish": "スペイン語",
       "portuguese": "ポルトガル語",
       "german": "ドイツ語",
+      "german_swiss": "ドイツ語（スイス）",
       "russian": "ロシア語",
       "chinese_simplified": "中国語（簡体字）",
       "korean": "韓国語",
@@ -2071,7 +2072,9 @@
       "formula_remove": "数式を削除",
       "formula_incompatible": "互換性のない数式",
       "delete_row": "行を削除",
+      "delete_rows": "行を削除",
       "delete_column": "列を削除",
+      "delete_columns": "列を削除",
       "delete_table": "表を削除",
       "errors": {
         "cannot_delete_last_row": "表の最後の行は削除できません。",
@@ -2186,7 +2189,13 @@
       "missing": "ノート #{{id}} は存在しません。削除された可能性があります。",
       "missing_trashed": "ノート #{{id}} はごみ箱にあります。開くには復元してください。",
       "copy_id": "ノート ID をコピー",
-      "id_copied": "ノート ID {{id}} をコピーしました"
+      "id_copied": "ノート ID {{id}} をコピーしました",
+      "copy_created": "作成日をコピー",
+      "copy_updated": "更新日をコピー",
+      "copy_characters": "文字数をコピー",
+      "copy_words": "単語数をコピー",
+      "copy_lines": "行数をコピー",
+      "value_copied": "{{value}} をコピーしました"
     },
     "editor": {
       "placeholder_desktop": "テキストを入力してください。「/」か右クリックでコマンドメニューを開けます。画像は貼り付けるか、カーソル位置にドロップして追加できます。",
@@ -5875,6 +5884,7 @@
   },
   "mermaid_zoom": {
     "open": "図を拡大",
+    "edit": "図を編集",
     "dialog": "図",
     "zoom_in": "拡大",
     "zoom_out": "縮小",

@@ -369,6 +369,7 @@
       "spanish": "스페인어",
       "portuguese": "포르투갈어",
       "german": "독일어",
+      "german_swiss": "독일어(스위스)",
       "russian": "러시아어",
       "chinese_simplified": "중국어 간체",
       "korean": "한국어",
@@ -2071,7 +2072,9 @@
       "formula_remove": "수식 제거",
       "formula_incompatible": "호환되지 않는 수식",
       "delete_row": "행 삭제",
+      "delete_rows": "행 삭제",
       "delete_column": "열 삭제",
+      "delete_columns": "열 삭제",
       "delete_table": "표 삭제",
       "errors": {
         "cannot_delete_last_row": "표의 마지막 행을 삭제할 수 없습니다.",
@@ -2186,7 +2189,13 @@
       "missing": "노트 #{{id}}이(가) 없습니다. 삭제되었을 수 있습니다.",
       "missing_trashed": "노트 #{{id}}은(는) 휴지통에 있습니다. 다시 열려면 복원하세요.",
       "copy_id": "노트 ID 복사",
-      "id_copied": "노트 ID {{id}}을(를) 복사했습니다"
+      "id_copied": "노트 ID {{id}}을(를) 복사했습니다",
+      "copy_created": "생성 날짜 복사",
+      "copy_updated": "수정 날짜 복사",
+      "copy_characters": "문자 수 복사",
+      "copy_words": "단어 수 복사",
+      "copy_lines": "줄 수 복사",
+      "value_copied": "{{value}} 복사됨"
     },
     "editor": {
       "placeholder_desktop": "텍스트를 입력하고 /를 사용하거나 명령 메뉴를 마우스 오른쪽 버튼으로 클릭하고, 이미지를 붙여넣거나 커서에 이미지를 놓습니다.",
@@ -5875,6 +5884,7 @@
   },
   "mermaid_zoom": {
     "open": "다이어그램 확대",
+    "edit": "다이어그램 편집",
     "dialog": "다이어그램",
     "zoom_in": "확대",
     "zoom_out": "축소",

@@ -60,7 +60,81 @@
             btn.innerHTML = '<i class="lucide lucide-maximize-2" aria-hidden="true"></i>';
             node.classList.add('mermaid-zoomable');
             node.appendChild(btn);
+
+            // In the editor views of a Markdown note, a second button brings
+            // the diagram's source back (discussion #1830): a click on the
+            // diagram selects it instead. The click itself
+            // is handled by the editor (build/markdown-editor/src/live-preview.js),
+            // which knows where the block's source is.
+            if (node.closest('.cm-live-block-mermaid')) {
+                var editLabel = tl('mermaid_zoom.edit', 'Edit diagram');
+                var edit = document.createElement('button');
+                edit.type = 'button';
+                edit.className = 'mermaid-edit-btn';
+                edit.setAttribute('contenteditable', 'false');
+                edit.setAttribute('aria-label', editLabel);
+                edit.setAttribute('title', editLabel);
+                edit.innerHTML = '<i class="lucide lucide-pencil" aria-hidden="true"></i>';
+                node.appendChild(edit);
+            }
         });
+    }
+
+    /**
+     * Whether a click on the diagram itself selects it (discussion #1830):
+     * the selection outlines it and shows its buttons, hidden otherwise. It
+     * does wherever the diagram is drawn: the classic preview, the Live
+     * preview and rich text views (the Edit button brings the source back),
+     * public and read-only pages. Not in the preview of the split view, where
+     * a click takes the editor to that line: there the buttons stay in sight
+     * (css/markdown.css).
+     */
+    function clickSelects(node) {
+        if (!node || !node.classList.contains('mermaid-zoomable') || !renderedSvg(node)) return false;
+        if (node.closest('.cm-live-block-mermaid')) return true;
+        if (node.closest('.markdown-split-mode')) return false;
+        return true;
+    }
+
+    // A press in an editor view beside a drawn diagram: in its margins or on
+    // either side of it, at its height. The editor would put the caret on the
+    // edge of the block there, which shows its source; it is a press outside
+    // the diagram, which only lets the selection go (discussion #1830).
+    function besideDrawnDiagram(event) {
+        var target = event.target && event.target.nodeType === 1 ? event.target : (event.target && event.target.parentElement);
+        if (!target || !target.closest) return null;
+        var editor = target.closest('.cm-editor');
+        if (!editor) return null;
+        // The block itself, around the diagram's box
+        var own = target.closest('.cm-live-block-mermaid');
+        if (own) return target.closest('.mermaid') ? null : own;
+        var blocks = editor.querySelectorAll('.cm-live-block-mermaid');
+        for (var i = 0; i < blocks.length; i++) {
+            var rect = blocks[i].getBoundingClientRect();
+            var style = window.getComputedStyle(blocks[i]);
+            var above = parseFloat(style.marginTop) || 0;
+            var below = parseFloat(style.marginBottom) || 0;
+            if (event.clientY >= rect.top - above && event.clientY <= rect.bottom + below) return blocks[i];
+        }
+        return null;
+    }
+
+    // A press on a drawn diagram, or beside it, is not for the editor, but
+    // its caret leaves wherever it was: a block whose source it was showing
+    // (after Edit diagram) is drawn again. It goes just past the diagram
+    // (build/markdown-editor/src/live-preview.js).
+    function moveCaretPast(blockElement) {
+        if (blockElement && typeof window.poznoteMoveCaretPastDiagram === 'function') {
+            try { window.poznoteMoveCaretPastDiagram(blockElement); } catch (e) { /* editor gone */ }
+        }
+    }
+
+    function diagramUnder(event) {
+        var target = event.target && event.target.nodeType === 1 ? event.target : (event.target && event.target.parentElement);
+        if (!target || !target.closest) return null;
+        if (target.closest('.mermaid-zoom-btn, .mermaid-edit-btn, a')) return null;
+        var node = target.closest('.mermaid');
+        return clickSelects(node) ? node : null;
     }
 
     /**
@@ -423,6 +497,83 @@
         event.preventDefault();
         event.stopPropagation();
         open(btn.closest('.mermaid'));
+    }, true);
+
+    // The diagram a click has selected, at most one on the page
+    var selected = null;
+
+    function select(node) {
+        if (selected === node) return;
+        deselect();
+        selected = node;
+        node.classList.add('mermaid-selected');
+    }
+
+    // The selected diagram's box, as wide as the note, which the selection
+    // frame outlines
+    function insideSelection(target) {
+        return !!selected && selected.isConnected && !!target && selected.contains(target);
+    }
+
+    function deselect() {
+        if (!selected) return;
+        selected.classList.remove('mermaid-selected');
+        // The viewer hands the focus back to the Enlarge button when it
+        // closes: left there, it would keep the buttons in sight
+        var active = document.activeElement;
+        if (active && active !== document.body && selected.contains(active) && typeof active.blur === 'function') active.blur();
+        selected = null;
+    }
+
+    // A click on the diagram selects it, where nothing else claims the click
+    // (clickSelects), and a click on it once selected opens the viewer.
+    // Both are decided when the mouse is pressed: moving the caret can redraw
+    // a block above and shift the page before the click arrives. Pressing
+    // the mouse there must not place the caret: in rich text the editor would
+    // reveal the source under it. Pressing anywhere else lets the selection go.
+    var pressed = null; // { node, open } from the last press on a diagram
+
+    document.addEventListener('mousedown', function (event) {
+        pressed = null;
+        if (event.button !== 0) return;
+        var node = diagramUnder(event);
+        if (node) {
+            event.preventDefault();
+            if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+            pressed = { node: node, open: selected === node };
+            select(node);
+            moveCaretPast(node.closest('.cm-live-block-mermaid'));
+            return;
+        }
+        var beside = besideDrawnDiagram(event);
+        if (beside) {
+            event.preventDefault();
+            event.stopPropagation();
+            deselect();
+            moveCaretPast(beside);
+            return;
+        }
+        // The viewer is the selected diagram, enlarged: what is done there
+        // (zoom, pan, close) leaves the selection as it was
+        if (viewer || (event.target && event.target.closest && event.target.closest('.mermaid-viewer'))) return;
+        if (selected && !insideSelection(event.target)) deselect();
+    }, true);
+
+    document.addEventListener('click', function (event) {
+        if (!pressed || event.button !== 0) return;
+        var press = pressed;
+        pressed = null;
+        event.preventDefault();
+        event.stopPropagation();
+        // A second click on the selected diagram opens it in the viewer
+        if (press.open && press.node.isConnected) open(press.node);
+    }, true);
+
+    // Escape lets the selection go (the viewer, when open, takes Escape first)
+    document.addEventListener('keydown', function (event) {
+        if (event.key !== 'Escape' || !selected || viewer) return;
+        deselect();
+        event.stopPropagation();
     }, true);
 
     window.poznoteMermaidZoom = {

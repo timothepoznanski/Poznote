@@ -113,8 +113,8 @@ body.public-note-page {
    its own code block buttons). Keep in step with them. */
 
 /* css/notes/noteentry.css: every element of a note at the note's size,
-   headings, links, icons and code apart */
-.public-note .content.public-note-markdown *:not(.lucide):not([class*="lucide-"]):not(i):not(a):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(h1 *):not(h2 *):not(h3 *):not(h4 *):not(h5 *):not(h6 *):not(.toggle-header):not(.toggle-header *):not(.embed-blocked):not(.embed-blocked *):not(.attachment-card-preview):not(.attachment-card-preview *):not(pre):not(pre *):not(code):not(code *):not(.code-block):not(.code-block *):not(.hljs):not(.hljs *):not(.katex):not(.katex *) {
+   headings, links, icons, code and the title of a diagram apart */
+.public-note .content.public-note-markdown *:not(.lucide):not([class*="lucide-"]):not(i):not(a):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(h1 *):not(h2 *):not(h3 *):not(h4 *):not(h5 *):not(h6 *):not(.toggle-header):not(.toggle-header *):not(.embed-blocked):not(.embed-blocked *):not(.attachment-card-preview):not(.attachment-card-preview *):not(pre):not(pre *):not(code):not(code *):not(.code-block):not(.code-block *):not(.hljs):not(.hljs *):not(.katex):not(.katex *):not(.mermaid :is([class$="TitleText"], .titleText)) {
     font-size: 15px !important;
 }
 

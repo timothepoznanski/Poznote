@@ -91,12 +91,23 @@
 }
 
 /* A table row stays on one line, whatever "Editor word wrap" says: wrapped, its
-   pipes no longer line up and the table cannot be read. The editor scrolls
-   sideways and follows the caret (#1701). */
+   pipes no longer line up and the table cannot be read (#1701). The rows of a
+   table sit in one element (.cm-md-table-block, the editor bundle's
+   sideways-scroll.js), which scrolls sideways on its own, its bar right under
+   the table and taking its own height, while the rest of the note stays in
+   place (discussion #1835). It never scrolls down: a height that rounds a
+   pixel over would bring a vertical bar on systems with classic scrollbars. */
 .markdown-editor .cm-line.cm-md-table-line {
     width: max-content;
     min-width: 100%;
     white-space: pre;
+}
+
+.markdown-editor .cm-md-table-block {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--pz-scrollbar) transparent;
 }
 
 /* (js/markdown-lists-tables.js pads these characters as two columns) */
@@ -983,6 +994,11 @@ body.code-block-no-wrap .markdown-codemirror-host .cm-live-preview .cm-live-code
     display: grid;
     grid-template-columns: max-content;
     overflow-x: auto;
+    /* The block grows with its lines and never scrolls down: a height that
+       rounds a pixel over (fractional line heights) would otherwise bring a
+       vertical scrollbar, and with it a sideways one, on systems with
+       classic scrollbars (discussion #1830) */
+    overflow-y: hidden;
     container-type: inline-size;
     border: 1px solid var(--pz-border-light);
     border-radius: var(--pz-radius-sm);
@@ -1383,8 +1399,17 @@ html[data-theme='dark'] .markdown-preview pre.indented-pre {
     padding-left: 2em;
 }
 
+/* List items are spaced like those of a rich text note (css/checklists.css):
+   a "normal" line height and 4px between two bullets or numbers (the 4px
+   margins of the .noteentry rules), a 1.6 line height and no margin between
+   two tasks, like .checklist-item */
 .markdown-preview li {
     margin: 0.5em 0;
+    line-height: normal;
+}
+
+.markdown-preview li.task-list-item {
+    margin: 0;
     line-height: 1.6;
 }
 
@@ -1817,7 +1842,8 @@ body.markdown-colored :is(.markdown-preview, .public-note-markdown) :is(#poznote
     padding-right: 36px;
 }
 
-.mermaid-zoom-btn {
+.mermaid-zoom-btn,
+.mermaid-edit-btn {
     position: absolute;
     top: 4px;
     right: 4px;
@@ -1836,23 +1862,66 @@ body.markdown-colored :is(.markdown-preview, .public-note-markdown) :is(#poznote
     cursor: pointer;
 }
 
-.mermaid-zoom-btn:hover {
+.mermaid-zoom-btn:hover,
+.mermaid-edit-btn:hover {
     opacity: 1;
     color: var(--pz-text-strong);
 }
 
-.mermaid-zoom-btn:focus-visible {
+.mermaid-zoom-btn:focus-visible,
+.mermaid-edit-btn:focus-visible {
     opacity: 1;
     outline: 2px solid var(--pz-accent-text);
     outline-offset: -2px;
 }
 
-.mermaid-zoom-btn .lucide {
+.mermaid-zoom-btn .lucide,
+.mermaid-edit-btn .lucide {
     font-size: 14px;
 }
 
+/* Edit, under Enlarge, in the editor views of a Markdown note (discussion
+   #1830). Gone while the note cannot be edited: the widget sits in the
+   editor's content, whose contenteditable says so. */
+.mermaid-edit-btn {
+    top: 36px;
+}
+
+.cm-content[contenteditable="false"] .mermaid-edit-btn,
+.notecard[data-note-locked="1"] .mermaid-edit-btn {
+    display: none;
+}
+
+/* A click on the diagram selects it wherever it is drawn (js/mermaid-zoom.js,
+   clickSelects): the classic preview, Live preview and rich text, public
+   pages. Its buttons only show once it is selected, or when the keyboard
+   reaches them (:focus-visible, not the focus a click leaves behind). In
+   the split view's preview a click moves the editor: there the buttons stay
+   in sight. */
+.mermaid.mermaid-zoomable > svg {
+    cursor: default;
+}
+
+/* Around the whole box, as wide as the note, and drawn inside its edge: the
+   editor's lines clip what goes past them */
+.mermaid.mermaid-zoomable.mermaid-selected {
+    outline: 2px solid var(--pz-accent);
+    outline-offset: -2px;
+    border-radius: var(--pz-radius-sm);
+}
+
+.mermaid.mermaid-zoomable:not(.mermaid-selected):not(:has(> :focus-visible)):not(.markdown-split-mode *) > :is(.mermaid-zoom-btn, .mermaid-edit-btn) {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.markdown-split-mode .mermaid.mermaid-zoomable > svg {
+    cursor: auto;
+}
+
 @media print {
-    .mermaid-zoom-btn {
+    .mermaid-zoom-btn,
+    .mermaid-edit-btn {
         display: none;
     }
 }
@@ -2434,16 +2503,18 @@ body.markdown-split-preview-left:not(.markdown-split-card-view) .noteentry.markd
     padding-top: calc(max(var(--cm-live-gap-a, 0px), var(--cm-live-gap-b, 0px)) + var(--cm-live-own-pt, 0px));
 }
 
-/* A list item is a <li> of the preview: 1.6 line height, 4px between two
-   items (0.5em between two tasks), none under the last one, whose margin is
-   the list's */
+/* A list item is a <li> of the preview, spaced like a rich text note: a
+   "normal" line height and 4px between two items, a 1.6 line height and
+   nothing between two tasks, none under the last one, whose margin is the
+   list's */
 .markdown-codemirror-host .cm-live-preview .cm-line.cm-live-list {
-    line-height: 1.6;
+    line-height: normal;
     padding-bottom: 4px;
 }
 
 .markdown-codemirror-host .cm-live-preview .cm-line.cm-live-list.cm-live-list-task {
-    padding-bottom: 0.5em;
+    line-height: 1.6;
+    padding-bottom: 0;
 }
 
 .markdown-codemirror-host .cm-live-preview .cm-line.cm-live-list.cm-live-list-last {
@@ -2488,5 +2559,27 @@ body.markdown-split-preview-left:not(.markdown-split-card-view) .noteentry.markd
     body.note-virtual-space .noteentry.markdown-split-mode .markdown-editor:not(.markdown-codemirror-host),
     body.note-virtual-space .noteentry.markdown-split-mode .markdown-preview {
         padding-bottom: var(--pz-note-virtual-space) !important;
+    }
+}
+
+/* Header row of a long table, kept in sight while the table scrolls past
+   (js/table-sticky-header.js, discussion #1830). A copy on <body>, fixed; the
+   cells carry the look of the originals, the pointer goes through. */
+.pz-table-sticky-head {
+    position: fixed;
+    display: none;
+    z-index: 40;
+    overflow: hidden;
+    pointer-events: none;
+    box-shadow: 0 2px 4px rgba(var(--pz-shadow-rgb), 0.12);
+}
+
+.pz-table-sticky-head table {
+    will-change: transform;
+}
+
+@media print {
+    .pz-table-sticky-head {
+        display: none !important;
     }
 }

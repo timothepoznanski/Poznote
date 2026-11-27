@@ -298,9 +298,11 @@ textarea:focus {
    a tile like those above the note, whose name and size keep the tile's
    small type. So is a formula (.katex): KaTeX sizes every piece of it
    itself (exponents, fractions), and flattened to the note's size it drew
-   an exponent as big as its base. */
+   an exponent as big as its base. So is the title of a Mermaid diagram
+   (discussion #1830): Mermaid draws it larger than the labels (18px, 25px
+   for a pie), and at the note's size it read as one more label. */
 .noteentry,
-.noteentry *:not(.lucide):not([class*="lucide-"]):not(i):not(a):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(h1 *):not(h2 *):not(h3 *):not(h4 *):not(h5 *):not(h6 *):not(.toggle-header):not(.toggle-header *):not(.embed-blocked):not(.embed-blocked *):not(.cm-live-toggle-header):not(.code-block-collapsed-summary):not(.attachment-card-preview):not(.attachment-card-preview *):not(pre):not(pre *):not(code):not(code *):not(.code-block):not(.code-block *):not(.hljs):not(.hljs *):not(.katex):not(.katex *) {
+.noteentry *:not(.lucide):not([class*="lucide-"]):not(i):not(a):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(h1 *):not(h2 *):not(h3 *):not(h4 *):not(h5 *):not(h6 *):not(.toggle-header):not(.toggle-header *):not(.embed-blocked):not(.embed-blocked *):not(.cm-live-toggle-header):not(.code-block-collapsed-summary):not(.attachment-card-preview):not(.attachment-card-preview *):not(pre):not(pre *):not(code):not(code *):not(.code-block):not(.code-block *):not(.hljs):not(.hljs *):not(.katex):not(.katex *):not(.mermaid :is([class$="TitleText"], .titleText)) {
     font-size: var(--note-font-size, 15px) !important;
 }
 

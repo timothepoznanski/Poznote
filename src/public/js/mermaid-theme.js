@@ -207,6 +207,10 @@
             transitionColor: hex(t.muted),
             transitionLabelColor: hex(text),
             stateBkg: hex(nodeFill),
+            // Mermaid's base theme falls back on stateBkg for the colour of a
+            // state's name when this is left out, so the name was painted in
+            // the colour of its own box and could not be seen
+            stateLabelColor: hex(readableOn(nodeFill, text, bg)),
             compositeBackground: hex(bg),
             altBackground: hex(faintFill),
             compositeTitleBackground: hex(nodeFill),
@@ -287,7 +291,10 @@
             '.section-root span{color:' + hex(readableOn(rootFill, text, bg)) + ';}' +
             // The timeline axis and its dashed lines take the label colour, which
             // is the ground itself on a dark theme.
-            '.lineWrapper line{stroke:' + hex(t.muted) + ';}';
+            '.lineWrapper line{stroke:' + hex(t.muted) + ';}' +
+            // The diagram's title stands out from its labels (discussion
+            // #1830): Mermaid draws it larger but at their weight.
+            '[class$="TitleText"],.titleText{font-weight:600;}';
 
         return {
             startOnLoad: false,

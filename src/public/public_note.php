@@ -1081,6 +1081,7 @@ if (poznoteMarkdownColoredEnabled($markdownColoredTheme)) {
 <script src="<?php echo poznoteAsset('js/outline-panel.js'); ?>"></script>
 <script src="<?php echo poznoteAsset('js/mermaid-theme.js'); ?>"></script>
 <script src="<?php echo poznoteAsset('js/mermaid-zoom.js'); ?>"></script>
+<script src="<?php echo poznoteAsset('js/table-sticky-header.js'); ?>"></script>
 <script src="<?php echo poznoteAsset('js/excalidraw-theme-colors.js'); ?>"></script>
 <script src="<?php echo poznoteAsset('js/embeds.js'); ?>"></script>
 <script src="<?php echo poznoteAsset('js/audio-player.js'); ?>"></script>

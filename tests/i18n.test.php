@@ -25,6 +25,15 @@ test('language codes are normalised, and unknown ones refused', function () {
     assertSame(null, poznoteNormalizeLanguageCode('klingon'));
 });
 
+test('a regional variant reads its own dictionary, then its base language, then English', function () {
+    assertSame(['en'], poznoteI18nLanguageChain('en'));
+    assertSame(['fr', 'en'], poznoteI18nLanguageChain('fr'));
+    assertSame(['de-ch', 'de', 'en'], poznoteI18nLanguageChain('de-ch'));
+    // No "zh" dictionary ships, so zh-cn has nothing in between.
+    assertSame(['zh-cn', 'en'], poznoteI18nLanguageChain('zh-cn'));
+    assertSame(['en-gb', 'en'], poznoteI18nLanguageChain('en-gb'));
+});
+
 /** The heading anchors GitHub gives a Markdown file (code blocks skipped). */
 function i18nTestReadmeAnchors(string $markdownFile): array
 {
@@ -60,7 +69,8 @@ test('README links in the dictionaries point to their language and to a real hea
         foreach ($links as $link) {
             $target = $link[1] === '' ? 'en' : $link[1];
             $readme = $target === 'en' ? $root . '/README.md' : $root . '/docs/README.' . $target . '.md';
-            assertTrue($target === 'en' || $target === $lang, "$lang.json links to the $target README");
+            // de-ch reads de.json too, so the German README is its own.
+            assertTrue(in_array($target, poznoteI18nLanguageChain($lang), true), "$lang.json links to the $target README");
             assertTrue(is_file($readme), "$lang.json: $readme exists");
             assertTrue(isset(i18nTestReadmeAnchors($readme)[rawurldecode($link[2])]), "$lang.json: #{$link[2]} is a heading of " . basename($readme));
             $checked++;

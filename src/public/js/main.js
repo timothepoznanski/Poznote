@@ -363,6 +363,7 @@ window.toggleSettingsMenu = toggleSettingsMenu;
 window.checkForUpdates = checkForUpdates;
 window.highlightSearchTerms = highlightSearchTerms;
 window.clearSearchHighlights = clearSearchHighlights;
+window.highlightSearchTermsIn = highlightSearchTermsIn;
 window.showMoveFolderFilesDialog = showMoveFolderFilesDialog;
 window.executeMoveAllFiles = executeMoveAllFiles;
 window.populateTargetFolderDropdown = populateTargetFolderDropdown;

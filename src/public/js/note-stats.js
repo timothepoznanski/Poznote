@@ -225,8 +225,18 @@
         }
     }
 
+    function readCopyLabels(holder) {
+        try {
+            var labels = JSON.parse(holder.getAttribute('data-copy-labels') || '{}');
+            return (labels && typeof labels === 'object') ? labels : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
     function renderStats(holder, stats) {
         var labels = readLabels(holder);
+        var copyLabels = readCopyLabels(holder);
         UNITS.forEach(function (unit) {
             var forms = (labels[unit] && typeof labels[unit] === 'object') ? labels[unit] : DEFAULT_LABELS[unit];
             var template = forms[pluralForm(stats[unit])] || forms.other || DEFAULT_LABELS[unit].other;
@@ -241,10 +251,30 @@
                 item.setAttribute('data-stat', unit);
                 holder.appendChild(item);
             }
+            // Clicking the figure copies the bare number (js/index-events.js,
+            // copy-note-meta), like the note id: a button inside the entry,
+            // whose dot stays outside it (css/notes/subline.css)
+            var button = item.querySelector('.note-sub-copy-btn');
+            if (!button) {
+                button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'note-sub-copy-btn';
+                button.setAttribute('data-action', 'copy-note-meta');
+                if (copyLabels[unit]) {
+                    button.title = String(copyLabels[unit]);
+                    button.setAttribute('aria-label', String(copyLabels[unit]));
+                }
+                item.textContent = '';
+                item.appendChild(button);
+            }
             // Written only when it changed: this module watches the column
             // it writes into
-            if (item.textContent !== text) {
-                item.textContent = text;
+            var raw = String(stats[unit]);
+            if (button.getAttribute('data-copy-value') !== raw) {
+                button.setAttribute('data-copy-value', raw);
+            }
+            if (button.textContent !== text) {
+                button.textContent = text;
             }
         });
     }
@@ -489,7 +519,15 @@
             return;
         }
         var label = holder.getAttribute('data-label') || '{{date}}';
-        holder.textContent = label.split('{{date}}').join(String(dateText));
+        var text = label.split('{{date}}').join(String(dateText));
+        // The date sits in the button that copies it (note_display.php)
+        var button = holder.querySelector('.note-sub-copy-btn');
+        if (button) {
+            button.textContent = text;
+            button.setAttribute('data-copy-value', String(dateText));
+        } else {
+            holder.textContent = text;
+        }
     };
 
     // Recount now rather than after the delay (tests, callers that just
