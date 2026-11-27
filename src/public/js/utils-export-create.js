@@ -421,7 +421,7 @@ function createNoteOfType(noteType, globalFnNames) {
                             data.note.folder_id || targetFolderId
                         );
                     } else {
-                        window.location.href = 'index.php?note=' + data.note.id;
+                        window.location.href = 'index.php?note=' + data.note.id + '&scroll=1';
                     }
                 } else {
                     if (typeof window.hideNoteCreationLoading === 'function') {
@@ -469,7 +469,7 @@ function createNoteOfType(noteType, globalFnNames) {
                             data.note.folder_id || null
                         );
                     } else {
-                        window.location.href = 'index.php?note=' + data.note.id;
+                        window.location.href = 'index.php?note=' + data.note.id + '&scroll=1';
                     }
                 } else {
                     if (typeof window.hideNoteCreationLoading === 'function') {
