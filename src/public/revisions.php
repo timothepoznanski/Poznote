@@ -64,13 +64,7 @@ try {
 // The strings js/revisions-page.js builds its interface with, merged over
 // English the way t() falls back. js/globals.js later replaces this with
 // the full dictionary.
-$revisionsStrings = loadI18nDictionary('en')['revisions'] ?? [];
-if ($currentLang !== 'en') {
-    $localized = loadI18nDictionary($currentLang)['revisions'] ?? [];
-    if (is_array($localized)) {
-        $revisionsStrings = array_replace_recursive($revisionsStrings, $localized);
-    }
-}
+$revisionsStrings = poznoteMergedI18nStrings((string)$currentLang)['revisions'] ?? [];
 
 $pageConfig = [
     'noteId' => $note_id,

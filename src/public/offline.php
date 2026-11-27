@@ -41,9 +41,10 @@ $tr = static function (string $key, string $default, array $vars = []) use ($lan
     return t_h($key, $vars, $default, $lang);
 };
 
-// The whole dictionary, English under the chosen language: the app modules
-// running here translate their own labels (js/offline-boot.js).
-$strings = array_replace_recursive(loadI18nDictionary('en'), $lang === 'en' ? [] : loadI18nDictionary($lang));
+// The whole dictionary, English under the chosen language (and its base
+// language, for de-ch): the app modules running here translate their own
+// labels (js/offline-boot.js).
+$strings = poznoteMergedI18nStrings($lang);
 
 // Same bundle URLs and version as index.php, so an asset cached for one is
 // the asset of the other.

@@ -13,7 +13,37 @@
  * renders as raw translation keys in another.
  */
 function poznoteSupportedLanguages(): array {
-    return ['en', 'fr', 'es', 'de', 'pt', 'ru', 'zh-cn', 'ko', 'ja', 'ca', 'nl'];
+    return ['en', 'fr', 'es', 'de', 'de-ch', 'pt', 'ru', 'zh-cn', 'ko', 'ja', 'ca', 'nl'];
+}
+
+/**
+ * Dictionaries a language reads, most specific first, always ending in English.
+ *
+ * A regional variant whose base language also ships ("de-ch" next to "de")
+ * reads its own dictionary, then the base one, then English. Its dictionary
+ * therefore carries only the strings that differ (src/i18n/de-ch.json is
+ * generated from de.json by tools/generate-de-ch.py), and a new German string
+ * reaches Swiss users without being written twice. "zh-cn" has no "zh" to lean
+ * on, so it reads zh-cn then English like every other language.
+ *
+ * @return string[]
+ */
+function poznoteI18nLanguageChain(string $lang): array {
+    static $cache = [];
+    $lang = strtolower(trim($lang));
+    if (isset($cache[$lang])) {
+        return $cache[$lang];
+    }
+    if ($lang === '' || $lang === 'en') {
+        return $cache[$lang] = ['en'];
+    }
+    $chain = [$lang];
+    $base = explode('-', $lang, 2)[0];
+    if ($base !== $lang && $base !== 'en' && in_array($base, poznoteSupportedLanguages(), true)) {
+        $chain[] = $base;
+    }
+    $chain[] = 'en';
+    return $cache[$lang] = $chain;
 }
 
 /**
@@ -208,9 +238,6 @@ function loadI18nDictionary($lang) {
  * GET /api/v1/system/i18n and by public/i18n_js.php.
  */
 function poznoteMergedI18nStrings(string $lang): array {
-    $en = loadI18nDictionary('en');
-    $active = ($lang === 'en') ? $en : loadI18nDictionary($lang);
-
     $merge = function ($base, $over) use (&$merge) {
         if (!is_array($base)) $base = [];
         if (!is_array($over)) return $base;
@@ -224,21 +251,27 @@ function poznoteMergedI18nStrings(string $lang): array {
         return $base;
     };
 
-    return $merge($en, $active);
+    // English first, then each more specific dictionary laid over it.
+    $strings = [];
+    foreach (array_reverse(poznoteI18nLanguageChain($lang)) as $code) {
+        $strings = $merge($strings, loadI18nDictionary($code));
+    }
+    return $strings;
 }
 
 /**
  * Address of public/i18n_js.php for a language. The version is taken from the
- * two dictionaries it merges, so the immutable cache is busted when either
+ * dictionaries it merges, so the immutable cache is busted when any of them
  * changes and kept otherwise (a release that touches no string reuses it).
  */
 function poznoteI18nScriptUrl(string $lang): string {
     $lang = poznoteNormalizeLanguageCode($lang) ?? 'en';
     $dir = __DIR__ . '/../i18n/';
-    $version = substr(md5(
-        (string)@filemtime($dir . 'en.json') . ':' . (string)@filesize($dir . 'en.json') . ':'
-        . (string)@filemtime($dir . $lang . '.json') . ':' . (string)@filesize($dir . $lang . '.json')
-    ), 0, 12);
+    $stamp = [];
+    foreach (poznoteI18nLanguageChain($lang) as $code) {
+        $stamp[] = (string)@filemtime($dir . $code . '.json') . ':' . (string)@filesize($dir . $code . '.json');
+    }
+    $version = substr(md5(implode(':', $stamp)), 0, 12);
     return 'i18n_js.php?lang=' . rawurlencode($lang) . '&v=' . $version;
 }
 
@@ -258,11 +291,11 @@ function t($key, $vars = [], $default = null, $lang = null) {
         $lang = getUserLanguage();
     }
 
-    $dict = loadI18nDictionary($lang);
-    $en = ($lang === 'en') ? $dict : loadI18nDictionary('en');
-
-    $text = i18nGet($dict, $key);
-    if ($text === null) $text = i18nGet($en, $key);
+    $text = null;
+    foreach (poznoteI18nLanguageChain((string)$lang) as $code) {
+        $text = i18nGet(loadI18nDictionary($code), $key);
+        if ($text !== null) break;
+    }
     if ($text === null) $text = ($default !== null ? (string)$default : (string)$key);
 
     if (is_array($vars) && !empty($vars)) {

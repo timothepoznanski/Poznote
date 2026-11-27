@@ -94,6 +94,7 @@ $welcomeLanguageNames = [
     'en' => 'English',
     'fr' => 'Français',
     'de' => 'Deutsch',
+    'de-ch' => 'Deutsch (Schweiz)',
     'es' => 'Español',
     'pt' => 'Português',
     'ru' => 'Русский',

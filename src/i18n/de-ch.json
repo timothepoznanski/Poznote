@@ -1,0 +1,395 @@
+{
+  "common": {
+    "close": "Schliessen"
+  },
+  "kanban": {
+    "card_size": "Kartengrösse"
+  },
+  "note_reference": {
+    "broken": {
+      "confirm_message": "Neue Notiz «{{title}}» erstellen?"
+    }
+  },
+  "attachments": {
+    "errors": {
+      "file_too_large": "Die Datei ist zu gross (max: {{maxSize}}).",
+      "blocked_extension_unlockable": "{{ext}}-Dateien sind standardmässig blockiert. Sie können sie unter Einstellungen > Administrationswerkzeuge > Skript- und Programmanhänge erlauben.",
+      "blocked_mime_unlockable": "Diese Datei wird als {{mime}} erkannt und ist standardmässig blockiert. Sie können Skripte und ausführbare Dateien unter Einstellungen > Administrationswerkzeuge > Skript- und Programmanhänge erlauben."
+    },
+    "messages": {
+      "moved_success": "Anhang nach «{{heading}}» verschoben"
+    },
+    "context_menu": {
+      "delete_confirm_message": "«{{filename}}» löschen? Der Anhang wird aus der Notiz entfernt und kann nicht wiederhergestellt werden.",
+      "preview_size": "Vorschaugrösse"
+    },
+    "move": {
+      "description": "Wählen Sie die Notiz, die «{{filename}}» erhält."
+    }
+  },
+  "settings": {
+    "card_help": {
+      "font_size": "Passen Sie die Schriftgrösse von Notizen, Seitenleiste, Codeblöcken, den Zeilen für Ordnerpfad, Tags, Anhänge und Backlinks sowie der Einstellungsseite an.",
+      "index_icon_scale": "Passen Sie die Grösse der Symbole in der Notizenliste an.",
+      "icon_rail_scale": "Passen Sie die Grösse der Symbole in der Icon-Seitenleiste an.",
+      "default_image_border": "Zeigen Sie Bilder in Notizen standardmässig mit Rahmen und ohne Innenabstand an.",
+      "note_autocapitalize": "Auf dem Smartphone beginnt die Tastatur in Notizen und Aufgaben jeden Satz und jede neue Zeile mit einem Grossbuchstaben. Deine Tastatur kann das auch für alle Apps abschalten.",
+      "highlight_current_folder_tree": "Notizen und Ordner ausserhalb der Ordnerhierarchie, in der Sie arbeiten, so stark abschwächen, wie Sie möchten.",
+      "session_lifetime": "Wie lange eine Anmeldung ohne Aktivität gilt. Wird mit POZNOTE_SESSION_LIFETIME_DAYS in der .env-Datei gesetzt, hier also nur angezeigt und auf dieser Seite nicht änderbar. Eine Anmeldung mit «Angemeldet bleiben» hält länger, eine Anmeldung über SSO nicht.",
+      "attachments_single_line": "Zeigt die Anhänge der Notiz in einer einzigen Zeile statt auf mehrere Zeilen verteilt. Die Zeile lässt sich mit dem Finger oder der Maus verschieben; ist sie abgeschnitten, endet sie mit «…».",
+      "remember_me_days": "Wie lange das Ankreuzen von «Angemeldet bleiben» auf der Anmeldeseite jemanden angemeldet lässt. Gilt nur für Anmeldungen mit Passwort. Eine SSO-Anmeldung dauert so lange, wie die Karte Sitzungsdauer unter Einstellungen > Über anzeigt; dieser Wert wird in der .env-Datei festgelegt. Ein geändertes Passwort oder das Abmelden eines Geräts unter Verbundene Geräte meldet es sofort ab, unabhängig von der hier eingestellten Dauer.",
+      "display_profiles": "Speichern Sie die Schriftgrössen, Symbolgrössen und Schriftarten dieses Browsers unter einem Namen: ein Profil pro Bildschirm (Laptop, grosser Bildschirm) oder für eine Präsentation. Wechseln Sie mit einem Klick über die Bildschirm-Schaltfläche der Symbolleiste, auf jeder Seite."
+    },
+    "cards": {
+      "remember_me_days": "Dauer von «Angemeldet bleiben»"
+    }
+  },
+  "display": {
+    "cards": {
+      "note_font_size": "Schriftgrösse",
+      "note_autocapitalize": "Automatische Grossschreibung"
+    }
+  },
+  "search": {
+    "help": {
+      "partial": "Ein Teil eines Wortes genügt. Gross-/Kleinschreibung und Akzente werden ignoriert"
+    }
+  },
+  "editor": {
+    "font_size": {
+      "large": "Gross",
+      "very_large": "Sehr gross"
+    },
+    "toolbar": {
+      "font_size": "Schriftgrösse"
+    }
+  },
+  "info": {
+    "labels": {
+      "size": "Grösse:"
+    }
+  },
+  "modals": {
+    "ui_customization": {
+      "description_admin": "Oberflächenelemente ein- oder ausblenden. Nicht angehakte Elemente werden ausgeblendet. Die Spalte «Ich» gilt für Ihre eigene Oberfläche, die Spalte «Benutzer» für alle Benutzer dieser Instanz ausser Administratoren.",
+      "description_global_highlight": "ausser Administratoren",
+      "view_layout_toggle": "Ansichtsumschalter (Raster / Liste, Kartengrösse)",
+      "share_shared_with_me": "Teilen: «Mit mir geteilt»",
+      "direct_copy_restore_section": "Wiederherstellungsseite: Abschnitt «Wiederherstellung per Direktkopie»",
+      "local_backups_section": "Sicherungsseite: Abschnitt «Sicherung in einen Ordner auf dem Server»",
+      "s3_backups_section": "Sicherungsseite: Abschnitt «Sicherung nach S3»",
+      "s3_restore_section": "Wiederherstellungsseite: Abschnitt «Aus S3 wiederherstellen»",
+      "local_restore_section": "Wiederherstellungsseite: Abschnitt «Aus einem Ordner auf dem Server wiederherstellen»"
+    },
+    "font_size": {
+      "title": "Schriftgrösse",
+      "help": {
+        "attachments": "Die Links zu den Anhängen der Notiz, über oder unter der Notiz. Vorschaukacheln behalten ihre eigene Grösse."
+      }
+    },
+    "index_icon_scale": {
+      "description": "Passen Sie die Grösse der Symbole auf der Indexseite an (Skalierungsfaktor):"
+    },
+    "folder_tree_highlight": {
+      "description": "Notizen und Ordner ausserhalb der Hierarchie, in der Sie arbeiten, werden abgeschwächt. Wählen Sie, wie stark:"
+    },
+    "tenant_isolation": {
+      "features": {
+        "user_s3_backups_help": "Nicht-Admin-Benutzer sehen den Abschnitt «Sicherung nach S3» der Seite Sicherung / Export nicht mehr und können keine Bucket-Archive mehr hochladen oder herunterladen."
+      }
+    },
+    "snapshots": {
+      "safety_description": "Anzahl der Sicherheitsversionen pro Notiz. Eine wird unmittelbar gespeichert, bevor der KI-Assistent oder der MCP-Server den Inhalt einer Notiz ersetzt, und erscheint als «Vor KI-Änderung» oder «Vor MCP-Änderung»:"
+    },
+    "custom_fonts": {
+      "description": "Laden Sie Schriftdateien hoch (WOFF2, WOFF, TTF oder OTF), zum Beispiel eine von Google Fonts heruntergeladene Familie. Sie werden in Ihrem Daten-Volume gespeichert, und jeder Benutzer kann sie anschliessend als App-Schriftart oder Markdown-Editor-Schriftart wählen.",
+      "some_rejected": "Einige Dateien wurden nicht gespeichert: Es sind keine Schriftarten, oder sie sind grösser als 10 MB."
+    }
+  },
+  "notes_list": {
+    "folder_actions": {
+      "with_subfolders_message": "Dieser Ordner enthält Notizen, und seine Unterordner ebenfalls. Möchten Sie nur die Notizen dieses Ordners ({{own}}) oder alle Notizen einschliesslich der Unterordner ({{total}}) öffnen?"
+    },
+    "note_actions": {
+      "close_tab": "Diesen Tab schliessen"
+    }
+  },
+  "tree_clipboard": {
+    "copied_note": "«{{name}}» kopiert",
+    "cut_note": "«{{name}}» ausgeschnitten",
+    "copied_folder": "Ordner «{{name}}» kopiert",
+    "cut_folder": "Ordner «{{name}}» ausgeschnitten",
+    "pasted_note": "«{{name}}» eingefügt",
+    "pasted_folder": "Ordner «{{name}}» eingefügt"
+  },
+  "tabs": {
+    "context_menu": {
+      "close": "Diesen schliessen",
+      "close_all": "Alle schliessen",
+      "close_others": "Alle ausser diesem schliessen"
+    },
+    "close_all_tabs": "Alle Tabs schliessen"
+  },
+  "slash_menu": {
+    "template_none_hint": "Lege Notizen in einen Ordner oder einen Arbeitsbereich namens «Vorlagen»"
+  },
+  "image_menu": {
+    "resize": "Grösse ändern"
+  },
+  "backup_export": {
+    "job": {
+      "hint": "Das Archiv wird auf dem Server erstellt. Bei grossen Konten kann das mehrere Minuten dauern; Sie können diese Seite verlassen und später zurückkommen, die Erstellung läuft weiter."
+    }
+  },
+  "login": {
+    "errors": {
+      "oidc_not_linked": "Deine SSO-Identität wurde nicht mit dem bestehenden Konto «{{username}}» verknüpft: Aus Sicherheitsgründen wird ein bestehendes Konto über seine E-Mail verknüpft, nie über seinen Namen. Wenn dieses Konto dir gehört, bitte einen Administrator, in Settings > Admin Tools > User Management die E-Mail einzutragen, die du bei deinem Identitätsanbieter verwendest ({{email}}), und melde dich dann erneut an. Wenn du der Administrator bist, melde dich dafür mit deinem Passwort an (bei einer reinen SSO-Instanz vorübergehend POZNOTE_OIDC_DISABLE_NORMAL_LOGIN=false setzen).",
+      "oidc_not_linked_no_email": "Deine SSO-Identität wurde nicht mit dem bestehenden Konto «{{username}}» verknüpft: Aus Sicherheitsgründen wird ein bestehendes Konto über seine E-Mail oder seinen OIDC-Subject verknüpft, nie über seinen Namen, und dein Identitätsanbieter sendet keine E-Mail. Wenn dieses Konto dir gehört, bitte einen Administrator, in Settings > Admin Tools > User Management den OIDC-Subject aus dem Server-Log einzufügen, und melde dich dann erneut an. Wenn du der Administrator bist, melde dich dafür mit deinem Passwort an (bei einer reinen SSO-Instanz vorübergehend POZNOTE_OIDC_DISABLE_NORMAL_LOGIN=false setzen)."
+    }
+  },
+  "restore_import": {
+    "messages": {
+      "notes_imported_with_folders": "{{count}} Notiz(en) importiert und {{folders}} Ordner im Arbeitsbereich «{{workspace}}» erstellt."
+    },
+    "sections": {
+      "standard_restore": {
+        "helper": "Keine Grössenbeschränkung: Das Archiv wird in Teilen hochgeladen und im Hintergrund wiederhergestellt."
+      },
+      "direct_copy_restore": {
+        "intro": "Bei dieser Methode wird nichts über den Browser hochgeladen: Sie kopieren das Backup-Archiv selbst auf den Server, und Poznote stellt es von dort wieder her. Sie funktioniert unabhängig von der Dateigrösse und bleibt als Ausweichlösung nützlich, wenn der Upload oben nicht möglich ist.",
+        "filename_note": "Das Archiv muss im Poznote-Container genau unter /tmp/backup_restore.zip liegen (exakt dieser Name). Laden Sie diese Seite nach dem Kopieren neu: Die Datei wird automatisch erkannt und ihre Grösse unten angezeigt."
+      },
+      "individual_notes": {
+        "zip_folders_description": "Wenn Ihre ZIP-Datei Ordner enthält, werden diese automatisch als Ordner in Poznote erstellt und ihre Hierarchie (einschliesslich Unterordner) beibehalten."
+      }
+    },
+    "chunked": {
+      "workspaces_close": "Schliessen"
+    }
+  },
+  "icon_names": {
+    "times-circle": "Schliessen",
+    "x-circle": "Schliessen",
+    "candy": "Süssigkeit",
+    "tram-front": "Strassenbahn",
+    "footprints": "Fussspuren"
+  },
+  "search_replace": {
+    "close": "Schliessen"
+  },
+  "multiuser": {
+    "admin": {
+      "email_usage_note": "Benutzer können sich mit ihrer E-Mail-Adresse statt mit ihrem Benutzernamen anmelden. E-Mail-Adressen werden ausserdem für die OIDC-Authentifizierung verwendet, wenn diese konfiguriert ist. Poznote sendet keine E-Mails.",
+      "delete_confirm_label": "Geben Sie «{{username}}» ein, um zu bestätigen:",
+      "maintenance": {
+        "description": "Die Hauptdatenbank (master.db) speichert die Benutzerinformationen, ihre öffentlichen Links und die globalen Einstellungen von Poznote. Geht diese Datei verloren oder wird sie beschädigt, oder funktionieren einige öffentliche Links nicht mehr, nachdem Benutzerordner von Hand kopiert wurden, durchsucht dieses Werkzeug Ihre Ordner «data/users», um die Konten automatisch neu zu registrieren, ihre echten Namen aus den persönlichen Datenbanken wiederherzustellen und alle öffentlichen Freigabelinks wiederherzustellen."
+      },
+      "confirm_admin": {
+        "message": "Möchten Sie «{{username}}» wirklich Administratorrechte gewähren?"
+      },
+      "confirm_delete": "Möchten Sie den Benutzer «{{username}}» wirklich löschen?"
+    }
+  },
+  "git_sync": {
+    "warning": "Verlassen Sie sich nicht ausschliesslich auf diese Funktion als Backup-Lösung.\nExportieren Sie Ihre Daten regelmässig über die Backup-Funktion in den Einstellungen.",
+    "auto_sync": {
+      "push_description": "Wenn Sie eine Notiz verlassen (Notizwechsel oder Tab schliessen), wird ihre neueste Version automatisch in das Git-Repository übertragen, sofern sie während der Sitzung geändert wurde."
+    }
+  },
+  "calendar": {
+    "modal": {
+      "close": "Schliessen"
+    }
+  },
+  "admin_tools": {
+    "orphan_scanner": {
+      "description": "Dieses Tool durchsucht Ihre Anhang-Ordner und identifiziert Dateien, die in keiner Ihrer Notizen mehr referenziert werden (einschliesslich eingebetteter Bilder, die als Anhänge gespeichert werden)."
+    },
+    "storage_stats": {
+      "user_s3_notice": "Anhänge werden gemäss der Konfiguration des Administrators in einem S3-Speicher statt lokal gespeichert."
+    }
+  },
+  "app_passwords": {
+    "modal": {
+      "close": "Schliessen",
+      "secret_title": "App-Passwort «{{label}}»"
+    }
+  },
+  "statistics_api": {
+    "modal": {
+      "description": "Ein Dashboard wie Homepage kann mit einem Token eine Übersicht dieser Instanz lesen: Anzahl der Benutzer, Notizen und Arbeitsbereiche, belegter Speicher, letzte Sicherungen und Git-Synchronisierung, verfügbares Update. Nur Zahlen, Grössen und Daten, niemals ein Name oder eine Notiz. Das Token öffnet nichts anderes.",
+      "close": "Schliessen"
+    }
+  },
+  "two_factor": {
+    "modal": {
+      "close": "Schliessen"
+    }
+  },
+  "smtp_admin": {
+    "hints": {
+      "security_summary": "STARTTLS verwendet normalerweise Port 587 und wechselt nach dem Verbindungsaufbau zu TLS. SSL/TLS ist ab der Verbindung verschlüsselt, normalerweise auf Port 465. «Keine» verschlüsselt die Verbindung nicht."
+    }
+  },
+  "reminder": {
+    "dismiss": "Schliessen",
+    "modal": {
+      "repeat_hint": "Die nächste Erinnerung wird geplant, wenn Sie die Benachrichtigung schliessen.",
+      "task_repeat_hint": "Das nächste Vorkommen wird der Liste hinzugefügt, wenn Sie die Aufgabe abschliessen. Beim Schliessen der Benachrichtigung wird die Aufgabe auf ihr nächstes Datum verschoben."
+    }
+  },
+  "live_refresh": {
+    "note_changed": "Diese Notiz wurde ausserhalb dieses Tabs geändert.",
+    "note_changed_unsaved": "Diese Notiz wurde ausserhalb dieses Tabs geändert, während hier nicht gespeicherte Änderungen vorliegen.",
+    "note_removed": "Diese Notiz wurde ausserhalb dieses Tabs gelöscht oder in den Papierkorb verschoben.",
+    "note_refreshed": "Mit den ausserhalb dieses Tabs vorgenommenen Änderungen aktualisiert.",
+    "note_merged": "Mit den ausserhalb dieses Tabs vorgenommenen Änderungen zusammengeführt.",
+    "note_changed_conflict": "Diese Notiz wurde ausserhalb dieses Tabs geändert, während Sie hier ungespeicherte Änderungen haben. Die beiden Änderungen überschneiden sich und konnten nicht automatisch zusammengeführt werden."
+  },
+  "dashboard": {
+    "view": {
+      "size": "Kartengrösse",
+      "size_large": "Gross"
+    },
+    "scope": {
+      "no_workspace_for_tag": "Kein Arbeitsbereich trägt den Tag «{{tag}}»."
+    }
+  },
+  "ai_settings": {
+    "model_empty_hint": "Klicken Sie oben auf «{{button}}» und wählen Sie dann eines aus.",
+    "headers_errors": {
+      "format": "Benutzerdefinierte Header, Zeile {{line}}: Schreiben Sie sie in der Form «Name: Wert», in einfachen ASCII-Zeichen."
+    },
+    "reasoning_effort_description": "Wie lange das Modell vor der Antwort nachdenkt, bei Modellen, die das unterstützen. Auto sendet nichts und überlässt die Wahl dem Anbieter. Manche OpenAI-Modelle lehnen Tools ab und können Ihre Notizen daher nicht durchsuchen, solange hier nicht «Keiner» gewählt ist."
+  },
+  "ai_mcp": {
+    "enable_description": "Der Assistent darf die Tools der unten verbundenen Server aufrufen, und eine Globus-Schaltfläche im Chat schaltet sie ein und aus. Was diese Tools zurückgeben, stammt von ausserhalb von Poznote, und was der Assistent ihnen sendet, verlässt diese Instanz."
+  },
+  "ai_chat": {
+    "empty_open_note": "Sagen Sie «diese Notiz», wenn Sie die gerade geöffnete meinen.",
+    "no_tools_reasoning_notice": "Dieses Modell lehnt Tools beim aktuellen Denkaufwand ab, der Assistent kann Ihre Notizen daher nicht durchsuchen. Stellen Sie den Denkaufwand in den Einstellungen des KI-Assistenten auf «Keiner».",
+    "tool_rename": "Notiz #{{id}} wird umbenannt in «{{title}}»",
+    "context_hint": "Die Notiz, die der Assistent verwendet, wenn Sie «diese Notiz» sagen.",
+    "tool_rename_folder": "Ordner «{{folder}}» wird in «{{name}}» umbenannt",
+    "tool_folder_favorite": "Favoritenstatus von Ordner «{{folder}}» wird aktualisiert",
+    "tool_task_update": "Aufgabe «{{task}}» wird aktualisiert",
+    "tool_task_delete": "Aufgabe «{{task}}» wird entfernt",
+    "tool_subtask_update": "Unteraufgabe «{{subtask}}» wird aktualisiert",
+    "tool_subtask_delete": "Unteraufgabe «{{subtask}}» wird entfernt",
+    "tool_delete_folder": "Ordner «{{folder}}» und seine Notizen werden in den Papierkorb verschoben"
+  },
+  "stt": {
+    "server_errors": {
+      "too_large_for_server": "Die Aufnahme ist zu gross für diesen Server",
+      "too_large": "Die Aufnahme ist zu gross",
+      "attachment_too_large": "Diese Aufnahme ist zu gross für eine Transkription"
+    }
+  },
+  "diary": {
+    "delete_confirm": "Tagebuch «{{name}}» löschen? Seine Ordner werden entfernt und alle Einträge in den Papierkorb verschoben."
+  },
+  "s3_settings": {
+    "description_benefit": "Besonders nützlich bei vielen oder grossen Anhängen: Die Serverfestplatte bleibt schlank und das komplette Backup-ZIP kann die S3-Anhänge auslassen; bleibt alles auf der lokalen Festplatte, kann der Export sehr gross und langsam werden oder sogar mit einem Timeout fehlschlagen."
+  },
+  "s3_backup": {
+    "description": "Lädt vollständige Sicherungsarchive (ein ZIP pro Benutzer, identisch mit dem Download «Sicherung als Poznote-ZIP-Datei») in einen S3-kompatiblen Bucket hoch, manuell oder automatisch nach Zeitplan.",
+    "col_size": "Grösse",
+    "footer_note": "Archive werden im Bucket unter backups/{Benutzer-ID}/ gespeichert und können mit der Standardseite «Wiederherstellen / Importieren» wiederhergestellt werden."
+  },
+  "local_backup": {
+    "footer_note": "Archive werden im Sicherungsordner unter {Benutzer-ID}/ gespeichert und können mit der Standardseite «Wiederherstellen / Importieren» wiederhergestellt werden.",
+    "messages": {
+      "inside_app": "Der Sicherungsordner darf nicht innerhalb der Anwendung liegen, ausser in data/backups."
+    }
+  },
+  "archive": {
+    "confirm_message": "«{{title}}» wird in den Arbeitsbereich «{{workspace}}» verschoben und behält dabei seinen Ordnerpfad. Der Arbeitsbereich wird angelegt, falls er noch nicht existiert.",
+    "already_archived": "Diese Notiz liegt bereits im Arbeitsbereich «{{workspace}}».",
+    "folder_confirm_message": "Der Ordner «{{folder}}» wird mit seinen Unterordnern und Notizen in den Arbeitsbereich «{{workspace}}» verschoben und behält dabei seinen Ordnerpfad. Der Arbeitsbereich wird angelegt, falls er noch nicht existiert.",
+    "folder_already_archived": "Dieser Ordner liegt bereits im Arbeitsbereich «{{workspace}}»."
+  },
+  "keyboard_shortcuts": {
+    "close": "Menü, Seitenleiste oder Fenster schliessen",
+    "tree_close_folder": "Einen Ordner schliessen oder zum übergeordneten Ordner wechseln",
+    "tree_open": "Die Notiz öffnen, oder den Ordner öffnen und schliessen"
+  },
+  "tree_selection": {
+    "delete_message": "{{count}} Elemente werden in den Papierkorb verschoben, einschliesslich der Notizen in den ausgewählten Ordnern. Strg+Z stellt sie wieder her.",
+    "delete_note_message": "«{{name}}» wird in den Papierkorb verschoben. Strg+Z stellt sie wieder her."
+  },
+  "mobile_editor_bar": {
+    "indent": "Einzug vergrössern"
+  },
+  "offline": {
+    "note": {
+      "too_big": "Offline nicht verfügbar, grösser als {{limit}} MB: {{files}}"
+    },
+    "sync": {
+      "conflict_copy": "«{{title}}» wurde auch an anderer Stelle geändert, während Sie offline waren. Ihre Version wurde als «{{copy}}» gespeichert.",
+      "recreated": "«{{title}}» wurde an anderer Stelle gelöscht, während Sie offline waren. Ihre Version wurde als neue Notiz gespeichert.",
+      "push_failed": "Ihre Offline-Änderungen an «{{title}}» konnten noch nicht gespeichert werden ({{error}}). Sie werden erneut gesendet."
+    },
+    "settings": {
+      "kept_rules": "Ihre Favoriten sowie die in ihrem Menü mit «Offline behalten» markierten Notizen und Ordner werden unabhängig vom Datum aufbewahrt, mit allen Anhängen.",
+      "limits_attachments": "Andere Anhänge (PDF, Audio, Dateien): nur Favoriten und Notizen mit «Offline behalten»",
+      "limits_file_size": "Dateien bis {{size}} MB pro Datei: grössere Dateien bleiben nur online"
+    },
+    "page": {
+      "empty_hint": "Wählen Sie «Offline behalten» im Menü einer Notiz oder eines Ordners. Ihre Favoriten und die in den letzten {{days}} Tagen geänderten Notizen werden ebenfalls behalten."
+    }
+  },
+  "mermaid_zoom": {
+    "open": "Diagramm vergrössern",
+    "zoom_in": "Vergrössern",
+    "actual_size": "Originalgrösse"
+  },
+  "oauth_authorize": {
+    "level_write_help": "Ausserdem Notizen, Aufgaben, Erinnerungen und Ordner erstellen und bearbeiten sowie Notizen in den Papierkorb verschieben.",
+    "level_admin_help": "Ausserdem, was sich nicht rückgängig machen lässt: Papierkorb leeren, Arbeitsbereiche löschen, öffentliches Teilen, Einstellungen, Backups und Git-Synchronisierung."
+  },
+  "connected_apps": {
+    "modal": {
+      "close": "Schliessen"
+    }
+  },
+  "note_title_menu": {
+    "size": "Titelgrösse",
+    "sizes": {
+      "large": "Gross",
+      "xlarge": "Sehr gross"
+    },
+    "apply_size_to_all": "Grösse auf alle Notizen anwenden",
+    "apply_size_to_all_hint": "Allen Notizen die Titelgrösse dieser Notiz geben",
+    "applied_size_to_all": "Titelgrösse auf alle Notizen angewendet"
+  },
+  "speed_dial": {
+    "empty": "Deine Schnellwahl ist leer.\n\nUm eine Kachel hinzuzufügen, verwenden Sie «Zur Schnellwahl hinzufügen» im Menü einer Notiz oder eines Ordners, oder geben Sie einer Notiz den Tag «{{tag}}».\n\nEin Klick auf die Kachel öffnet den ersten Link der Notiz oder die Notiz selbst, wenn sie keinen Link enthält.\nIhr Symbol ist das erste Bild der Notiz, sonst das Symbol der Website, sonst der erste Buchstabe des Titels.\n\nEine Notiz mit mehreren Links wird zu einer Kachelgruppe unter ihrem Titel, und eine horizontale Linie (----) beginnt eine neue Reihe.\nEin Klick auf den Titel einer Gruppe öffnet die Notiz, ein Rechtsklick ändert seine Farbe.",
+    "tile_size": "Kachelgrösse",
+    "help": {
+      "add": "Wähle «Zur Schnellwahl hinzufügen» im Menü einer Notiz oder eines Ordners (bei einem Ordner alle seine Notizen, Unterordner eingeschlossen), oder gib einer Notiz das Tag «{{tag}}».",
+      "boards": "Die Schaltfläche + erstellt eine weitere Schnellwahl, zum Beispiel Arbeit und Zuhause, und Reiter wechseln zwischen ihnen. Jede ist ein Tag, etwa «speed-dial-Arbeit». Ein Rechtsklick auf einen Reiter benennt ihn um oder löscht ihn: Beim Löschen bleiben die Notizen erhalten.",
+      "arrange": "Ziehe Kacheln und Gruppen, um sie zu verschieben. Die Schaltflächen dieser Zeile filtern die Kacheln und ändern ihre Grösse und die Breite der Seite. Das Menü ... unten rechts legt ein Hintergrundbild fest, und die Augen-Schaltfläche blendet aus, was du nicht brauchst."
+    },
+    "visibility": {
+      "edit": "Schaltfläche «Notiz öffnen»",
+      "size": "Schaltfläche für die Kachelgrösse"
+    }
+  },
+  "embeds": {
+    "resize": {
+      "hint": "Zum Ändern der Grösse ziehen, Doppelklick setzt sie zurück"
+    }
+  },
+  "sessions": {
+    "modal": {
+      "close": "Schliessen"
+    }
+  },
+  "display_profiles": {
+    "description": "Ein Profil speichert die Schriftgrössen, die Symbolgrössen und die Schriftarten dieses Browsers. Speichern Sie eines für jede Arbeitsweise (Laptop, grosser Bildschirm, Präsentation) und wechseln Sie mit der Bildschirm-Schaltfläche der Symbolleiste, auf jeder Seite.",
+    "delete_message": "Das Anzeigeprofil «{{name}}» wird gelöscht. Die aktuelle Anzeige ändert sich nicht.",
+    "saved": "Anzeigeprofil «{{name}}» gespeichert",
+    "applied": "Anzeigeprofil «{{name}}» angewendet",
+    "updated": "Anzeigeprofil «{{name}}» aktualisiert"
+  }
+}

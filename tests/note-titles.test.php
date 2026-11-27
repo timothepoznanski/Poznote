@@ -27,7 +27,8 @@ test('every dictionary\'s default title is in the written-out list', function ()
 
     foreach ($files as $file) {
         $lang = basename($file, '.json');
-        $title = i18nGet(loadI18nDictionary($lang), 'index.note.new_note');
+        // Along the language chain: de-ch.json only carries what differs from de.json.
+        $title = i18nGet(poznoteMergedI18nStrings($lang), 'index.note.new_note');
         if ($title === null || trim($title) === '') {
             fail($lang . '.json has no index.note.new_note');
         }

@@ -649,6 +649,7 @@
       "spanish": "Spanisch",
       "portuguese": "Portugiesisch",
       "german": "Deutsch",
+      "german_swiss": "Deutsch (Schweiz)",
       "russian": "Russisch",
       "chinese_simplified": "Vereinfachtes Chinesisch",
       "korean": "Koreanisch",
@@ -4102,7 +4103,7 @@
     },
     "actions": {
       "title": "Synchronisierungsaktionen",
-      "workspace": "Arbeitsbereich",
+      "workspace": "Arbeitsbereich: {{workspace}}",
       "target_workspace": "Zielarbeitsbereich",
       "all_workspaces": "Alle Arbeitsbereiche",
       "home_hint": "Senden und Abrufen können über die Seitenleiste der Startseite ausgeführt werden",
