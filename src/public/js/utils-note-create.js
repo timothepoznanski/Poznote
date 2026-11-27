@@ -366,7 +366,14 @@ function navigateToCreatedNoteInInternalTab(noteId, noteTitle, workspaceName, fo
         }
     }
 
-    window.location.href = buildIndexNoteUrl(noteId, workspace);
+    // On a phone, a page load stays on the list unless scroll=1 asks to
+    // slide to the note (index-events.js checkAndScrollToNote): a note just
+    // created is what the user wants to see.
+    var url = buildIndexNoteUrl(noteId, workspace);
+    if (window.innerWidth <= 800) {
+        url += (url.indexOf('?') === -1 ? '?' : '&') + 'scroll=1';
+    }
+    window.location.href = url;
     return Promise.resolve(true);
 }
 
