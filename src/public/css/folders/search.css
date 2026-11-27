@@ -88,3 +88,22 @@ html[data-theme='dark'] .input-highlight-overlay.search-highlight-active,
 html[data-theme='dark'] .note-header .input-highlight-overlay.search-highlight-active {
     background-color: color-mix(in srgb, var(--pz-mark-active) 40%, var(--pz-bg));
 }
+
+/* The search words in the Markdown editor (CodeMirror decorations, see
+   js/search-highlight.js). No padding, unlike the spans of the preview: the
+   editor measures its lines, and a padded mark shifts the caret off its text. */
+.cm-search-term {
+    background-color: var(--pz-mark);
+    color: var(--pz-text);
+    border-radius: var(--pz-radius-sm);
+}
+
+.cm-search-term.cm-search-term-active {
+    background-color: var(--pz-mark-active);
+}
+
+/* the syntax colours of the words inside give way, as in the preview */
+.cm-search-term.cm-search-term-active,
+.cm-search-term.cm-search-term-active * {
+    color: var(--pz-mark-active-text);
+}

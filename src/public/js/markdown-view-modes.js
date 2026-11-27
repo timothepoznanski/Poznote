@@ -36,6 +36,12 @@ function renderMarkdownPreview(previewDiv, markdownContent, noteId, options) {
                 window.initializeTaskListEmbeds(root);
             });
         }
+        // A search in progress: the words are marked in what was just drawn
+        // (a note opened in the editor and switched to the preview, the split
+        // preview redrawn while typing)
+        if (typeof window.highlightSearchTermsIn === 'function') {
+            window.highlightSearchTermsIn(roots);
+        }
         if (postProcess && noteId && roots.length > 0) {
             setTimeout(function () {
                 // A later render may have replaced some of them meanwhile
@@ -284,10 +290,19 @@ var _MD_LAST_MODE_KEY = 'poznote-markdown-view-mode';
 // With live rendering on (markdown_live_editing, discussion 1582) the editor
 // already shows the note formatted: the preview is no longer a step on the way,
 // notes open straight in the editor and the pencil steps aside while it is up.
-// The preview stays reachable where it is still shown on purpose (search
-// results, the split view), and the pencil comes back there to leave it.
+// The preview stays reachable where it is still shown on purpose (?view=preview,
+// the split view), and the pencil comes back there to leave it.
 function _mdIsLiveEditing() {
     return typeof window.isMarkdownLiveEditingEnabled === 'function' && window.isMarkdownLiveEditingEnabled();
+}
+
+// ?view=preview (issue #1714) opens the note rendered, whatever the settings
+function _mdHasViewPreviewParam() {
+    try {
+        return new URLSearchParams(window.location.search || '').get('view') === 'preview';
+    } catch (e) {
+        return false;
+    }
 }
 
 function _mdGetDefaultViewMode() {
@@ -413,12 +428,33 @@ function initializeMarkdownNote(noteId) {
         noteEntry.setAttribute('data-markdown-content', markdownContent);
     }
 
+    // Determine initial mode: edit or preview
+    var isEmpty = markdownContent.trim() === '';
+
+    // "Edit" and "Preview" chosen in Settings are the two classic views (the
+    // editor showing the Markdown source, the rendered preview): live
+    // rendering is turned off, as live preview and rich text turn it on (it
+    // is the account's, like the Classic entry of the view button's menu).
+    // Otherwise a live view chosen once stayed on: "Edit" opened in rich
+    // text, "Preview" in the live editor (_mdGetDefaultViewMode()).
+    // Only an explicit choice: a setting never made reads as 'edit' too when
+    // the account works in a live view (_mdGetConfiguredViewMode()), and
+    // "Last mode used" or a phone's stand-in for the split view keep it.
+    var chosenMode = '';
+    try {
+        chosenMode = (document.body && document.body.getAttribute(
+            isEmpty ? 'data-markdown-new-note-mode' : 'data-markdown-default-mode')) || '';
+    } catch (e) {
+        chosenMode = '';
+    }
+    if ((chosenMode === 'edit' || chosenMode === 'preview') && !_mdHasViewPreviewParam()) {
+        _mdSetLiveEditing(false);
+    }
+
     // Mode to open this note in: the user's default (markdown_default_view_mode
     // setting; its 'last' value follows the mode last used on any note).
     var defaultMode = _mdGetDefaultViewMode();
 
-    // Determine initial mode: edit or preview
-    var isEmpty = markdownContent.trim() === '';
     var startInEditMode;
     var startInSplitMode = false;
     var forceSplitForNewMarkdown = false;
@@ -427,17 +463,12 @@ function initializeMarkdownNote(noteId) {
     try {
         var params = new URLSearchParams(window.location.search || '');
         forceSplitForNewMarkdown = params.get('md_split') === '1';
-        // ?view=preview (issue #1714, a note used as a start page) opens like a
-        // search result: rendered, whatever the account's view. Opening another
-        // note drops it from the URL (js/note-loader.js).
-        // An empty note is no search result, there is nothing in it to
-        // highlight: a note created while a search is active (the search
-        // stays in the URL) opens like any new note, in the account's view,
-        // instead of in the classic preview with the editor hidden.
-        isSearchContext = (!isEmpty && (
-                             (params.get('search') && params.get('search').trim() !== '') ||
-                             (params.get('tags_search') && params.get('tags_search').trim() !== ''))) ||
-                         params.get('view') === 'preview';
+        // ?view=preview (issue #1714, a note used as a start page) opens the
+        // note rendered, whatever the account's view. Opening another note
+        // drops it from the URL (js/note-loader.js).
+        // A search result opens in the account's view like any note: the
+        // words are highlighted in the editor too (js/search-highlight.js).
+        isSearchContext = params.get('view') === 'preview';
 
         // Clean up the URL parameter after reading it
         if (forceSplitForNewMarkdown) {
@@ -464,9 +495,9 @@ function initializeMarkdownNote(noteId) {
     //   live rendering, which is then turned on as its button would
     // - Mobile: edit mode only, with live rendering when that is the choice
     // IMPORTANT: Never use split mode on mobile
-    // IMPORTANT: Never use split mode when displaying search results (preview only)
+    // IMPORTANT: Never use split mode with ?view=preview (preview only)
     if (isSearchContext) {
-        // In search context: always show preview only, never split
+        // ?view=preview: always show preview only, never split
         startInSplitMode = false;
         startInEditMode = false;
     } else if (isEmpty && !isMobileViewportCheck) {
@@ -1404,8 +1435,8 @@ function _mdGetViewCycle() {
 function getMarkdownViewState(noteId) {
     var noteEntry = document.getElementById('entry' + noteId);
     if (noteEntry && noteEntry.classList.contains('markdown-split-mode')) return 'split';
-    // The classic preview shown while the account works in a live view (a
-    // search result, ?view=preview): the note is in the classic view, the
+    // The classic preview shown while the account works in a live view
+    // (?view=preview, or chosen in the menu): the note is in the classic view, the
     // pencil leads back to the live one. Read on the preview pane itself,
     // whose display the switches set before they refresh the buttons.
     var previewDiv = noteEntry ? noteEntry.querySelector('.markdown-preview') : null;
